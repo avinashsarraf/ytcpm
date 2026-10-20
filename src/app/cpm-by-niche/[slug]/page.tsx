@@ -1,0 +1,89 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ArrowLeft, ArrowRight, ArrowUpRight, Percent, Lightbulb } from "lucide-react";
+import Faq from "@/components/faq";
+import { Reveal } from "@/components/motion";
+import { NICHE_ICONS } from "@/lib/niche-icons";
+import { NICHES, getNiche, countryMultiplier, CREATOR_SHARE, DATA_YEAR, money, viewsLabel, VIEW_PRESETS, COUNTRIES_BY_CPM, NICHES_BY_CPM } from "@/lib/data";
+
+export function generateStaticParams() { return NICHES.map((n) => ({ slug: n.slug })); }
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const n = getNiche(slug);
+  if (!n) return {};
+  return { title: `${n.name} YouTube CPM ${DATA_YEAR}: $${n.cpmLow}–$${n.cpmHigh} Rates`, description: `${n.name} channels earn $${n.cpmLow}–$${n.cpmHigh} CPM (US audience) in ${DATA_YEAR}.`, alternates: { canonical: `/cpm-by-niche/${n.slug}` } };
+}
+
+const TD: Record<string, string> = { S: "S-tier — highest-paying", A: "A-tier — above average", B: "B-tier — mid-market", C: "C-tier — volume plays" };
+
+export default async function NichePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const niche = getNiche(slug);
+  if (!niche) notFound();
+  const Icon = NICHE_ICONS[niche.icon];
+  const rpmLow = niche.cpmLow * CREATOR_SHARE;
+  const rpmHigh = niche.cpmHigh * CREATOR_SHARE;
+  const rank = NICHES_BY_CPM.findIndex((n) => n.slug === niche.slug) + 1;
+  const india = COUNTRIES_BY_CPM.find((c) => c.slug === "india")!;
+  const topCountries = COUNTRIES_BY_CPM.slice(0, 5).map((c) => ({ ...c, mult: countryMultiplier(c) }));
+  const countryRows = [...topCountries, { ...india, mult: countryMultiplier(india) }];
+  const faqs = [
+    { q: `What is the average CPM for ${niche.name} channels?`, a: `CPM $${niche.cpmLow}–$${niche.cpmHigh} (US). RPM $${rpmLow.toFixed(2)}–$${rpmHigh.toFixed(2)}.` },
+    { q: `How can I increase my ${niche.name} CPM?`, a: `${niche.tip} Target Tier-1 audiences, use mid-roll ads, publish in Q4.` },
+  ];
+  const faqLd = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) };
+  const related = NICHES_BY_CPM.filter((n) => n.slug !== slug).slice(0, 6);
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
+      <article className="relative overflow-hidden pt-28 sm:pt-36">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 blob-pink" aria-hidden />
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
+          <Reveal><nav className="flex items-center gap-2 text-xs text-fog"><Link href="/" className="hover:text-heading"><ArrowLeft className="inline h-3 w-3" /> Calculator</Link><span className="text-border">/</span><Link href="/cpm-by-niche" className="hover:text-heading">Niches</Link><span className="text-border">/</span><span className="text-heading font-medium">{niche.name}</span></nav></Reveal>
+
+          <div className="mt-6 grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
+            <Reveal delay={0.05}>
+              <div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-xl bg-yt-red-bg"><Icon className="h-5 w-5 text-yt-red" /></span><span className="tag-red text-[10px]">{TD[niche.tier]} · #{rank}</span></div>
+              <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-heading sm:text-5xl">{niche.name} <span className="text-yt-gradient">YouTube CPM</span></h1>
+              <p className="mt-4 max-w-xl text-sm leading-relaxed text-fog">{niche.desc}</p>
+            </Reveal>
+            <Reveal delay={0.1}>
+              <div className="panel p-5">
+                <div className="grid grid-cols-2 gap-4">
+                  <div><p className="text-[10px] font-bold uppercase tracking-wider text-fog">US CPM</p><p className="num-mono mt-1 text-2xl font-bold text-heading">${niche.cpmLow}–${niche.cpmHigh}</p></div>
+                  <div><p className="text-[10px] font-bold uppercase tracking-wider text-fog">RPM</p><p className="num-mono mt-1 text-2xl font-bold text-mint">${rpmLow.toFixed(2)}–${rpmHigh.toFixed(2)}</p></div>
+                </div>
+                <div className="mt-4 flex items-center justify-between rounded-lg bg-surface px-3 py-2 text-xs"><span className="text-fog">per 1M views</span><span className="num-mono font-bold text-heading">{money(rpmLow * 1000)} – {money(rpmHigh * 1000)}</span></div>
+              </div>
+            </Reveal>
+          </div>
+
+          <Reveal delay={0.08}><h2 className="mt-14 font-display text-2xl font-bold text-heading">Earnings by View Count</h2>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {VIEW_PRESETS.map((v) => (<div key={v} className="panel p-5"><p className="num-mono text-[10px] font-bold uppercase tracking-widest text-fog">{viewsLabel(v)} views</p><p className="num-mono mt-2 text-xl font-bold text-gradient-green">{money((v / 1000) * rpmLow)}–{money((v / 1000) * rpmHigh)}</p><p className="mt-1 text-[11px] text-fog">US audience</p></div>))}
+            </div>
+          </Reveal>
+
+          <section className="mt-14"><Reveal><h2 className="font-display text-2xl font-bold text-heading">{niche.name} CPM <span className="text-yt-gradient">by Country</span></h2></Reveal>
+            <div className="mt-5 overflow-hidden rounded-xl border border-border">
+              <div className="hidden grid-cols-[2fr_1fr_1fr_0.7fr] gap-3 border-b border-border bg-surface px-5 py-2.5 text-[11px] font-bold uppercase tracking-wider text-fog sm:grid"><span>Country</span><span className="text-right">CPM</span><span className="text-right">RPM</span><span className="text-right">vs US</span></div>
+              <div className="divide-y divide-border">{countryRows.map((c) => { const m = c.mult; const lo = niche.cpmLow * m; const hi = niche.cpmHigh * m; return (<Link key={c.slug} href={`/cpm-by-country/${c.slug}`} className="group grid grid-cols-2 gap-2 px-4 py-3 hover:bg-yt-red-bg sm:grid-cols-[2fr_1fr_1fr_0.7fr] sm:items-center sm:gap-3 sm:px-5"><span className="flex items-center gap-2 text-sm font-medium text-heading"><span className="num-mono grid h-6 w-7 place-items-center rounded bg-surface text-[10px] font-bold group-hover:bg-yt-red group-hover:text-white">{c.code}</span>{c.name}</span><span className="num-mono text-right text-sm text-fog">${lo.toFixed(2)}–${hi.toFixed(2)}</span><span className="num-mono text-right text-sm font-semibold text-mint">${(lo * CREATOR_SHARE).toFixed(2)}–${(hi * CREATOR_SHARE).toFixed(2)}</span><span className="hidden text-right sm:block num-mono text-xs text-fog">{Math.round(m * 100)}%</span></Link>); })}</div>
+            </div>
+          </section>
+
+          <Reveal><div className="mt-8 rounded-xl border border-gold/30 bg-gradient-to-r from-amber-50 to-transparent p-4"><p className="text-sm"><Lightbulb className="mr-2 inline h-4 w-4 text-gold" /><strong className="text-heading">Pro tip:</strong> <span className="text-fog">{niche.tip}</span></p></div></Reveal>
+
+          <section className="mt-14"><Reveal><h2 className="font-display text-2xl font-bold text-heading">FAQs — {niche.name}</h2></Reveal><Reveal delay={0.06} className="mt-5"><Faq items={faqs} /></Reveal></section>
+
+          <section className="mt-14 grid gap-8 pb-4 lg:grid-cols-2">
+            <div><h2 className="font-display text-xl font-bold text-heading">Related Niches</h2><div className="mt-4 flex flex-wrap gap-2">{related.map((n) => { const RIcon = NICHE_ICONS[n.icon]; return (<Link key={n.slug} href={`/cpm-by-niche/${n.slug}`} className="group flex items-center gap-1.5 rounded-full border border-border bg-white px-3.5 py-1.5 text-xs font-medium text-fog hover:border-yt-red/40 hover:text-heading"><RIcon className="h-3 w-3 group-hover:text-yt-red" />{n.name}</Link>); })}</div></div>
+            <div className="panel p-6"><h2 className="font-display text-xl font-bold text-heading">Run your numbers</h2><p className="mt-2 text-sm text-fog">Your views × {niche.name.toLowerCase()} rates — computed live.</p><Link href="/#calculator" className="group mt-4 inline-flex items-center gap-2 rounded-full bg-yt-red px-5 py-2.5 text-sm font-semibold text-white hover:bg-yt-red-hover">Open Calculator<ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" /></Link></div>
+          </section>
+        </div>
+      </article>
+    </>
+  );
+}
