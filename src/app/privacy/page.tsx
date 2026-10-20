@@ -19,7 +19,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="font-display text-lg font-bold text-heading">Summary</h2>
             <p className="mt-2">
-              We store <strong className="text-heading">anonymous calculation inputs and results</strong> and nothing
+              Browser calculations stay on your device. For direct calculation API requests, we store <strong className="text-heading">anonymous calculation inputs and results</strong> and nothing
               else. No accounts, no email addresses, no advertising cookies, and no third-party analytics.
             </p>
           </section>
@@ -32,7 +32,7 @@ export default function PrivacyPage() {
               <li>A server-side timestamp.</li>
             </ul>
             <p className="mt-2">
-              These rows are aggregated on the <strong className="text-heading">Live Monitor</strong> page. They contain
+              API calculation rows are aggregated on the <strong className="text-heading">Live Monitor</strong> page. They contain
               no IP address, user-agent, cookie, referrer or other identifier, so they cannot be tied back to a person.
             </p>
           </section>
@@ -49,8 +49,7 @@ export default function PrivacyPage() {
             <h2 className="font-display text-lg font-bold text-heading">Third parties</h2>
             <ul className="mt-2 list-disc space-y-2 pl-5">
               <li>
-                <strong className="text-heading">flagcdn.com</strong> serves country flag images. Your browser connects
-                directly, so their servers see your IP address.
+                <strong className="text-heading">Flag images</strong> are self-hosted. No flag CDN request is made from your browser.
               </li>
               <li>
                 <strong className="text-heading">Fonts</strong> are self-hosted at build time via next/font — no Google

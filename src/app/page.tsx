@@ -12,7 +12,7 @@ import WorldMap from "@/components/world-map";
 import { Reveal } from "@/components/motion";
 import {
   COUNTRIES, NICHES, COUNTRIES_BY_CPM, NICHES_BY_CPM, CREATOR_SHARE,
-  DATA_YEAR, DATA_UPDATED_AT, money, countryMultiplier,
+  DATA_YEAR, DATA_UPDATED_AT, money,
 } from "@/lib/data";
 import { flagUrl } from "@/lib/flags";
 
@@ -23,16 +23,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-const mean = (n: number[]) => n.reduce((a, b) => a + b, 0) / n.length;
-const avgOf = (c: { cpmLow: number; cpmHigh: number }) => (c.cpmLow + c.cpmHigh) / 2;
-
-/** The same synthetic "worldwide" benchmark the calculator starts from. */
-const WORLDWIDE = {
-  cpmLow: mean(COUNTRIES.map((c) => c.cpmLow)),
-  cpmHigh: mean(COUNTRIES.map((c) => c.cpmHigh)),
-};
-const TECH = NICHES.find((n) => n.slug === "technology-software") ?? NICHES[0];
-const DEFAULT_CPM = Math.round(avgOf(TECH) * countryMultiplier(WORLDWIDE as never) * 100) / 100;
+import { DEFAULT_CPM } from "@/lib/calculator";
 
 /* The reference orders its tables for readability, not strictly by CPM. */
 const COUNTRY_ORDER = ["united-states", "canada", "united-kingdom", "australia", "germany", "india"]
@@ -52,15 +43,15 @@ const NICHE_ROWS = [
 
 const WHY = [
   { icon: CalcIcon, tint: "bg-[#fde4ea] text-yt-red", title: "Easy to Use", copy: "Simple and clean interface with instant results." },
-  { icon: Database, tint: "bg-[#e8f0fb] text-blue", title: "Real CPM Data", copy: "Updated with latest global CPM rates by country." },
-  { icon: PieChart, tint: "bg-[#f0eafd] text-[#7c3aed]", title: "Multiple Tools", copy: "CPM calculator, earnings estimator & channel checker." },
+  { icon: Database, tint: "bg-[#e8f0fb] text-blue", title: "Country Benchmarks", copy: "Compare indicative CPM ranges across tracked markets." },
+  { icon: PieChart, tint: "bg-[#f0eafd] text-[#7c3aed]", title: "Multiple Tools", copy: "CPM calculator, earnings tables & monthly channel projections." },
   { icon: ShieldCheck, tint: "bg-[#e7f9ef] text-mint", title: "100% Free", copy: "No signup, no hidden charges, completely free to use." },
 ];
 
 const HERO_POINTS = [
   { icon: CheckCircle2, tint: "bg-[#e7f9ef] text-mint", title: "100% Free", sub: "No Registration" },
   { icon: Zap, tint: "bg-[#e8f0fb] text-blue", title: "Instant Results", sub: "Real-time Estimate" },
-  { icon: ShieldCheck, tint: "bg-[#f0eafd] text-[#7c3aed]", title: "Accurate Data", sub: "Based on Global CPM" },
+  { icon: ShieldCheck, tint: "bg-[#f0eafd] text-[#7c3aed]", title: "Clear Assumptions", sub: "Reference CPM Ranges" },
 ];
 
 const FAQS = [
@@ -78,7 +69,7 @@ const FAQS = [
   },
   {
     q: "Do I need to sign up to use this tool?",
-    a: "No. The calculator runs entirely in your browser, requires no account and stores nothing personal. We do log anonymous, aggregate usage counts so the Live Monitor page can show how many estimates have been run.",
+    a: "No. The calculator runs entirely in your browser, requires no account and stores nothing personal. Browser calculations are not logged. Direct requests to our calculation API may be stored anonymously for the Usage Monitor.",
   },
   {
     q: "How much does YouTube pay for 1,000 views?",
@@ -119,7 +110,7 @@ export default function Home() {
       <section className="hero-shell relative overflow-hidden">
         <div className="shell relative">
           <div className="grid items-center gap-2 lg:grid-cols-[1.05fr_0.95fr] lg:gap-4 xl:gap-8">
-            <div className="relative z-10 pt-9 sm:pt-12 lg:pb-16 xl:pb-24 2xl:pb-28">
+            <div className="relative z-10 pt-9 sm:pt-12 lg:pb-14 xl:pb-16">
               <Reveal>
                 <span className="inline-flex items-center gap-2 rounded-full border border-white bg-white/70 py-1 pl-1 pr-4 text-[12.5px] font-semibold text-heading shadow-[0_2px_10px_-4px_rgba(11,22,38,0.18)] backdrop-blur">
                   <span className="grid h-6 w-6 place-items-center rounded-full bg-[#fdf1d8]">
@@ -139,7 +130,7 @@ export default function Home() {
               <Reveal delay={0.12}>
                 <p className="mt-4 max-w-[26rem] text-[15px] leading-relaxed text-[#5b6b80] sm:text-[16px]">
                   Estimate how much you can earn from your YouTube videos based on views, CPM and country.
-                  Free, fast and accurate.
+                  Free, fast and transparent.
                 </p>
               </Reveal>
 
@@ -167,13 +158,13 @@ export default function Home() {
               {/* contain, never cover: cropping this render decapitates the
                   character at some breakpoints. Letterboxing is invisible
                   because the art is masked into the hero gradient. */}
-              <div className="relative mx-auto mb-2 h-[280px] w-full max-w-[400px] sm:h-[340px] sm:max-w-[480px] lg:mx-0 lg:mb-0 lg:h-[400px] lg:max-w-none xl:h-[470px] 2xl:h-[540px]">
+              <div className="relative mx-auto mb-2 h-[280px] w-full max-w-[400px] sm:h-[340px] sm:max-w-[480px] lg:mx-0 lg:mb-0 lg:h-[400px] lg:max-w-none xl:h-[440px]">
                 <Image
                   src="/hero-illustration.webp"
                   alt="3D illustration of a creator beside a laptop showing estimated YouTube earnings and CPM"
                   fill
                   priority
-                  sizes="(max-width: 640px) 400px, (max-width: 1024px) 480px, 50vw"
+                  sizes="(max-width: 640px) 400px, (max-width: 1024px) 480px, (max-width: 1600px) 48vw, 740px"
                   className="hero-art object-contain object-center"
                 />
               </div>
@@ -200,7 +191,7 @@ export default function Home() {
                 Why Use Our <span className="text-yt-red">YouTube CPM Calculator</span>?
               </h2>
               <p className="mt-3 text-[14px] leading-relaxed text-[#5b6b80]">
-                Get accurate YouTube earnings estimates and insights to plan your content strategy better.
+                Get indicative YouTube earnings estimates and insights to plan your content strategy better.
               </p>
             </div>
           </Reveal>
@@ -237,12 +228,12 @@ export default function Home() {
                     View All Countries <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </div>
-                <div className="grid gap-2 sm:grid-cols-[1.05fr_0.95fr] xl:grid-cols-[1fr_1.05fr]">
+                <div className="grid gap-2 sm:grid-cols-[1.05fr_0.95fr] lg:grid-cols-1 2xl:grid-cols-[1.1fr_0.9fr]">
                   <ul className="divide-y divide-border/70 px-3 py-2">
                     {COUNTRY_ORDER.map((c) => (
                       <li key={c.slug}>
                         <Link href={`/cpm-by-country/${c.slug}`} className="group flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-yt-red-light">
-                          <Image src={flagUrl(c.code, "w40")} alt={`${c.name} flag`} width={24} height={17} className="!h-[17px] !w-6 rounded-[3px] object-cover" unoptimized />
+                          <Image src={flagUrl(c.code)} alt={`${c.name} flag`} width={24} height={17} className="!h-[17px] !w-6 rounded-[3px] object-cover" unoptimized />
                           <span className="flex-1 truncate text-[12.5px] font-semibold text-[#4a5a6e] group-hover:text-heading">{c.name}</span>
                           <span className="num-mono text-[12.5px] font-extrabold text-heading">
                             {money(c.cpmLow, 2)} - {money(c.cpmHigh, 2)}
@@ -251,7 +242,7 @@ export default function Home() {
                       </li>
                     ))}
                   </ul>
-                  <div className="hidden items-center justify-center px-2 py-3 sm:flex">
+                  <div className="hidden items-center justify-center px-2 py-3 sm:flex lg:hidden 2xl:flex">
                     <WorldMap className="h-auto w-full opacity-95" />
                   </div>
                 </div>
@@ -310,7 +301,7 @@ export default function Home() {
                 <h2 className="text-[15px] font-extrabold text-yt-red">Important Note</h2>
               </div>
               <p className="mt-3 text-[12.5px] leading-relaxed text-[#5b6b80]">
-                This tool provides an estimated earnings based on average CPM rates. Actual YouTube earnings
+                This tool provides estimated earnings based on average CPM rates. Actual YouTube earnings
                 may vary depending on factors like audience location, content type, ad formats, and seasonal demand.
               </p>
               <div className="mt-4 flex items-center gap-2 rounded-xl bg-white px-3 py-2.5">

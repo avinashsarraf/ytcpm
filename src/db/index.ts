@@ -1,5 +1,6 @@
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
+import { logOnce } from "@/lib/log";
 import * as schema from "./schema";
 
 /**
@@ -40,6 +41,9 @@ export function getPool(): Pool {
         ? { ssl: { rejectUnauthorized: process.env.DATABASE_SSL_STRICT === "true" } }
         : {}),
     });
+    // Idle-client errors are emitted outside query promises; handle them so
+    // a database restart cannot crash the Node process.
+    globalForDb.__ytcpmPool.on("error", (error) => logOnce("database", "idle pool error", error));
   }
 
   return globalForDb.__ytcpmPool;

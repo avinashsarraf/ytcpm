@@ -1,42 +1,26 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import {
   Calculator as CalcIcon, Eye, DollarSign, Globe, BarChart3, Users,
   ArrowRight, SlidersHorizontal, TrendingUp,
 } from "lucide-react";
 import {
   COUNTRIES, NICHES, SEASONS, CREATOR_SHARE, money, viewsLabel,
-  countryMultiplier, type Country,
 } from "@/lib/data";
+
+import { WORLDWIDE, DEFAULT_NICHE, MAX_CPM, MAX_VIEWS, benchmarkCpm as getBenchmarkCpm, revenueFromCpm, parseViews } from "@/lib/calculator";
 
 /**
  * Reference-style calculator: views + CPM + country on one row, quick-view
  * chips, and four pastel metric tiles. The CPM field is pre-filled from the
- * live benchmark for the chosen niche/country but stays editable, so visitors
+ * reference benchmark for the chosen niche/country but stays editable, so visitors
  * who already know their CPM can type it and the ones who don't get a value.
  */
 
 const QUICK = [1_000, 10_000, 100_000, 1_000_000, 10_000_000, 50_000_000];
 const DEFAULT_VIEWS = 1_000_000;
 
-const avgOf = (c: { cpmLow: number; cpmHigh: number }) => (c.cpmLow + c.cpmHigh) / 2;
-const mean = (nums: number[]) => nums.reduce((a, b) => a + b, 0) / nums.length;
-
-/** Synthetic "Worldwide (Average)" entry so the default country is honest. */
-const WORLDWIDE: Country = {
-  slug: "worldwide",
-  name: "Worldwide (Average)",
-  code: "WW",
-  tier: 1,
-  cpmLow: mean(COUNTRIES.map((c) => c.cpmLow)),
-  cpmHigh: mean(COUNTRIES.map((c) => c.cpmHigh)),
-  currency: "USD",
-  fx: 1,
-  locale: "en-US",
-  note: "The blended average of every market tracked — a neutral starting point.",
-};
 
 const COUNTRIES_WITH_WORLD = [WORLDWIDE, ...COUNTRIES];
 const num = (n: number) => n.toLocaleString("en-US");
@@ -51,7 +35,7 @@ export default function Calculator() {
   const [tab, setTab] = useState<TabId>("cpm");
   const [views, setViews] = useState(DEFAULT_VIEWS);
   const [viewsText, setViewsText] = useState(num(DEFAULT_VIEWS));
-  const [nicheSlug, setNicheSlug] = useState("technology-software");
+  const [nicheSlug, setNicheSlug] = useState(DEFAULT_NICHE.slug);
   const [countrySlug, setCountrySlug] = useState("worldwide");
   const [seasonKey, setSeasonKey] = useState("annual");
   const [advanced, setAdvanced] = useState(false);
@@ -62,28 +46,27 @@ export default function Calculator() {
   const seasonMult = season?.mult ?? 1;
 
   const benchmarkCpm = useMemo(
-    () => avgOf(niche) * countryMultiplier(country) * seasonMult,
+    () => getBenchmarkCpm(niche, country, seasonMult),
     [niche, country, seasonMult]
   );
 
   /* Derived, not synced: the benchmark is the value until the visitor types
      their own CPM, and clearing the override snaps it back to the benchmark. */
-  const [cpmOverride, setCpmOverride] = useState<number | null>(null);
-  const cpm = cpmOverride ?? Math.round(benchmarkCpm * 100) / 100;
-
-  const gross = (views / 1000) * cpm;
-  const afterShare = gross * CREATOR_SHARE;
-  const fill70 = afterShare * 0.7;
+  const [cpmOverride, setCpmOverride] = useState<string | null>(null);
+  const [adShare, setAdShare] = useState(1);
+  const cpm = cpmOverride === null || cpmOverride === "" ? benchmarkCpm : Number(cpmOverride);
+  const { gross, creator: afterShare } = revenueFromCpm(views, cpm, adShare);
+  const fill70 = revenueFromCpm(views, cpm, 0.7).creator;
 
   const setViewsFromInput = (raw: string) => {
-    const digits = raw.replace(/[^\d]/g, "").slice(0, 12);
-    const value = digits ? Number(digits) : 0;
+    const value = parseViews(raw);
     setViews(value);
-    setViewsText(digits ? num(value) : "");
+    setViewsText(raw.replace(/[^\d]/g, "") ? num(value) : "");
   };
 
   return (
     <>
+      <noscript><p className="mb-4 rounded-xl border border-border bg-surface p-4 text-sm text-heading">Enable JavaScript to use the interactive calculator. You can still browse the country and niche benchmark pages.</p></noscript>
       <div className="card overflow-hidden !rounded-[20px] !shadow-[0_2px_6px_rgba(11,22,38,0.05),0_24px_60px_-24px_rgba(11,22,38,0.22)]">
         <div className="p-4 sm:p-6 xl:p-8">
         {/* ── Tabs ── */}
@@ -122,7 +105,7 @@ export default function Calculator() {
                     value={viewsText}
                     onChange={(e) => setViewsFromInput(e.target.value)}
                     placeholder="e.g. 1,000,000"
-                    className="field pl-9"
+                    className="field field-with-icon"
                     aria-label="Total views"
                   />
                 </span>
@@ -134,13 +117,14 @@ export default function Calculator() {
                   <DollarSign className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />
                   <input
                     inputMode="decimal"
-                    value={Number.isFinite(cpm) ? String(cpm) : ""}
+                    value={cpmOverride ?? String(benchmarkCpm)}
                     onChange={(e) => {
-                      const next = Number(e.target.value.replace(/[^\d.]/g, ""));
-                      setCpmOverride(Number.isFinite(next) ? Math.max(0, next) : 0);
+                      const next = e.target.value === "." ? "0." : e.target.value;
+                      if (/^\d*(\.\d{0,4})?$/.test(next) && Number(next) <= MAX_CPM) setCpmOverride(next);
                     }}
-                    placeholder="e.g. 3.50"
-                    className="field pl-9"
+                    onBlur={() => { if (cpmOverride === "") setCpmOverride(null); }}
+                    placeholder={String(benchmarkCpm)}
+                    className="field field-with-icon"
                     aria-label="CPM in US dollars"
                   />
                 </span>
@@ -156,7 +140,7 @@ export default function Calculator() {
                     value={countrySlug}
                     onChange={(e) => { setCountrySlug(e.target.value); setCpmOverride(null); }}
                     aria-label="Audience country"
-                    className="select-field pl-9"
+                    className="select-field field-with-icon"
                   >
                     <option value="worldwide">Worldwide (Average)</option>
                     {([1, 2, 3, 4] as const).map((tier) => (
@@ -228,8 +212,12 @@ export default function Calculator() {
                     {SEASONS.map((s) => <option key={s.q} value={s.q}>{s.q} · {s.label} ({s.mult.toFixed(2)}×)</option>)}
                   </select>
                 </label>
-                <p className="self-center text-[12px] leading-relaxed text-[#64748b]">
-                  Changing the niche or country re-fills the CPM with the live benchmark until you edit it yourself.
+                <label className="block">
+                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-[#64748b]">Views serving ads: {Math.round(adShare * 100)}%</span>
+                  <input aria-label="Views serving ads" type="range" min="0" max="100" step="5" value={Math.round(adShare * 100)} onChange={(e) => setAdShare(Number(e.target.value) / 100)} className="slider" />
+                </label>
+                <p className="text-xs leading-relaxed sm:col-span-2 lg:col-span-3">
+                  Long-form model: one ad impression per monetized view. Country, niche or season changes reset a custom CPM to the benchmark. Worldwide is an unweighted market average. Maximum {num(MAX_VIEWS)} views and {money(MAX_CPM)} CPM.
                 </p>
               </div>
             )}
@@ -246,12 +234,12 @@ export default function Calculator() {
             <div className="mt-3 overflow-hidden rounded-xl border border-border">
               <div className="grid grid-cols-3 gap-2 border-b border-border bg-surface px-4 py-2.5 text-[11px] font-bold uppercase tracking-wide text-[#7c8a9c]">
                 <span>Views</span>
-                <span className="text-right">Est. earnings</span>
-                <span className="text-right">After share</span>
+                <span className="text-right">Gross ad revenue</span>
+                <span className="text-right">Creator earnings</span>
               </div>
               <div className="divide-y divide-border">
                 {QUICK.map((v) => {
-                  const g = (v / 1000) * cpm;
+                  const g = revenueFromCpm(v, cpm, adShare).gross;
                   return (
                     <button
                       key={v}
@@ -268,7 +256,7 @@ export default function Calculator() {
               </div>
             </div>
             <p className="mt-3 text-[12px] text-[#64748b]">
-              Tap a row to load it into the calculator. “After share” is what reaches AdSense at a{" "}
+              Tap a row to load it into the calculator. Creator estimates assume the selected ad fill and a{" "}
               {Math.round(CREATOR_SHARE * 100)}% creator share.
             </p>
           </div>
@@ -286,7 +274,7 @@ export default function Calculator() {
                     inputMode="numeric"
                     value={viewsText}
                     onChange={(e) => setViewsFromInput(e.target.value)}
-                    className="field pl-9"
+                    className="field field-with-icon"
                     aria-label="Channel monthly views"
                   />
                 </span>
@@ -315,7 +303,7 @@ export default function Calculator() {
               <dl className="mt-3 space-y-2 text-[13px]">
                 {[
                   ["Annual", money(afterShare * 12)],
-                  ["Best-case Q4 month", money(afterShare * 1.6)],
+                  ["Best-case Q4 month", money(afterShare / seasonMult * Math.max(...SEASONS.map((s) => s.mult)))],
                   ["Per 1,000 views", money(cpm * CREATOR_SHARE, 2)],
                 ].map(([k, v]) => (
                   <div key={k} className="flex items-center justify-between border-b border-border/70 pb-1.5 last:border-0 last:pb-0">
@@ -335,11 +323,11 @@ export default function Calculator() {
       </div>
 
       {/* Result tiles sit outside the card, as in the reference */}
-      <div id="results" className="mt-4 grid scroll-mt-24 grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4 xl:gap-4">
+      <div role="region" aria-label="Earnings estimate" id="results" className="mt-4 grid scroll-mt-24 grid-cols-1 min-[420px]:grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4 xl:gap-4">
         <div className="tile tile-mint !px-3 !py-3 sm:!px-4">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#d3f3e1] text-mint sm:h-11 sm:w-11"><Eye className="h-5 w-5" /></span>
           <span className="min-w-0">
-            <span className="num-mono block truncate text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{num(views)}</span>
+            <span title={num(views)} className="num-mono block truncate text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{num(views)}</span>
             <span className="mt-0.5 block text-[10.5px] font-medium leading-tight text-[#5b6b80] sm:text-[11.5px]">Total Views</span>
           </span>
         </div>
@@ -354,7 +342,7 @@ export default function Calculator() {
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#fbe9b8] text-[#c2810a]"><BarChart3 className="h-5 w-5" /></span>
           <span className="min-w-0">
             <span className="num-mono block truncate text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{money(gross)}</span>
-            <span className="mt-0.5 block text-[10.5px] font-medium leading-tight text-[#5b6b80] sm:text-[11.5px]">Estimated Earnings</span>
+            <span className="mt-0.5 block text-[10.5px] font-medium leading-tight text-[#5b6b80] sm:text-[11.5px]">Gross Ad Revenue</span>
           </span>
         </div>
         <div className="tile tile-pink !px-3 !py-3 sm:!px-4">
@@ -365,14 +353,14 @@ export default function Calculator() {
           </span>
           <span className="min-w-0">
             <span className="num-mono block truncate text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{money(afterShare)}</span>
-            <span className="mt-0.5 block text-[10.5px] font-medium leading-tight text-[#5b6b80] sm:text-[11.5px]">After YouTube Share ({Math.round(CREATOR_SHARE * 100)}%)</span>
+            <span className="mt-0.5 block text-[10.5px] font-medium leading-tight text-[#5b6b80] sm:text-[11.5px]">Creator Earnings ({Math.round(CREATOR_SHARE * 100)}%)</span>
           </span>
         </div>
       </div>
 
       <p className="mt-3 flex items-start gap-1.5 text-[11.5px] leading-relaxed text-[#7c8a9c]">
         <TrendingUp className="mt-0.5 h-3.5 w-3.5 shrink-0 text-mint" />
-        Assumes every view serves an ad. At a realistic 70% ad fill the same {viewsLabel(views)} views return{" "}
+        Current model: {Math.round(adShare * 100)}% ad fill, long-form, before taxes. At an illustrative 70% ad fill the same {viewsLabel(views)} views return{" "}
         <strong className="font-semibold text-[#5b6b80]">{money(fill70)}</strong>.
       </p>
     </>

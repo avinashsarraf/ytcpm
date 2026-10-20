@@ -90,7 +90,7 @@ export function CountryBarChart({ countries }: { countries: Country[] }) {
                 transition={reduced ? { duration: 0 } : { duration: 0.7, delay: i * 0.04, ease: [0.22, 1, 0.36, 1] }}
                 className="block w-full max-w-9 rounded-t-md bg-gradient-to-t from-yt-red/60 to-yt-red transition-all duration-300 group-hover:from-yt-red group-hover:to-red-400 group-hover:shadow-[0_0_16px_rgba(0,0,0,0.12)]"
               />
-              <span className="mt-2"><Image src={flagUrl(c.code, "w40")} alt={`${c.name} flag`} width={24} height={16} className="flag-img !w-6 !h-4" unoptimized /></span>
+              <span className="mt-2"><Image src={flagUrl(c.code)} alt={`${c.name} flag`} width={24} height={16} className="flag-img !w-6 !h-4" unoptimized /></span>
             </Link>
           );
         })}
@@ -111,7 +111,7 @@ export function CountryFlagCards({ countries }: { countries: Country[] }) {
           <Link key={c.slug} href={`/cpm-by-country/${c.slug}`}
             className="panel panel-lift group flex flex-col items-center gap-2 p-5 text-center"
           >
-            <Image src={flagUrl(c.code, "w160")} alt={`${c.name} flag`} width={48} height={32} className="flag-img !w-12 !h-8 !rounded" unoptimized />
+            <Image src={flagUrl(c.code)} alt={`${c.name} flag`} width={48} height={32} className="flag-img !w-12 !h-8 !rounded" unoptimized />
             <span className="text-sm font-semibold text-heading">{c.name}</span>
             <span className="num-mono text-xl font-bold text-yt-red">${avg.toFixed(2)}</span>
             <span className={`text-[11px] font-semibold ${tier.color}`}>#{i + 1} · Tier {c.tier}</span>

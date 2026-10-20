@@ -99,7 +99,7 @@ function describe(error: unknown): Failure {
       "DATABASE_URL points at localhost. Inside a container localhost is the app itself — use the Postgres service name or the external host from the database resource.";
   }
 
-  return { code, hint, detail: message };
+  return { code, hint, ...(process.env.NODE_ENV !== "production" ? { detail: message } : {}) };
 }
 
 export async function GET() {

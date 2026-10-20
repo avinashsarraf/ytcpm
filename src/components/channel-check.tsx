@@ -1,22 +1,24 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowRight, Search, Link2 } from "lucide-react";
+import { ArrowRight, Calculator, Eye } from "lucide-react";
 import { motion } from "framer-motion";
-import { CREATOR_SHARE, SEASONS, money } from "@/lib/data";
+import { SEASONS, money } from "@/lib/data";
 
 /**
  * Pink CTA band from the reference — but wired to real arithmetic instead of a
  * fake YouTube lookup: the visitor supplies a channel's monthly views and we
  * apply the benchmark CPM. No API key, no scraping, no dead button.
  */
+import { parseViews, revenueFromCpm } from "@/lib/calculator";
+
 const num = (n: number) => n.toLocaleString("en-US");
 
 export default function ChannelCheck({ cpm }: { cpm: number }) {
   const [raw, setRaw] = useState("1200000");
-  const views = Math.max(0, Number(raw.replace(/[^\d]/g, "")) || 0);
+  const views = parseViews(raw);
 
-  const monthly = useMemo(() => (views / 1000) * cpm * CREATOR_SHARE, [views, cpm]);
+  const monthly = useMemo(() => revenueFromCpm(views, cpm).creator, [views, cpm]);
   const best = useMemo(() => Math.max(...SEASONS.map((s) => s.mult)), []);
 
   return (
@@ -30,46 +32,46 @@ export default function ChannelCheck({ cpm }: { cpm: number }) {
                 New
               </span>
               <h2 className="text-[19px] font-extrabold tracking-tight text-heading sm:text-[21px]">
-                Check Any YouTube Channel&apos;s <span className="text-yt-red">Estimated Earnings</span>
+                Project Your Channel&apos;s <span className="text-yt-red">Estimated Earnings</span>
               </h2>
             </div>
             <p className="mt-2 max-w-xl text-[13px] leading-relaxed text-[#5b6b80]">
               Enter a channel&apos;s monthly views to get estimated earnings, a yearly projection and the
-              RPM benchmark it should be hitting.
+              reference CPM used in this model.
             </p>
 
             <form
               className="mt-4 flex flex-col gap-2 sm:flex-row"
               onSubmit={(e) => {
                 e.preventDefault();
-                document.getElementById("channel-result")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                document.getElementById("channel-result")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "nearest" });
               }}
             >
               <span className="relative flex-1">
-                <Link2 className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />
+                <Eye className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />
                 <input
                   inputMode="numeric"
                   value={raw.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                  onChange={(e) => setRaw(e.target.value.replace(/[^\d]/g, "").slice(0, 12))}
+                  onChange={(e) => setRaw(e.target.value ? String(parseViews(e.target.value)) : "")}
                   placeholder="e.g. 1,200,000 monthly views"
                   aria-label="Channel monthly views"
-                  className="field h-[46px] !rounded-lg pl-10"
+                  className="field h-[46px] !rounded-lg field-with-icon"
                 />
               </span>
               <button
                 type="submit"
                 className="hot-gradient inline-flex h-[46px] items-center justify-center gap-2 rounded-lg px-6 text-[13.5px] font-bold text-white shadow-[0_8px_20px_-8px_rgba(238,18,73,0.7)] transition-transform hover:scale-[1.02]"
               >
-                <Search className="h-4 w-4" /> Check Channel <ArrowRight className="h-4 w-4" />
+                <Calculator className="h-4 w-4" /> Estimate Earnings <ArrowRight className="h-4 w-4" />
               </button>
             </form>
             <p className="mt-2 text-[11.5px] text-[#7c8a9c]">
-              We never query YouTube&apos;s API — the estimate comes from the view count you enter.
+              Long-form · {money(cpm, 2)} CPM · 100% ad fill · 55% creator share. No YouTube lookup; before taxes.
             </p>
           </div>
 
           {/* Result card */}
-          <div id="channel-result" className="rounded-2xl border border-white/70 bg-white p-4 shadow-[0_18px_44px_-24px_rgba(11,22,38,0.35)] sm:p-5">
+          <div id="channel-result" role="region" aria-label="Channel projection" className="rounded-2xl border border-white/70 bg-white p-4 shadow-[0_18px_44px_-24px_rgba(11,22,38,0.35)] sm:p-5">
             <div className="flex items-center gap-3">
               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface-2">
                 <svg viewBox="0 0 24 24" className="h-6 w-6 text-[#94a3b8]" fill="currentColor" aria-hidden>

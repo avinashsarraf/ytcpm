@@ -17,25 +17,15 @@ export function Reveal({
   const reduced = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.05, margin: "0px 0px -8% 0px" });
-  const [forced, setForced] = useState(false);
-
-  /* Safety net: if the observer never fires (print, full-page capture, an
-     embedded webview), reveal after 1.8s rather than leaving the block at
-     opacity 0. Keeps the same element mounted so inputs never reset. */
-  useEffect(() => {
-    const t = setTimeout(() => setForced(true), 1800);
-    return () => clearTimeout(t);
-  }, []);
-
-  const show = reduced || forced || inView;
+  const show = reduced || inView;
 
   return (
     <motion.div
       ref={ref}
       className={className}
       data-reveal=""
-      initial={{ opacity: 0, y }}
-      animate={show ? { opacity: 1, y: 0 } : { opacity: 0, y }}
+      initial={false}
+      animate={{ y: show ? 0 : y }}
       transition={
         reduced
           ? { duration: 0 }

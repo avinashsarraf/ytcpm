@@ -88,7 +88,8 @@ describe("estimateEarnings — long form", () => {
 
   it("clamps the ad-impression rate to a sane window", () => {
     const low = estimateEarnings({ views: 1000, niche: tech, country: US, type: "long", monetizedShare: 0 });
-    expect(low.monetizedShare).toBe(0.05);
+    expect(low.monetizedShare).toBe(0);
+    expect(low.monthlyHigh).toBe(0);
     const high = estimateEarnings({ views: 1000, niche: tech, country: US, type: "long", monetizedShare: 5 });
     expect(high.monetizedShare).toBe(1);
   });

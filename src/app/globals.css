@@ -13,7 +13,7 @@
   --color-heading: #0b1626;
   --color-navy: #0b1626;
 
-  /* #ee1249 keeps white-on-red at 4.6:1 (WCAG AA). */
+  /* Brand accent; primary button stops use darker colors for white labels. */
   --color-yt-red: #ee1249;
   --color-yt-red-hover: #d30b3e;
   --color-yt-red-deep: #a8062f;
@@ -83,7 +83,7 @@ p, li, figcaption { text-wrap: pretty; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
 /* ─── Cards ─── */
-.card {
+.card, .panel {
   background: #fff;
   border: 1px solid var(--color-border);
   border-radius: 1rem;
@@ -97,12 +97,6 @@ p, li, figcaption { text-wrap: pretty; }
 }
 
 /* Legacy alias — older pages still use .panel. */
-.panel {
-  background: var(--color-panel); border: 1px solid var(--color-border);
-  border-radius: 1rem;
-  box-shadow: var(--shadow-card);
-  transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
-}
 .panel:hover { box-shadow: 0 2px 6px rgba(11, 22, 38, 0.05), 0 16px 36px -18px rgba(11, 22, 38, 0.18); }
 .panel-lift:hover {
   transform: translateY(-4px);
@@ -113,17 +107,12 @@ p, li, figcaption { text-wrap: pretty; }
 
 /* ─── Gradients ─── */
 .hot-gradient {
-  background-image: linear-gradient(90deg, #fa4128 0%, #ee1249 58%, #e20d63 100%);
+  background-image: linear-gradient(90deg, #cf3020 0%, #d80c40 58%, #cf0957 100%);
 }
 .hot-gradient:hover {
-  background-image: linear-gradient(90deg, #ee3a22 0%, #d90b3f 58%, #cc0a58 100%);
+  background-image: linear-gradient(90deg, #b82719 0%, #bd0735 58%, #b5064b 100%);
 }
-.text-hot-gradient {
-  background-image: linear-gradient(90deg, #f8382c 0%, #ee1249 55%, #ea2f86 100%);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-}
-/* Legacy aliases */
-.text-yt-gradient {
+.text-hot-gradient, .text-yt-gradient {
   background-image: linear-gradient(90deg, #f8382c 0%, #ee1249 55%, #ea2f86 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
@@ -198,18 +187,14 @@ p, li, figcaption { text-wrap: pretty; }
 }
 .num-mono { font-variant-numeric: tabular-nums; }
 
-/* ─── Layout shell ───
-   Full-bleed by design: the page uses the whole viewport, gutters grow with it,
-   and the 1760px stop only exists so 4K monitors do not stretch a table to
-   unreadable widths. Everything inside is grid-based, so each breakpoint
-   reflows rather than simply scaling. */
+/* Full-bleed backgrounds, with a shared readable content grid. At 1440px
+   the layout still uses nearly the full width; ultrawides get breathing room
+   rather than ever-longer fields and empty cards. */
 .shell {
   width: 100%;
+  max-width: 1600px;
   margin-inline: auto;
-  /* Edge-to-edge on a 1920 display; the cap only stops a 4K/5K monitor from
-     stretching a four-column table into unreadable strips. */
-  max-width: 1920px;
-  padding-inline: clamp(1rem, 2.4vw, 3.5rem);
+  padding-inline: clamp(1rem, 3vw, 3rem);
 }
 .shell-narrow {
   width: 100%;
@@ -384,4 +369,17 @@ input[type="range"].slider::-moz-range-thumb { width: 18px; height: 18px; border
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Component selectors deliberately beat unlayered .field padding: utility
+   pl-* alone cannot override the base styles above in Tailwind v4. */
+.field.field-with-icon, .select-field.field-with-icon { padding-left: 2.5rem; }
+.field, .select-field { min-height: 46px; }
+.shell > *, .shell [class*="grid"] > * { min-width: 0; }
+#calculator, #results, #channel-result { scroll-margin-top: 6rem; }
+@media (pointer: coarse) {
+  #calculator button { min-height: 44px; }
+}
+@media print {
+  [data-reveal] { opacity: 1 !important; transform: none !important; }
 }

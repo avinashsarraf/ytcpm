@@ -13,10 +13,10 @@ import { Menu, X, Play } from "lucide-react";
 const LINKS = [
   { href: "/", label: "Home", exact: true },
   { href: "/#calculator", label: "CPM Calculator", exact: false },
-  { href: "/monitor", label: "YouTube Stats" },
+  { href: "/monitor", label: "Usage Monitor" },
   { href: "/cpm-by-country", label: "Country CPM" },
   { href: "/cpm-by-niche", label: "Niche CPM" },
-  { href: "/methodology", label: "Blog" },
+  { href: "/methodology", label: "Methodology" },
   { href: "/about", label: "About" },
 ];
 
@@ -46,7 +46,7 @@ export default function SiteHeader() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-5 lg:flex xl:gap-8 2xl:gap-10" aria-label="Primary">
+        <nav className="ml-auto hidden items-center gap-5 lg:flex xl:gap-8 2xl:gap-10" aria-label="Primary">
           {LINKS.map((l) => {
             const active = isActive(l.href, l.exact);
             return (
@@ -67,7 +67,7 @@ export default function SiteHeader() {
           })}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex items-center gap-2 lg:hidden">
           <button
             className="grid h-11 w-11 place-items-center rounded-lg border border-border text-heading lg:hidden"
             onClick={() => setOpen((v) => !v)}

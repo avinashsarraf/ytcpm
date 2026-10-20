@@ -1,7 +1,7 @@
 import { pgTable, serial, integer, text, numeric, timestamp, index } from "drizzle-orm/pg-core";
 
 /**
- * Every calculator run is logged here — this powers the /monitor dashboard
+ * Successful public calculation API requests are logged here (browser-only calculations are not) — this powers the /monitor dashboard
  * (usage analytics, popular niches/countries, daily volume).
  */
 export const calculations = pgTable(

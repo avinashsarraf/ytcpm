@@ -1,4 +1,4 @@
-/** Country code → flag image URL via flagcdn.com (real flags, no emoji font issues). */
+/** Self-hosted flag-icons SVGs (MIT). See public/flags/LICENSE.txt. */
 const CODE_MAP: Record<string, string> = {
   US: "us", AU: "au", NO: "no", CH: "ch", UK: "gb", NZ: "nz", SE: "se",
   DK: "dk", CA: "ca", NL: "nl", DE: "de", IE: "ie", FI: "fi", BE: "be",
@@ -6,7 +6,7 @@ const CODE_MAP: Record<string, string> = {
   PK: "pk", BD: "bd",
 };
 
-export function flagUrl(code: string, size: "w40" | "w80" | "w160" = "w80"): string {
+export function flagUrl(code: string): string {
   const iso = CODE_MAP[code] ?? code.toLowerCase();
-  return `https://flagcdn.com/${size}/${iso}.png`;
+  return `/flags/${iso}.svg`;
 }

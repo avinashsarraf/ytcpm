@@ -35,10 +35,10 @@ export default function CountryIndex() {
                     className="group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 transition-all duration-200 hover:bg-yt-red-light md:grid-cols-[2.2fr_0.5fr_1fr_1fr_1.2fr_0.6fr_28px] md:gap-2 md:px-5 md:py-3.5">
                     <span className="flex min-w-0 items-center gap-2.5">
                       <span className="num-mono w-5 shrink-0 text-xs text-fog">{String(i + 1).padStart(2, "0")}</span>
-                      <Image src={flagUrl(c.code, "w40")} alt={`${c.name} flag`} width={24} height={16} className="flag-img !h-4 !w-6 shrink-0 md:hidden" unoptimized />
+                      <Image src={flagUrl(c.code)} alt={`${c.name} flag`} width={24} height={16} className="flag-img !h-4 !w-6 shrink-0 md:hidden" unoptimized />
                       <span className="truncate text-sm font-semibold text-heading">{c.name}</span>
                     </span>
-                    <span className="hidden md:block"><Image src={flagUrl(c.code, "w40")} alt={`${c.name} flag`} width={24} height={16} className="flag-img !h-4 !w-6" unoptimized /></span>
+                    <span className="hidden md:block"><Image src={flagUrl(c.code)} alt={`${c.name} flag`} width={24} height={16} className="flag-img !h-4 !w-6" unoptimized /></span>
                     <span className="num-mono hidden text-right text-sm text-fog md:block">${c.cpmLow}–${c.cpmHigh}</span>
                     <span className="num-mono hidden text-right text-sm font-semibold text-mint md:block">${rpmLow.toFixed(2)}–${rpmHigh.toFixed(2)}</span>
                     <span className="num-mono hidden text-right text-sm text-heading md:block">{localMoney(per1m.low, c)}–{localMoney(per1m.high, c)}</span>

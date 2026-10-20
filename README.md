@@ -378,3 +378,17 @@ CI (`.github/workflows/ci.yml`) runs lint → typecheck → tests → migrations
 ## License
 
 No license file is present. Until one is added, the source is **all rights reserved** and may not be redistributed. Add a `LICENSE` file (e.g. MIT) if you intend to open-source the project.
+
+
+## October 2026 audit & UI regression checks
+
+See [AUDIT.md](./AUDIT.md) for fixed issues, validation results and outstanding production gates. Full-bleed backgrounds now use a shared 1600px content grid; long-form calculator assumptions and worldwide defaults are shared, and country flags are self-hosted.
+
+```bash
+# Start the app in another terminal, then:
+npx playwright install --with-deps chromium
+npm run test:ui
+# Optional: BASE_URL=http://localhost:3000 SCREENSHOT_DIR=/tmp/ytcpm-screens npm run test:ui
+```
+
+The UI smoke test checks seven viewport sizes, key routes, calculator interactions and API error handling. It submits test calculations, so use a local/test deployment rather than an unapproved live database.

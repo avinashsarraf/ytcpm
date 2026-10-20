@@ -149,7 +149,7 @@ export function estimateEarnings({
 }: EstimateInput): Estimate {
   const m = countryMultiplier(country);
   const s = clamp(season, 0.5, 2);
-  const adShare = clamp(monetizedShare, 0.05, 1);
+  const adShare = clamp(monetizedShare, 0, 1);
   let rpmLow: number, rpmHigh: number, cpmLow: number, cpmHigh: number;
 
   if (type === "shorts") {
