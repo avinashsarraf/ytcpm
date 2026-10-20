@@ -6,8 +6,10 @@
   --color-surface: #f9f9f9;
   --color-surface-2: #f1f1f1;
   --color-heading: #0f0f0f;
-  --color-yt-red: #ff0000;
-  --color-yt-red-hover: #cc0000;
+  /* #d90000 keeps white-on-red and red-on-white at 4.8:1 (WCAG AA). */
+  --color-yt-red: #d90000;
+  --color-yt-red-hover: #b30000;
+  --color-yt-red-deep: #7f0000;
   --color-yt-red-light: #fff0f0;
   --color-yt-red-bg: #fee2e2;
   --color-yt-dark: #282828;
@@ -19,11 +21,22 @@
 
   --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-space), var(--font-inter), sans-serif;
-  --font-serif: var(--font-instrument), Georgia, serif;
+  --font-serif: Georgia, "Times New Roman", serif;
   --font-mono: var(--font-jbmono), ui-monospace, monospace;
 }
 
 html { scroll-behavior: smooth; }
+:focus-visible { outline: 2px solid var(--color-yt-red); outline-offset: 2px; }
+
+/* ─── Skip link ─── */
+.skip-link {
+  position: fixed; top: -100px; left: 1rem; z-index: 100;
+  padding: 0.65rem 1rem; border-radius: 0.5rem;
+  background: var(--color-heading); color: #fff;
+  font-size: 0.875rem; font-weight: 600;
+  transition: top 0.15s ease;
+}
+.skip-link:focus { top: 0.75rem; }
 body { background: var(--color-ink); color: #333; font-family: var(--font-body); overflow-x: hidden; }
 ::selection { background: var(--color-yt-red); color: #fff; }
 ::-webkit-scrollbar { width: 8px; }
@@ -166,4 +179,14 @@ input[type="range"].slider::-moz-range-thumb { width: 18px; height: 18px; border
 .animate-shimmer {
   background: linear-gradient(90deg, transparent 30%, rgba(255,255,255,0.6) 50%, transparent 70%);
   background-size: 200% 100%; animation: shimmer 3s ease-in-out infinite;
+}
+
+/* ─── Reduced motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
