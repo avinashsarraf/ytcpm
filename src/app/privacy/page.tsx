@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import ProsePage from "@/components/prose-page";
 import { DATA_UPDATED_AT } from "@/lib/data";
 
 export const metadata: Metadata = {
@@ -9,10 +10,10 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <article className="pt-28 sm:pt-32">
-      <div className="mx-auto max-w-3xl px-4 pb-10 sm:px-6">
-        <p className="tag-red w-fit text-[10px]">Last updated {DATA_UPDATED_AT}</p>
-        <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-heading sm:text-5xl">Privacy Policy</h1>
+    <ProsePage
+      eyebrow={<>Last updated {DATA_UPDATED_AT}</>}
+      title={<>Privacy Policy</>}
+    >
 
         <div className="mt-8 space-y-8 text-sm leading-relaxed text-fog">
           <section>
@@ -92,7 +93,6 @@ export default function PrivacyPage() {
             </p>
           </section>
         </div>
-      </div>
-    </article>
+      </ProsePage>
   );
 }

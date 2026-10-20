@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import ProsePage from "@/components/prose-page";
 import Link from "next/link";
 import { ArrowRight, Calculator, Database, Globe2, Layers, Percent, TrendingUp } from "lucide-react";
 import {
@@ -25,17 +26,12 @@ const Section = ({ icon: Icon, title, children }: { icon: typeof Globe2; title: 
 
 export default function MethodologyPage() {
   return (
-    <article className="relative overflow-hidden pt-28 sm:pt-32">
-      <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 blob-pink" aria-hidden />
-      <div className="relative mx-auto max-w-3xl px-4 pb-10 sm:px-6">
-        <p className="tag-red w-fit text-[10px]">Transparency · reviewed {DATA_UPDATED_AT}</p>
-        <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-heading sm:text-5xl">
-          How we calculate <span className="text-yt-gradient">CPM &amp; RPM</span>
-        </h1>
-        <p className="mt-4 text-base leading-relaxed text-fog">
-          Every number on this site comes from a single published dataset and one formula module.
-          This page documents both, so you can judge — and challenge — the estimates.
-        </p>
+    <ProsePage
+      eyebrow={<>Transparency · reviewed {DATA_UPDATED_AT}</>}
+      title={<>How we calculate <span className="text-yt-gradient">CPM &amp; RPM</span></>}
+      lede={<>Every number on this site comes from a single published dataset and one formula module.
+          This page documents both, so you can judge — and challenge — the estimates.</>}
+    >
 
         <Section icon={Database} title="Where the numbers come from">
           <p>
@@ -125,7 +121,6 @@ monthly = (views / 1000) × rpm`}</code></pre>
             Open the calculator <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
-      </div>
-    </article>
+      </ProsePage>
   );
 }

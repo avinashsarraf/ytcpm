@@ -9,15 +9,36 @@ import { StatBar } from "@/components/charts";
 import { viewsLabel, money } from "@/lib/data";
 import { logOnce } from "@/lib/log";
 
-export const metadata: Metadata = { title: "Live Usage Monitor", description: "Real-time analytics of the ytcpm.online YouTube CPM calculator.", robots: { index: false, follow: true }, alternates: { canonical: "/monitor" } };
-// Cached for 60s: the aggregate queries are expensive and the data is an
-// anonymous usage summary, not per-user state. See deployment.md#performance.
-export const revalidate = 60;
+export const metadata: Metadata = { title: "Live Usage Monitor", description: "Usage analytics for the ytcpm.online YouTube CPM calculator.", robots: { index: false, follow: true }, alternates: { canonical: "/monitor" } };
+
+/**
+ * Rendered on demand, never prerendered: a build-time query against the
+ * placeholder DATABASE_URL produced noise in CI/Docker builds and cached a
+ * "database not connected" page for the first minute after a deploy.
+ * Results are memoised in-process instead (cheap, per-instance, 60s).
+ */
+export const dynamic = "force-dynamic";
+
+const CACHE_TTL_MS = 60_000;
+const FAILURE_TTL_MS = 15_000;
 
 interface DayRow { day: string; dv: string; c: number }
 interface GroupRow { name: string; c: number }
 
-async function getStats() {
+type Stats = Awaited<ReturnType<typeof loadStats>>;
+
+let cache: { at: number; value: Stats } | null = null;
+
+async function getStats(): Promise<Stats> {
+  if (cache && Date.now() - cache.at < (cache.value.ok ? CACHE_TTL_MS : FAILURE_TTL_MS)) {
+    return cache.value;
+  }
+  const value = await loadStats();
+  cache = { at: Date.now(), value };
+  return value;
+}
+
+async function loadStats() {
   if (!isDatabaseConfigured()) return { ok: false as const };
   try {
     const [totalRow] = await db.select({ c: count() }).from(calculations);
@@ -40,9 +61,9 @@ export default async function MonitorPage() {
   const maxCountry = s.ok && s.byCountry.length ? Number(s.byCountry[0].c) : 1;
 
   return (
-    <section className="relative overflow-hidden pt-28 sm:pt-36">
+    <section className="relative overflow-hidden pt-24 sm:pt-28 lg:pt-32">
       <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 blob-pink" aria-hidden />
-      <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="relative shell">
         <Reveal>
           <div className="flex items-center gap-3">
             <span className="grid h-9 w-9 place-items-center rounded-full bg-yt-red-bg"><Activity className="h-4 w-4 text-yt-red" /></span>
@@ -56,7 +77,7 @@ export default async function MonitorPage() {
           <div className="panel mt-10 p-10 text-center"><Database className="mx-auto h-6 w-6 text-yt-red" /><p className="mt-3 font-semibold text-heading">Database not connected yet</p></div>
         ) : (
           <>
-            <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:gap-4">
               {[
                 { icon: MousePointerClick, label: "Total calculations", value: s.total.toLocaleString(), accent: "text-heading" },
                 { icon: Activity, label: "Last 7 days", value: s.week.toLocaleString(), accent: "text-yt-red" },
@@ -75,7 +96,7 @@ export default async function MonitorPage() {
               </div>
             </div></Reveal>
 
-            <div className="mt-5 grid gap-5 lg:grid-cols-2">
+            <div className="mt-5 grid gap-5 lg:grid-cols-2 2xl:grid-cols-[1fr_1fr]">
               <Reveal delay={0.05}><div className="panel p-6"><h2 className="flex items-center gap-2 font-display text-lg font-bold text-heading"><Layers className="h-4 w-4 text-yt-red" /> Most-checked niches</h2><div className="mt-5 space-y-2">{s.byNiche.map((r, i) => (<StatBar key={r.name} label={r.name} value={Number(r.c)} max={maxNiche} right={`${Number(r.c)}`} delay={i * 0.04} />))}</div></div></Reveal>
               <Reveal delay={0.1}><div className="panel p-6"><h2 className="flex items-center gap-2 font-display text-lg font-bold text-heading"><Globe2 className="h-4 w-4 text-yt-red" /> Most-checked countries</h2><div className="mt-5 space-y-2">{s.byCountry.map((r, i) => (<StatBar key={r.name} label={r.name} value={Number(r.c)} max={maxCountry} right={`${Number(r.c)}`} delay={i * 0.04} />))}</div></div></Reveal>
             </div>

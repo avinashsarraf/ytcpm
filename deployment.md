@@ -223,9 +223,24 @@ Use `/api/health` for uptime monitoring (BetterStack, UptimeRobot, Coolify notif
 Sample readiness payloads:
 
 ```json
-{ "ok": true,  "database": "up" }
-{ "ok": false, "database": "down" }
-{ "ok": false, "database": "not_configured" }
+{ "ok": true, "database": "up", "latencyMs": 3 }
+
+{ "ok": false, "database": "not_configured", "missing": ["DATABASE_URL"],
+  "hint": "Set DATABASE_URL in Coolify → the app → Environment Variables. …" }
+
+{ "ok": false, "database": "down", "code": "ECONNREFUSED",
+  "detail": "connect ECONNREFUSED 127.0.0.1:5432",
+  "hint": "DATABASE_URL points at localhost. Inside a container localhost is the app itself — use the Postgres service name …" }
+```
+
+Failures include the driver `code` and a `hint` for the 12 most common causes
+(`ECONNREFUSED`, `ENOTFOUND`, `ETIMEDOUT`, `28P01`, `28000`, `3D000`, `42501`,
+self-signed-certificate errors, …). Credentials are masked — the response never
+echoes the password. The startup log prints the same masked target:
+
+```text
+[entrypoint] database target: postgresql://***:***@postgres:5432/ytcpm
+[entrypoint] migrations OK — schema is up to date
 ```
 
 ---
@@ -349,7 +364,9 @@ The app is stateless **except** for the in-memory rate limiter (`src/lib/rate-li
 | Symptom | Cause | Fix |
 |---|---|---|
 | `503 {"ok":false,"database":"not_configured"}` | `DATABASE_URL` not set in the app environment | Add it, redeploy/restart |
-| `503 {"ok":false,"database":"down"}` | Wrong host/port, DB not ready, TLS mismatch | Use the **internal** URL; check `DATABASE_SSL`; test with `psql` from the app container |
+| `503 {"ok":false,"database":"down"}` | Wrong host/port, DB not ready, TLS mismatch | Read the `hint`/`code` in the response; use the **internal** URL; check `DATABASE_SSL`; test with `psql` from the app container |
+| Health says `ECONNREFUSED 127.0.0.1:5432` | URL uses `localhost` inside a container | Replace `localhost` with the Postgres service name (compose) or the resource's internal host (Coolify) |
+| Health says `3D000` | Database name in the URL does not exist | Use the DB created by the Postgres resource, or `CREATE DATABASE` |
 | `password authentication failed` | Special characters in the password not URL-encoded | Encode `@ : / ?` as `%40 %3A %2F %3F`, or use a generated password |
 | `ENOTFOUND` / `ECONNREFUSED` on `db:5432` | App and DB in different networks | Put both in the same Coolify project/network, or use the DB's public/internal hostname |
 | Build fails: `npm ci` lockfile mismatch | `package.json` changed without the lockfile | Run `npm install`, commit `package-lock.json` |
