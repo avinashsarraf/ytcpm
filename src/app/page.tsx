@@ -6,9 +6,7 @@ import {
   PieChart, ArrowRight, ArrowUpRight, Lightbulb, Sparkles,
 } from "lucide-react";
 import Calculator from "@/components/calculator";
-import ChannelCheck from "@/components/channel-check";
 import Faq from "@/components/faq";
-import WorldMap from "@/components/world-map";
 import { Reveal } from "@/components/motion";
 import {
   COUNTRIES, NICHES, COUNTRIES_BY_CPM, NICHES_BY_CPM, CREATOR_SHARE,
@@ -23,7 +21,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-import { DEFAULT_CPM } from "@/lib/calculator";
 
 /* The reference orders its tables for readability, not strictly by CPM. */
 const COUNTRY_ORDER = ["united-states", "canada", "united-kingdom", "australia", "germany", "india"]
@@ -112,7 +109,7 @@ export default function Home() {
           <div className="grid items-center gap-2 lg:grid-cols-[1.05fr_0.95fr] lg:gap-4 xl:gap-8">
             <div className="relative z-10 pt-9 sm:pt-12 lg:pb-14 xl:pb-16">
               <Reveal>
-                <span className="inline-flex items-center gap-2 rounded-full border border-white bg-white/70 py-1 pl-1 pr-4 text-[12.5px] font-semibold text-heading shadow-[0_2px_10px_-4px_rgba(11,22,38,0.18)] backdrop-blur">
+                <span className="inline-flex items-center gap-2 rounded-full border border-white bg-white/70 py-1 pl-1 pr-4 text-[14px] font-semibold text-heading shadow-[0_2px_10px_-4px_rgba(11,22,38,0.18)] backdrop-blur">
                   <span className="grid h-6 w-6 place-items-center rounded-full bg-[#fdf1d8]">
                     <Zap className="h-3.5 w-3.5 fill-[#f59e0b] text-[#f59e0b]" />
                   </span>
@@ -144,8 +141,8 @@ export default function Home() {
                           <Icon className="h-4 w-4" />
                         </span>
                         <span>
-                          <span className="block text-[12.5px] font-bold leading-tight text-heading">{p.title}</span>
-                          <span className="block text-[11.5px] leading-tight text-[#7c8a9c]">{p.sub}</span>
+                          <span className="block text-[14px] font-bold leading-tight text-heading">{p.title}</span>
+                          <span className="block text-[13px] leading-tight text-[#5b6b80]">{p.sub}</span>
                         </span>
                       </li>
                     );
@@ -155,17 +152,16 @@ export default function Home() {
             </div>
 
             <Reveal delay={0.1} className="relative">
-              {/* contain, never cover: cropping this render decapitates the
-                  character at some breakpoints. Letterboxing is invisible
-                  because the art is masked into the hero gradient. */}
-              <div className="relative mx-auto mb-2 h-[280px] w-full max-w-[400px] sm:h-[340px] sm:max-w-[480px] lg:mx-0 lg:mb-0 lg:h-[400px] lg:max-w-none xl:h-[440px]">
+              {/* Natural image aspect ratio keeps the edge mask aligned to the artwork. */}
+              <div className="relative mx-auto mb-2 w-full max-w-[400px] sm:max-w-[480px] lg:mb-0 lg:max-w-[620px]">
                 <Image
                   src="/hero-illustration.webp"
                   alt="3D illustration of a creator beside a laptop showing estimated YouTube earnings and CPM"
-                  fill
+                  width={1200}
+                  height={900}
                   priority
                   sizes="(max-width: 640px) 400px, (max-width: 1024px) 480px, (max-width: 1600px) 48vw, 740px"
-                  className="hero-art object-contain object-center"
+                  className="hero-art h-auto w-full object-contain"
                 />
               </div>
             </Reveal>
@@ -174,7 +170,7 @@ export default function Home() {
       </section>
 
       {/* ══════ CALCULATOR ══════ */}
-      <section id="calculator" className="relative scroll-mt-24 bg-white pb-8 sm:pb-10">
+      <section id="calculator" className="relative scroll-mt-24 bg-white pb-5 sm:pb-6">
         <div className="shell">
           <div className="relative -mt-4 sm:-mt-6">
             <Calculator />
@@ -183,7 +179,7 @@ export default function Home() {
       </section>
 
       {/* ══════ WHY USE ══════ */}
-      <section className="section-y bg-white">
+      <section className="bg-white pb-9 pt-6 sm:pb-12 sm:pt-8">
         <div className="shell">
           <Reveal>
             <div className="mx-auto max-w-2xl text-center">
@@ -196,17 +192,17 @@ export default function Home() {
             </div>
           </Reveal>
 
-          <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:gap-5">
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:gap-5">
             {WHY.map((w, i) => {
               const Icon = w.icon;
               return (
                 <Reveal key={w.title} delay={i * 0.05}>
-                  <div className="card card-hover h-full p-5 xl:p-6">
+                  <div className="card card-hover h-full p-5">
                     <span className={`grid h-11 w-11 place-items-center rounded-xl ${w.tint}`}>
                       <Icon className="h-5 w-5" />
                     </span>
                     <h3 className="mt-4 text-[15px] font-extrabold text-heading">{w.title}</h3>
-                    <p className="mt-1.5 text-[12.5px] leading-relaxed text-[#5b6b80]">{w.copy}</p>
+                    <p className="mt-1.5 text-[14px] leading-relaxed text-[#5b6b80]">{w.copy}</p>
                   </div>
                 </Reveal>
               );
@@ -218,33 +214,31 @@ export default function Home() {
       {/* ══════ CPM BY COUNTRY + NICHE ══════ */}
       <section className="bg-surface py-7 sm:py-9">
         <div className="shell">
-          <div className="grid gap-4 lg:grid-cols-2 xl:gap-5 2xl:grid-cols-[1.08fr_0.92fr]">
+          <div className="grid gap-4 lg:grid-cols-2 xl:gap-5 ">
             {/* Country */}
             <Reveal>
               <div className="card h-full overflow-hidden">
-                <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-3.5">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-3.5">
                   <h2 className="text-[15px] font-extrabold text-heading">YouTube CPM by Country</h2>
-                  <Link href="/cpm-by-country" className="inline-flex items-center gap-1 text-[12px] font-bold text-blue hover:gap-2 transition-all">
+                  <Link href="/cpm-by-country" className="inline-flex items-center gap-1 text-[13px] font-bold text-[#1d4ed8] hover:gap-2 transition-all">
                     View All Countries <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </div>
-                <div className="grid gap-2 sm:grid-cols-[1.05fr_0.95fr] lg:grid-cols-1 2xl:grid-cols-[1.1fr_0.9fr]">
+                <div>
                   <ul className="divide-y divide-border/70 px-3 py-2">
                     {COUNTRY_ORDER.map((c) => (
                       <li key={c.slug}>
                         <Link href={`/cpm-by-country/${c.slug}`} className="group flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-yt-red-light">
                           <Image src={flagUrl(c.code)} alt={`${c.name} flag`} width={24} height={17} className="!h-[17px] !w-6 rounded-[3px] object-cover" unoptimized />
-                          <span className="flex-1 truncate text-[12.5px] font-semibold text-[#4a5a6e] group-hover:text-heading">{c.name}</span>
-                          <span className="num-mono text-[12.5px] font-extrabold text-heading">
+                          <span className="min-w-0 flex-1 text-[14px] font-semibold text-[#4a5a6e] group-hover:text-heading">{c.name}</span>
+                          <span className="num-mono text-[14px] font-extrabold text-heading">
                             {money(c.cpmLow, 2)} - {money(c.cpmHigh, 2)}
                           </span>
                         </Link>
                       </li>
                     ))}
                   </ul>
-                  <div className="hidden items-center justify-center px-2 py-3 sm:flex lg:hidden 2xl:flex">
-                    <WorldMap className="h-auto w-full opacity-95" />
-                  </div>
+
                 </div>
               </div>
             </Reveal>
@@ -252,9 +246,9 @@ export default function Home() {
             {/* Niche */}
             <Reveal delay={0.06}>
               <div className="card h-full overflow-hidden">
-                <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-3.5">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-3.5">
                   <h2 className="text-[15px] font-extrabold text-heading">YouTube CPM by Niche</h2>
-                  <Link href="/cpm-by-niche" className="inline-flex items-center gap-1 text-[12px] font-bold text-blue hover:gap-2 transition-all">
+                  <Link href="/cpm-by-niche" className="inline-flex items-center gap-1 text-[13px] font-bold text-[#1d4ed8] hover:gap-2 transition-all">
                     View All Niches <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </div>
@@ -265,8 +259,8 @@ export default function Home() {
                         <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-md text-[13px] ${row.tint}`} aria-hidden>
                           {row.icon}
                         </span>
-                        <span className="flex-1 truncate text-[12.5px] font-semibold text-[#4a5a6e] group-hover:text-heading">{row.niche!.name}</span>
-                        <span className="num-mono text-[12.5px] font-extrabold text-heading">
+                        <span className="min-w-0 flex-1 text-[14px] font-semibold text-[#4a5a6e] group-hover:text-heading">{row.niche!.name}</span>
+                        <span className="num-mono text-[14px] font-extrabold text-heading">
                           {money(row.niche!.cpmLow, 2)} - {money(row.niche!.cpmHigh, 2)}
                         </span>
                       </Link>
@@ -278,9 +272,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* ══════ CHANNEL CHECK ══════ */}
-      <ChannelCheck cpm={DEFAULT_CPM} />
 
       {/* ══════ FAQ ══════ */}
       <section className="bg-white py-10 sm:py-12">
@@ -300,17 +291,17 @@ export default function Home() {
                 </span>
                 <h2 className="text-[15px] font-extrabold text-yt-red">Important Note</h2>
               </div>
-              <p className="mt-3 text-[12.5px] leading-relaxed text-[#5b6b80]">
+              <p className="mt-3 text-[14px] leading-relaxed text-[#5b6b80]">
                 This tool provides estimated earnings based on average CPM rates. Actual YouTube earnings
                 may vary depending on factors like audience location, content type, ad formats, and seasonal demand.
               </p>
               <div className="mt-4 flex items-center gap-2 rounded-xl bg-white px-3 py-2.5">
                 <Sparkles className="h-4 w-4 shrink-0 text-yt-red" />
-                <p className="text-[11.5px] leading-snug text-[#5b6b80]">
+                <p className="text-[13px] leading-snug text-[#5b6b80]">
                   Benchmarks reviewed <strong className="font-bold text-heading">{DATA_UPDATED_AT}</strong> · {COUNTRIES.length} countries · {NICHES.length} niches
                 </p>
               </div>
-              <Link href="/methodology" className="mt-3 inline-flex items-center gap-1 text-[12px] font-bold text-yt-red hover:gap-2 transition-all">
+              <Link href="/methodology" className="mt-3 inline-flex items-center gap-1 text-[13px] font-bold text-yt-red hover:gap-2 transition-all">
                 Read the methodology <ArrowUpRight className="h-3.5 w-3.5" />
               </Link>
             </aside>

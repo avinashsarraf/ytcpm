@@ -37,7 +37,7 @@ export default function Faq({ items, idPrefix = "faq" }: { items: FaqItem[]; idP
               aria-controls={panelId}
               className="flex w-full items-center justify-between gap-4 px-4 py-3.5 text-left sm:px-5"
             >
-              <span className="text-[13.5px] font-bold text-heading">{item.q}</span>
+              <span className="text-[15px] font-bold text-heading">{item.q}</span>
               <motion.span
                 animate={{ rotate: isOpen && !reduced ? 45 : 0 }}
                 transition={{ duration: 0.2 }}
@@ -60,7 +60,7 @@ export default function Faq({ items, idPrefix = "faq" }: { items: FaqItem[]; idP
                   transition={reduced ? { duration: 0 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
                   className="overflow-hidden"
                 >
-                  <p className="px-4 pb-4 text-[12.5px] leading-relaxed text-[#5b6b80] sm:max-w-[60ch] sm:px-5">{item.a}</p>
+                  <p className="px-4 pb-4 text-[14px] leading-relaxed text-[#5b6b80] sm:max-w-[60ch] sm:px-5">{item.a}</p>
                 </motion.div>
               )}
             </AnimatePresence>

@@ -54,7 +54,7 @@ export default function SiteHeader() {
                 key={l.href}
                 href={l.href}
                 aria-current={active ? "page" : undefined}
-                className={`relative whitespace-nowrap py-5 text-[13px] font-semibold transition-colors xl:text-[13.5px] ${
+                className={`relative whitespace-nowrap py-5 text-[14px] font-semibold transition-colors xl:text-[14px] ${
                   active ? "text-yt-red" : "text-[#4a5a6e] hover:text-heading"
                 }`}
               >

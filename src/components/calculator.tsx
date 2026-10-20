@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import {
   Calculator as CalcIcon, Eye, DollarSign, Globe, BarChart3, Users,
-  ArrowRight, SlidersHorizontal, TrendingUp,
+  ArrowRight, SlidersHorizontal,
 } from "lucide-react";
 import {
   COUNTRIES, NICHES, SEASONS, CREATOR_SHARE, money, viewsLabel,
@@ -79,7 +79,7 @@ export default function Calculator() {
                 key={t.id}
                 aria-pressed={active}
                 onClick={() => setTab(t.id)}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-[12.5px] font-bold transition-all duration-200 xl:px-4 xl:text-[13.5px] ${
+                className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-[14px] font-bold transition-all duration-200 xl:px-4 xl:text-[13.5px] ${
                   active
                     ? "hot-gradient text-white shadow-[0_6px_18px_-6px_rgba(238,18,73,0.6)]"
                     : "text-[#4a5a6e] hover:bg-surface"
@@ -91,6 +91,49 @@ export default function Calculator() {
             );
           })}
         </div>
+
+        <div className="mt-4 rounded-xl border border-border bg-surface px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-heading">Results update instantly as you type</p>
+            <button type="button" onClick={() => setAdvanced((v) => !v)} aria-expanded={advanced} aria-controls="calculator-assumptions" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border bg-white px-3 text-sm font-bold text-yt-red hover:bg-yt-red-light">
+              <SlidersHorizontal className="h-4 w-4" />{advanced ? "Hide assumptions" : "Edit assumptions"}
+            </button>
+          </div>
+          <p className="mt-1 text-sm leading-relaxed text-[#4a5a6e]" data-assumptions-summary="">
+            {niche.name} · {countrySlug === "worldwide" ? "Worldwide (unweighted)" : country.name} · {seasonKey === "annual" ? "Annual baseline" : seasonKey} · {money(cpm, 2)} {cpmOverride === null || cpmOverride === "" ? "benchmark" : "custom"} CPM · {Math.round(adShare * 100)}% ad fill
+          </p>
+          {adShare === 1 && <p className="mt-2 inline-flex rounded-md bg-amber-bg px-2.5 py-1 text-sm font-semibold text-gold">100% ad fill — optimistic scenario, not a guaranteed payout</p>}
+        </div>
+            {advanced && (
+              <div id="calculator-assumptions" className="mt-3 grid gap-3 rounded-xl border border-border bg-surface p-3.5 sm:grid-cols-2 lg:grid-cols-4">
+                <label className="block">
+                  <span className="mb-1 block text-[12px] font-bold uppercase tracking-wide text-[#5b6b80]">Channel niche</span>
+                  <select value={nicheSlug} onChange={(e) => { setNicheSlug(e.target.value); setCpmOverride(null); }} className="select-field !py-2 !text-[13px]">
+                    {NICHES.map((n) => <option key={n.slug} value={n.slug}>{n.name}</option>)}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-[12px] font-bold uppercase tracking-wide text-[#5b6b80]">Season</span>
+                  <select value={seasonKey} onChange={(e) => { setSeasonKey(e.target.value); setCpmOverride(null); }} className="select-field !py-2 !text-[13px]">
+                    <option value="annual">Full year (1.00×)</option>
+                    {SEASONS.map((s) => <option key={s.q} value={s.q}>{s.q} · {s.label} ({s.mult.toFixed(2)}×)</option>)}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-[12px] font-bold uppercase tracking-wide text-[#5b6b80]">Audience location</span>
+                  <select value={countrySlug} onChange={(e) => { setCountrySlug(e.target.value); setCpmOverride(null); }} className="select-field">
+                    {COUNTRIES_WITH_WORLD.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-[12px] font-bold uppercase tracking-wide text-[#64748b]">Views serving ads: {Math.round(adShare * 100)}%</span>
+                  <input aria-valuetext={`${Math.round(adShare * 100)} percent of views serving ads`} aria-label="Views serving ads" type="range" min="0" max="100" step="5" value={Math.round(adShare * 100)} onChange={(e) => setAdShare(Number(e.target.value) / 100)} className="slider" />
+                </label>
+                <p className="text-xs leading-relaxed sm:col-span-2 lg:col-span-4">
+                  Long-form model: one ad impression per monetized view. Country, niche or season changes reset a custom CPM to the benchmark. Worldwide is an unweighted market average. Maximum {num(MAX_VIEWS)} views and {money(MAX_CPM)} CPM.
+                </p>
+              </div>
+            )}
 
         {/* ── Mode: CPM calculator ── */}
         {tab === "cpm" && (
@@ -161,13 +204,13 @@ export default function Calculator() {
                 href="#results"
                 className="hot-gradient inline-flex h-[46px] w-full items-center justify-center gap-2 rounded-lg px-6 text-[13.5px] font-bold text-white shadow-[0_8px_20px_-8px_rgba(238,18,73,0.7)] transition-transform hover:scale-[1.02] lg:h-[42px] lg:w-auto"
               >
-                <CalcIcon className="h-4 w-4" /> Calculate Earnings <ArrowRight className="h-4 w-4" />
+                <CalcIcon className="h-4 w-4" /> View Results <ArrowRight className="h-4 w-4" />
               </a>
             </div>
 
             {/* Quick views */}
             <div className="mt-4 flex flex-wrap items-center gap-2">
-              <span className="mr-1 text-[12.5px] font-semibold text-[#4a5a6e]">Quick Views:</span>
+              <span className="mr-1 text-[14px] font-semibold text-[#4a5a6e]">Quick Views:</span>
               {QUICK.map((v) => {
                 const active = views === v;
                 return (
@@ -176,7 +219,7 @@ export default function Calculator() {
                     type="button"
                     onClick={() => { setViews(v); setViewsText(num(v)); }}
                     aria-pressed={active}
-                    className={`rounded-md border px-3 py-1 text-[12px] font-bold transition-all ${
+                    className={`rounded-md border px-3 py-1 text-[14px] font-bold transition-all ${
                       active
                         ? "border-yt-red bg-yt-red-light text-yt-red"
                         : "border-border text-[#4a5a6e] hover:border-yt-red/40 hover:text-yt-red"
@@ -186,41 +229,10 @@ export default function Calculator() {
                   </button>
                 );
               })}
-              <button
-                type="button"
-                onClick={() => setAdvanced((v) => !v)}
-                aria-expanded={advanced}
-                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[12px] font-semibold text-[#64748b] transition-colors hover:text-yt-red sm:ml-auto"
-              >
-                <SlidersHorizontal className="h-3.5 w-3.5" />
-                {advanced ? "Hide assumptions" : "Assumptions"}
-              </button>
+
             </div>
 
-            {advanced && (
-              <div className="mt-3 grid gap-3 rounded-xl border border-border bg-surface p-3.5 sm:grid-cols-2 lg:grid-cols-3">
-                <label className="block">
-                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-[#7c8a9c]">Channel niche</span>
-                  <select value={nicheSlug} onChange={(e) => { setNicheSlug(e.target.value); setCpmOverride(null); }} className="select-field !py-2 !text-[13px]">
-                    {NICHES.map((n) => <option key={n.slug} value={n.slug}>{n.name}</option>)}
-                  </select>
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-[#7c8a9c]">Season</span>
-                  <select value={seasonKey} onChange={(e) => { setSeasonKey(e.target.value); setCpmOverride(null); }} className="select-field !py-2 !text-[13px]">
-                    <option value="annual">Full year (1.00×)</option>
-                    {SEASONS.map((s) => <option key={s.q} value={s.q}>{s.q} · {s.label} ({s.mult.toFixed(2)}×)</option>)}
-                  </select>
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-[#64748b]">Views serving ads: {Math.round(adShare * 100)}%</span>
-                  <input aria-label="Views serving ads" type="range" min="0" max="100" step="5" value={Math.round(adShare * 100)} onChange={(e) => setAdShare(Number(e.target.value) / 100)} className="slider" />
-                </label>
-                <p className="text-xs leading-relaxed sm:col-span-2 lg:col-span-3">
-                  Long-form model: one ad impression per monetized view. Country, niche or season changes reset a custom CPM to the benchmark. Worldwide is an unweighted market average. Maximum {num(MAX_VIEWS)} views and {money(MAX_CPM)} CPM.
-                </p>
-              </div>
-            )}
+
           </>
         )}
 
@@ -232,7 +244,7 @@ export default function Calculator() {
               ({countrySlug === "worldwide" ? "worldwide average" : country.name}).
             </p>
             <div className="mt-3 overflow-hidden rounded-xl border border-border">
-              <div className="grid grid-cols-3 gap-2 border-b border-border bg-surface px-4 py-2.5 text-[11px] font-bold uppercase tracking-wide text-[#7c8a9c]">
+              <div className="grid grid-cols-3 gap-2 border-b border-border bg-surface px-4 py-2.5 text-[12px] font-bold uppercase tracking-wide text-[#5b6b80]">
                 <span>Views</span>
                 <span className="text-right">Gross ad revenue</span>
                 <span className="text-right">Creator earnings</span>
@@ -294,17 +306,17 @@ export default function Calculator() {
               </label>
             </div>
 
-            <div className="rounded-xl border border-border bg-surface p-4">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-[#7c8a9c]">Channel projection</p>
+            <div role="region" aria-label="Channel projection" className="rounded-xl border border-border bg-surface p-4">
+              <p className="text-[12px] font-bold uppercase tracking-wide text-[#5b6b80]">Channel projection</p>
               <p className="num-mono mt-1 font-display text-3xl font-extrabold tracking-tight text-heading">
                 {money(afterShare)}
                 <span className="ml-1 text-[13px] font-semibold text-[#64748b]">/ month</span>
               </p>
               <dl className="mt-3 space-y-2 text-[13px]">
                 {[
-                  ["Annual", money(afterShare * 12)],
-                  ["Best-case Q4 month", money(afterShare / seasonMult * Math.max(...SEASONS.map((s) => s.mult)))],
-                  ["Per 1,000 views", money(cpm * CREATOR_SHARE, 2)],
+                  ["Annualized (same monthly rate)", money(afterShare * 12)],
+                  ["Q4 scenario / month", money(afterShare / seasonMult * Math.max(...SEASONS.map((s) => s.mult)))],
+                  ["Per 1,000 views", money(cpm * CREATOR_SHARE * adShare, 2)],
                 ].map(([k, v]) => (
                   <div key={k} className="flex items-center justify-between border-b border-border/70 pb-1.5 last:border-0 last:pb-0">
                     <dt className="text-[#64748b]">{k}</dt>
@@ -312,7 +324,7 @@ export default function Calculator() {
                   </div>
                 ))}
               </dl>
-              <p className="mt-3 text-[11.5px] leading-relaxed text-[#64748b]">
+              <p className="mt-3 text-[13px] leading-relaxed text-[#64748b]">
                 Estimates from the view count you enter — we never query YouTube&apos;s API or scrape a channel.
               </p>
             </div>
@@ -323,26 +335,26 @@ export default function Calculator() {
       </div>
 
       {/* Result tiles sit outside the card, as in the reference */}
-      <div role="region" aria-label="Earnings estimate" id="results" className="mt-4 grid scroll-mt-24 grid-cols-1 min-[420px]:grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4 xl:gap-4">
+      <div role="region" aria-label="Earnings estimate" id="results" tabIndex={-1} className="mt-4 grid scroll-mt-24 grid-cols-1 min-[420px]:grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4 xl:gap-4">
         <div className="tile tile-mint !px-3 !py-3 sm:!px-4">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#d3f3e1] text-mint sm:h-11 sm:w-11"><Eye className="h-5 w-5" /></span>
           <span className="min-w-0">
             <span title={num(views)} className="num-mono block truncate text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{num(views)}</span>
-            <span className="mt-0.5 block text-[10.5px] font-medium leading-tight text-[#5b6b80] sm:text-[11.5px]">Total Views</span>
+            <span className="mt-0.5 block text-[12px] font-medium leading-tight text-[#5b6b80] sm:text-[13px]">{tab === "channel" ? "Monthly Views" : "Total Views"}</span>
           </span>
         </div>
         <div className="tile tile-blue !px-3 !py-3 sm:!px-4">
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#d8e6fa] text-blue"><DollarSign className="h-5 w-5" /></span>
           <span className="min-w-0">
             <span className="num-mono block truncate text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{money(cpm, 2)}</span>
-            <span className="mt-0.5 block text-[10.5px] font-medium leading-tight text-[#5b6b80] sm:text-[11.5px]">CPM (USD)</span>
+            <span className="mt-0.5 block text-[12px] font-medium leading-tight text-[#5b6b80] sm:text-[13px]">CPM (USD)</span>
           </span>
         </div>
         <div className="tile tile-amber !px-3 !py-3 sm:!px-4">
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#fbe9b8] text-[#c2810a]"><BarChart3 className="h-5 w-5" /></span>
           <span className="min-w-0">
             <span className="num-mono block truncate text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{money(gross)}</span>
-            <span className="mt-0.5 block text-[10.5px] font-medium leading-tight text-[#5b6b80] sm:text-[11.5px]">Gross Ad Revenue</span>
+            <span className="mt-0.5 block text-[12px] font-medium leading-tight text-[#5b6b80] sm:text-[13px]">Gross Ad Revenue</span>
           </span>
         </div>
         <div className="tile tile-pink !px-3 !py-3 sm:!px-4">
@@ -353,16 +365,16 @@ export default function Calculator() {
           </span>
           <span className="min-w-0">
             <span className="num-mono block truncate text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{money(afterShare)}</span>
-            <span className="mt-0.5 block text-[10.5px] font-medium leading-tight text-[#5b6b80] sm:text-[11.5px]">Creator Earnings ({Math.round(CREATOR_SHARE * 100)}%)</span>
+            <span className="mt-0.5 block text-[12px] font-medium leading-tight text-[#5b6b80] sm:text-[13px]">Creator Earnings ({Math.round(CREATOR_SHARE * 100)}%)</span>
           </span>
         </div>
       </div>
 
-      <p className="mt-3 flex items-start gap-1.5 text-[11.5px] leading-relaxed text-[#7c8a9c]">
-        <TrendingUp className="mt-0.5 h-3.5 w-3.5 shrink-0 text-mint" />
-        Current model: {Math.round(adShare * 100)}% ad fill, long-form, before taxes. At an illustrative 70% ad fill the same {viewsLabel(views)} views return{" "}
-        <strong className="font-semibold text-[#5b6b80]">{money(fill70)}</strong>.
-      </p>
+      <aside aria-label="Estimate limitations" className="mt-3 rounded-xl border border-border bg-surface px-4 py-3 text-sm leading-relaxed text-[#4a5a6e]">
+        <p className="font-semibold text-heading">Indicative long-form ad revenue only. Excludes taxes, sponsorships and other income.</p>
+        <p className="mt-1">Model: one ad impression per monetized view · {Math.round(CREATOR_SHARE * 100)}% creator share · {Math.round(adShare * 100)}% ad fill. For comparison, {viewsLabel(views)} views at an illustrative 70% fill return <strong>{money(fill70)}</strong> to the creator.</p>
+        <a href="/methodology" className="mt-1 inline-block py-1 font-semibold text-yt-red underline underline-offset-4">How this estimate works</a>
+      </aside>
     </>
   );
 }

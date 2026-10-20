@@ -82,3 +82,20 @@ BASE_URL=http://localhost:3000 SCREENSHOT_DIR=/tmp/ytcpm-screens npm run test:ui
 ```
 
 `CHROMIUM_EXECUTABLE_PATH` can point to an existing compatible Chromium binary. Do not run the smoke script against a live production database without approval: it deliberately submits API test requests. Screenshots and browser downloads are not committed.
+
+## Screenshot follow-up: UI/UX polish
+
+The subsequent screenshot review has been addressed:
+
+- Reduced stacked calculator/benefits spacing and feature-grid padding without changing full-bleed backgrounds or the readable desktop content cap.
+- Hero artwork now keeps its natural 4:3 aspect ratio; edge masks follow the actual image instead of a letterboxed fill box, with feathering on both sides and top/bottom.
+- Increased homepage supporting text, calculator metric captions, quick-view chips, FAQ text and navigation/footer link sizes. Darkened secondary copy and comparison links.
+- Chose the instant-calculation interaction consistently: explicit instant-update notice and **View Results** anchor, not a misleading submit-style Calculate action.
+- Added an always-visible selected-assumptions summary and **100% ad fill — optimistic scenario** label, retaining an explicit full-fill default rather than claiming an arbitrary fill rate is realistic.
+- Assumptions can be opened from all three modes; niche, country, season and fill share one state. Limitations and the methodology link now sit directly beside the results.
+- Removed the separate channel-check component/section and its New badge. There is only one channel estimator, within the calculator, using the same CPM, location, niche, season, fill and views as the other modes.
+- Corrected the channel per-1,000-view figure to include selected ad fill; clarified annualized projection wording and scenario labels.
+- Removed the decorative homepage world map so country comparisons get the full card width.
+- Extended browser smoke checks for the single shared channel projection, fill-dependent RPM, visible optimistic-scenario notice, disclosure and instant-mode CTA, plus header overflow at every tested width.
+
+Validation for this follow-up: 74 unit/API tests, lint, TypeScript and production build pass. Chromium smoke checks pass at 320, 375, 768, 1024, 1440, 1920 and 2560px. Hosted deployment and remaining production gates above are unchanged.

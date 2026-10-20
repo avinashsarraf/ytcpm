@@ -223,13 +223,14 @@ p, li, figcaption { text-wrap: pretty; }
     radial-gradient(36rem 26rem at 98% 96%, rgba(224, 176, 246, 0.55), transparent 68%),
     linear-gradient(102deg, #fafbff 0%, #faf7fe 26%, #fceef8 48%, #fde3ee 66%, #fdd0d3 84%, #ffbba8 100%);
 }
-/* The render's own pastel backdrop melts into the hero gradient. */
+/* Mask the natural-ratio image itself, not a letterboxed fill container.
+   Both lateral edges and top/bottom dissolve into the section background. */
 .hero-art {
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.4) 7%, #000 17%),
-    linear-gradient(to bottom, #000 90%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 16%, #000 94%, transparent),
+    linear-gradient(to bottom, transparent, #000 4%, #000 94%, transparent);
   -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.4) 7%, #000 17%),
-    linear-gradient(to bottom, #000 90%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent, #000 16%, #000 94%, transparent),
+    linear-gradient(to bottom, transparent, #000 4%, #000 94%, transparent);
   mask-composite: intersect;
 }
 

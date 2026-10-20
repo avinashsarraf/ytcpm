@@ -35,48 +35,48 @@ export default function SiteFooter() {
                 ytcpm<span className="text-yt-red">.online</span>
               </span>
             </Link>
-            <p className="mt-4 max-w-[22rem] text-[13px] leading-relaxed text-white/60">
+            <p className="mt-4 max-w-[22rem] text-[14px] leading-relaxed text-white/60">
               Free YouTube CPM Calculator, Earnings Estimator and Channel Projections.
             </p>
           </div>
 
           <nav aria-label="Quick links">
-            <h3 className="text-[13px] font-bold text-white">Quick Links</h3>
+            <h3 className="text-[14px] font-bold text-white">Quick Links</h3>
             <ul className="mt-4 space-y-2.5">
               {QUICK_LINKS.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-[13px] text-white/60 transition-colors hover:text-white">{l.label}</Link>
+                  <Link href={l.href} className="text-[14px] text-white/60 transition-colors hover:text-white">{l.label}</Link>
                 </li>
               ))}
             </ul>
           </nav>
 
           <nav aria-label="More tools">
-            <h3 className="text-[13px] font-bold text-white">More Tools</h3>
+            <h3 className="text-[14px] font-bold text-white">More Tools</h3>
             <ul className="mt-4 space-y-2.5">
               {TOOLS.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-[13px] text-white/60 transition-colors hover:text-white">{l.label}</Link>
+                  <Link href={l.href} className="text-[14px] text-white/60 transition-colors hover:text-white">{l.label}</Link>
                 </li>
               ))}
             </ul>
           </nav>
 
           <nav aria-label="Legal">
-            <h3 className="text-[13px] font-bold text-white">Legal</h3>
+            <h3 className="text-[14px] font-bold text-white">Legal</h3>
             <ul className="mt-4 space-y-2.5">
               {LEGAL.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-[13px] text-white/60 transition-colors hover:text-white">{l.label}</Link>
+                  <Link href={l.href} className="text-[14px] text-white/60 transition-colors hover:text-white">{l.label}</Link>
                 </li>
               ))}
             </ul>
           </nav>
 
           <nav aria-label="Help">
-            <h3 className="text-[13px] font-bold text-white">Need Help?</h3>
-            <p className="mt-4 max-w-48 text-[13px] leading-relaxed text-white/60">Understand the assumptions behind your estimate.</p>
-            <Link href="/methodology" className="mt-3 inline-block py-2 text-[13px] font-semibold text-white underline underline-offset-4">How it works</Link>
+            <h3 className="text-[14px] font-bold text-white">Need Help?</h3>
+            <p className="mt-4 max-w-48 text-[14px] leading-relaxed text-white/60">Understand the assumptions behind your estimate.</p>
+            <Link href="/methodology" className="mt-3 inline-block py-2 text-[14px] font-semibold text-white underline underline-offset-4">How it works</Link>
           </nav>
         </div>
 
