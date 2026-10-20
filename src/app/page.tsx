@@ -42,7 +42,7 @@ const FAQS = [
   },
   {
     q: "How much does YouTube pay per 1,000 views in 2026?",
-    a: `In the United States, long-form videos earn about ${money(RPM_FULL, 2)} RPM at a ${money(US_BLENDED_CPM)} blended CPM with every view monetized, or ${money(RPM_TYPICAL, 2)} at a realistic 70% ad-fill rate. Tier-1 markets (UK, Canada, Australia, Germany) sit 10–30% below that, while India, Brazil and Bangladesh usually fall between $0.20 and $1.50 per 1,000 views.`,
+    a: `In the United States, long-form videos earn about ${money(RPM_FULL, 2)} RPM at a ${money(US_BLENDED_CPM)} blended CPM with every view monetized, or ${money(RPM_TYPICAL, 2)} at a realistic 70% ad-fill rate. Tier-1 markets such as the UK, Canada, Australia and Germany typically land 15–45% below that, while India, Brazil and Bangladesh usually land under $2 per 1,000 views.`,
   },
   {
     q: "How much is 1 million views worth?",
@@ -75,7 +75,7 @@ export default function Home() {
   const faqLd = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: FAQS.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) };
 
   const STATS = [
-    { value: COUNTRIES_BY_CPM.length, label: "Countries tracked", note: "Tier 1 ad markets through Tier 4 volume markets" },
+    { value: COUNTRIES_BY_CPM.length, label: "Countries tracked", note: "Tier 1 premium markets through Tier 4 volume markets" },
     { value: NICHES_BY_CPM.length, label: "Niches benchmarked", note: "From finance at $15–$50 to kids content at $1.50–$5" },
     { value: `${Math.round(CREATOR_SHARE * 100)}%`, label: "Creator share", note: "What is left of long-form CPM after YouTube's cut" },
     { value: SEASONS.length, label: "Quarters modelled", note: "Q1 budget hangover to the Q4 December auction peak" },
@@ -337,7 +337,7 @@ export default function Home() {
                   title={<>Your niche sets the <span className="accent-serif text-yt-red">ceiling</span></>}
                   lede={
                     <>
-                      A finance explainer and a gaming video can collect the same 100,000 views and still
+                      A finance explainer and a kids’ channel can collect the same 100,000 views and still
                       differ <strong className="font-semibold text-heading">{NICHE_RATIO}×</strong> in revenue.
                       Advertisers bid on intent, not on watch time — and finance, insurance and B2B carry the
                       most expensive intent on YouTube.
