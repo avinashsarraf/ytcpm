@@ -18,10 +18,11 @@ const TOOLS = [
 ];
 
 const LEGAL = [
-  { label: "About", href: "/about" },
+  { label: "Legal Overview", href: "/legal" },
   { label: "Privacy Policy", href: "/privacy" },
   { label: "Terms of Use", href: "/terms" },
-  { label: "Contact", href: "/contact" },
+  { label: "Disclaimer", href: "/disclaimer" },
+  { label: "Cookie Policy", href: "/cookies" },
 ];
 
 export default function SiteFooter() {
@@ -78,6 +79,7 @@ export default function SiteFooter() {
 
           <nav aria-label="Help">
             <h3 className="text-[14px] font-bold text-white">Need Help?</h3>
+            <div className="mt-4 flex flex-col items-start gap-3 text-[14px] text-white/60"><Link href="/about" className="hover:text-white">About Us</Link><Link href="/contact" className="hover:text-white">Contact Us</Link></div>
             <p className="mt-4 max-w-48 text-[14px] leading-relaxed text-white/60">Understand the assumptions behind your estimate.</p>
             <Link href="/methodology" className="mt-3 inline-block py-2 text-[14px] font-semibold text-white underline underline-offset-4">How it works</Link>
           </nav>

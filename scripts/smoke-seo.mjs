@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { chromium } from "playwright";
 const base = process.env.BASE_URL ?? "http://localhost:3000";
 const origin = "https://ytcpm.online";
-const paths = ["/", "/youtube-cpm-calculator", "/youtube-rpm-calculator", "/guides", "/sources", "/guides/how-to-check-youtube-cpm", "/guides/youtube-cpm-vs-rpm", "/guides/youtube-earnings-per-1000-views", "/cpm-by-country/india", "/cpm-by-niche/finance-investing", "/methodology"];
+const paths = ["/legal", "/privacy", "/terms", "/disclaimer", "/cookies", "/", "/youtube-cpm-calculator", "/youtube-rpm-calculator", "/guides", "/sources", "/guides/how-to-check-youtube-cpm", "/guides/youtube-cpm-vs-rpm", "/guides/youtube-earnings-per-1000-views", "/cpm-by-country/india", "/cpm-by-niche/finance-investing", "/methodology"];
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_EXECUTABLE_PATH, args: ["--no-sandbox", "--disable-dev-shm-usage"], headless: true });
 try {
   // A disabled-JS browser verifies real HTML, not content that exists only in hydration data.
@@ -35,7 +35,7 @@ try {
   assert(!map.includes(origin+'/monitor'));assert(!map.includes(origin+'/api/'));
   await plain.close();
   const interactive=await browser.newContext();const tool=await interactive.newPage();const errors=[];tool.on('pageerror',e=>errors.push(e.message));
-  for(const path of ['/youtube-cpm-calculator','/youtube-rpm-calculator', '/guides/how-to-check-youtube-cpm', '/guides/youtube-cpm-vs-rpm']) {
+  for(const path of ['/youtube-cpm-calculator','/youtube-rpm-calculator', '/guides/how-to-check-youtube-cpm', '/guides/youtube-cpm-vs-rpm', '/legal', '/privacy', '/terms', '/disclaimer', '/cookies']) {
     for(const width of [320,480,768,1024,1920]) {
       await tool.setViewportSize({width,height:900});await tool.goto(base+path);
       assert(await tool.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`overflow ${path} ${width}`);

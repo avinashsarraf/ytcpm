@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { LEGAL_POLICIES, LEGAL_UPDATED } from "@/lib/legal";
 import { CONTENT_UPDATED, GUIDES } from "@/lib/editorial";
 import { COUNTRIES, NICHES, DATA_UPDATED_AT } from "@/lib/data";
 
@@ -13,8 +14,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/cpm-by-niche`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE}/methodology`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     { url: `${BASE}/about`, lastModified: now, changeFrequency: "yearly", priority: 0.4 },
-    { url: `${BASE}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${BASE}/terms`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
   ];
 
   const countryRoutes: MetadataRoute.Sitemap = COUNTRIES.map((c) => ({
@@ -32,5 +31,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }));
 
   const editorialRoutes: MetadataRoute.Sitemap = ["/youtube-cpm-calculator", "/youtube-rpm-calculator", "/guides", "/sources", "/contact", ...GUIDES.map(g => `/guides/${g.slug}`)].map(path => ({ url: BASE + path, lastModified: new Date(`${CONTENT_UPDATED}T00:00:00Z`) }));
-  return [...staticRoutes, ...countryRoutes, ...nicheRoutes, ...editorialRoutes];
+  const legalRoutes: MetadataRoute.Sitemap = ["/legal", ...LEGAL_POLICIES.map(p => p.path)].map(path => ({ url: BASE + path, lastModified: new Date(`${LEGAL_UPDATED}T00:00:00Z`), changeFrequency: "yearly", priority: 0.3 }));
+  return [...legalRoutes, ...staticRoutes, ...countryRoutes, ...nicheRoutes, ...editorialRoutes];
 }

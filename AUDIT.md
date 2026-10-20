@@ -115,3 +115,11 @@ Validation for this follow-up: 74 unit/API tests, lint, TypeScript and productio
 Implemented dedicated report-input CPM/RPM tools, three sourced guides, editorial policy/source page, no-JavaScript FAQs, homepage learning links, updated canonical/social metadata, identity/article/breadcrumb/application structured data and sitemap coverage. Country/niche figures are explicitly unverified directional model scenarios; shared category copy no longer promises payout improvements or ad-policy eligibility. Usage Monitor is explicitly API analytics, not a connected YouTube account dashboard. See `SEO_STRATEGY.md` for the intent map, source registry and measurement limits.
 
 Validation: lint/typecheck passed; 100 unit tests passed; production build generated 63 outputs; production UI smoke passed at 12 widths (320–2560px) with no browser errors; SEO smoke passed no-JS HTML/FAQ, canonical/social/schema/sitemap/404, responsive guides/tools and CPM/RPM interactions. No keyword volumes, indexing, rankings, AI recommendations or live channel monitoring are claimed as verified.
+
+## Separate legal pages — 2026-10-20
+
+Added dedicated `/disclaimer` and `/cookies` documents plus a `/legal` overview; retained and rewrote separate `/privacy` and `/terms` URLs. Each policy has its own canonical/social metadata, update date independent of benchmark data, table of contents and related-policy navigation. Footer now separates legal policies from About/Contact, and all policy routes are included in the sitemap.
+
+Corrected privacy claims that previously declared no personal-data processing or guaranteed anonymity: policies now distinguish local inputs, stored API records, in-memory rate counters, possible infrastructure logs and the absence of an automatic retention job. No operator identity, jurisdiction, retention deadline or legal-compliance certification was invented. Operator/deployment-specific details should be reviewed before relying on these documents as legal advice.
+
+Validation: lint/typecheck, 100 unit tests, build (66 outputs), production UI smoke (12 widths) and expanded SEO smoke all passed. Legal pages were checked without JavaScript, for unique metadata/sitemap coverage and responsive overflow at 320–1920px.
