@@ -59,9 +59,10 @@ RUN node -e "require('pg'); console.log('pg ok')" \
 USER nextjs
 EXPOSE 3000
 
+# Liveness only: a database outage must not restart-loop the container.
+# `/api/health` is the readiness probe for uptime monitoring (see deployment.md).
+# Output is discarded so a failing probe never dumps the whole page into Docker logs.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD curl -fsS "http://127.0.0.1:${PORT}/api/health" \
-   || curl -fsS "http://127.0.0.1:${PORT}/" \
-   || exit 1
+  CMD curl -fs -o /dev/null --max-time 4 "http://127.0.0.1:${PORT}/" || exit 1
 
 ENTRYPOINT ["./docker-entrypoint.sh"]

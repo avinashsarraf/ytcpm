@@ -7,20 +7,15 @@ import SiteFooter from "@/components/site-footer";
 import { DATA_UPDATED_AT, DATA_YEAR } from "@/lib/data";
 
 /**
- * Fonts are self-hosted (next/font/local) so `next build` never needs network
- * access to fonts.googleapis.com. Files come from @fontsource-variable (SIL OFL,
- * see src/app/fonts/LICENSE-*.txt) and are committed to the repo.
+ * Plus Jakarta Sans drives the whole interface (display + body), matching the
+ * reference design's geometric grotesque. JetBrains Mono is kept for tabular
+ * data on the reference pages. Both are self-hosted so `next build` never needs
+ * network access to fonts.googleapis.com — see src/app/fonts/LICENSE-*.txt.
  */
-const inter = localFont({
-  src: "./fonts/inter-latin.woff2",
-  variable: "--font-inter",
-  weight: "100 900",
-  display: "swap",
-});
-const space = localFont({
-  src: "./fonts/space-grotesk-latin.woff2",
-  variable: "--font-space",
-  weight: "300 700",
+const jakarta = localFont({
+  src: "./fonts/plus-jakarta-sans-latin.woff2",
+  variable: "--font-jakarta",
+  weight: "200 800",
   display: "swap",
 });
 const jbmono = localFont({
@@ -84,10 +79,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${space.variable} ${jbmono.variable}`}
+      className={`${jakarta.variable} ${jbmono.variable}`}
     >
       <body className="bg-ink antialiased">
         <a href="#main" className="skip-link">Skip to content</a>
+        {/* Without JS the reveal wrappers would stay at opacity 0. */}
+        <noscript>
+          <style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style>
+        </noscript>
         <div className="bg-noise" aria-hidden />
         <SiteHeader />
         <main id="main">{children}</main>

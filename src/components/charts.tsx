@@ -21,7 +21,7 @@ export function NicheRangeChart({ niches, max = 50 }: { niches: Niche[]; max?: n
   const reduced = useReducedMotion();
   return (
     <div className="overflow-hidden rounded-xl border border-border">
-      <div className="hidden grid-cols-[1.8fr_2fr_0.8fr_0.8fr] gap-2 border-b border-border bg-surface px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-fog sm:grid">
+      <div className="hidden grid-cols-[1.8fr_2fr_0.8fr_0.8fr] gap-2 border-b border-border bg-surface px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-heading sm:grid">
         <span>Niche</span><span /><span className="text-right">Avg. CPM</span><span className="text-right">Est. RPM</span>
       </div>
       <div className="divide-y divide-border">
@@ -70,7 +70,10 @@ export function CountryBarChart({ countries }: { countries: Country[] }) {
 
   return (
     <div>
-      <p className="mb-5 text-xs font-bold uppercase tracking-wider text-fog">Average CPM by Country (USD)</p>
+      <div className="mb-5 flex items-baseline justify-between gap-3">
+        <p className="meta">Average CPM by country</p>
+        <p className="num-mono text-[11px] text-fog">USD · per 1,000 ad impressions</p>
+      </div>
       <div className="relative flex h-52 items-end gap-2 border-b border-l border-border pl-7 sm:gap-3">
         {ticks.map((v) => (
           <span key={v} className="num-mono absolute left-0 -translate-y-1/2 text-[10px] text-fog" style={{ bottom: `${(v / axisMax) * 100}%` }}>{v}</span>
@@ -79,7 +82,7 @@ export function CountryBarChart({ countries }: { countries: Country[] }) {
           const avg = (c.cpmLow + c.cpmHigh) / 2;
           return (
             <Link key={c.slug} href={`/cpm-by-country/${c.slug}`} className="group relative flex h-full flex-1 flex-col items-center justify-end">
-              <span className="num-mono absolute -top-5 text-[10px] font-bold text-yt-red opacity-0 transition-opacity group-hover:opacity-100">${avg.toFixed(1)}</span>
+              <span className="num-mono absolute -top-5 text-[11px] font-bold text-heading transition-colors group-hover:text-yt-red">${avg.toFixed(1)}</span>
               <motion.span
                 initial={reduced ? false : { height: 0 }}
                 whileInView={{ height: `${(avg / axisMax) * 100}%` }}
@@ -101,7 +104,7 @@ export function CountryFlagCards({ countries }: { countries: Country[] }) {
   const top = countries.slice(0, 6);
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-      {top.map((c) => {
+      {top.map((c, i) => {
         const avg = (c.cpmLow + c.cpmHigh) / 2;
         const tier = TIER_LABELS[c.tier];
         return (
@@ -111,7 +114,7 @@ export function CountryFlagCards({ countries }: { countries: Country[] }) {
             <Image src={flagUrl(c.code, "w160")} alt={`${c.name} flag`} width={48} height={32} className="flag-img !w-12 !h-8 !rounded" unoptimized />
             <span className="text-sm font-semibold text-heading">{c.name}</span>
             <span className="num-mono text-xl font-bold text-yt-red">${avg.toFixed(2)}</span>
-            <span className={`text-[10px] font-semibold ${tier.color}`}>{tier.label}</span>
+            <span className={`text-[11px] font-semibold ${tier.color}`}>#{i + 1} · Tier {c.tier}</span>
           </Link>
         );
       })}
@@ -143,7 +146,10 @@ export function SeasonChart({ seasons }: { seasons: { q: string; label: string; 
             transition={reduced ? { duration: 0 } : { duration: 0.5, delay: i * 0.08 }}
             className={`panel p-5 transition-all duration-300 hover:scale-[1.02] ${s.q === "Q4" ? "!border-yt-red/30 bg-yt-red-light shadow-[0_8px_24px_-8px_rgba(0,0,0,0.12)]" : ""}`}
           >
-            <p className="text-xs font-semibold text-fog">{s.label}</p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="num-mono text-xs font-bold text-heading">{s.q}</p>
+              <p className="text-[11px] font-medium text-fog">{s.label}</p>
+            </div>
             <p className={`num-mono mt-2 font-display text-2xl font-bold ${s.q === "Q4" ? "text-yt-red" : "text-heading"}`}>${avg}</p>
             <p className="mt-0.5 text-[11px] text-fog">Avg. US CPM · {s.mult.toFixed(2)}×</p>
             <p className="mt-2 text-xs leading-relaxed text-fog">{s.note}</p>

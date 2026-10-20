@@ -54,7 +54,7 @@ A free, data-driven **YouTube CPM & RPM calculator** built with the Next.js App 
 | Database | PostgreSQL 16 + [Drizzle ORM](https://orm.drizzle.team) (`node-postgres`) |
 | Testing | Vitest |
 | Tooling | ESLint 9 (flat config), Drizzle Kit, GitHub Actions |
-| Fonts | Inter, Space Grotesk, JetBrains Mono — **self-hosted** via `next/font/local` |
+| Fonts | Plus Jakarta Sans (UI + display), JetBrains Mono (data) — **self-hosted** via `next/font/local` |
 
 ## Architecture
 

@@ -33,6 +33,12 @@ if (sqlFiles.length === 0) {
   process.exit(0);
 }
 
+function mask(url) {
+  return url.replace(/(:\/\/)[^:/@]+(:[^@]*)?@/, "$1***:***@");
+}
+
+console.log(`[migrate] target: ${mask(databaseUrl)}`);
+
 const client = new pg.Client({
   connectionString: databaseUrl,
   ssl:
@@ -41,8 +47,9 @@ const client = new pg.Client({
       : undefined,
 });
 
-const MAX_ATTEMPTS = Number(process.env.MIGRATION_MAX_ATTEMPTS ?? 10);
-const RETRY_MS = Number(process.env.MIGRATION_RETRY_MS ?? 3000);
+// Keep total wait under the container's 20s healthcheck start period.
+const MAX_ATTEMPTS = Number(process.env.MIGRATION_MAX_ATTEMPTS ?? 5);
+const RETRY_MS = Number(process.env.MIGRATION_RETRY_MS ?? 2000);
 
 async function connectWithRetry() {
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
@@ -50,7 +57,7 @@ async function connectWithRetry() {
       await client.connect();
       return;
     } catch (error) {
-      console.warn(`[migrate] connect attempt ${attempt}/${MAX_ATTEMPTS} failed: ${error.message}`);
+      console.warn(`[migrate] connect attempt ${attempt}/${MAX_ATTEMPTS} failed: ${error.code ?? ""} ${error.message}`);
       if (attempt === MAX_ATTEMPTS) throw error;
       await new Promise((r) => setTimeout(r, RETRY_MS));
     }
@@ -99,7 +106,7 @@ try {
 
   console.log("[migrate] database is up to date");
 } catch (error) {
-  console.error("[migrate]", error.message);
+  console.error("[migrate]", error.code ?? "", error.message);
   process.exitCode = 1;
 } finally {
   await client.end().catch(() => {});

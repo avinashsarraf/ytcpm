@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import ProsePage from "@/components/prose-page";
 import Link from "next/link";
 import { DATA_UPDATED_AT } from "@/lib/data";
 
@@ -10,10 +11,10 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <article className="pt-28 sm:pt-32">
-      <div className="mx-auto max-w-3xl px-4 pb-10 sm:px-6">
-        <p className="tag-red w-fit text-[10px]">Last updated {DATA_UPDATED_AT}</p>
-        <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-heading sm:text-5xl">Terms of Use</h1>
+    <ProsePage
+      eyebrow={<>Last updated {DATA_UPDATED_AT}</>}
+      title={<>Terms of Use</>}
+    >
 
         <div className="mt-8 space-y-8 text-sm leading-relaxed text-fog">
           <section>
@@ -84,7 +85,6 @@ export default function TermsPage() {
             and <Link href="/methodology" className="font-semibold text-heading underline decoration-yt-red/30 hover:decoration-yt-red">Methodology</Link>.
           </p>
         </div>
-      </div>
-    </article>
+      </ProsePage>
   );
 }

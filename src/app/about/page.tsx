@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import ProsePage from "@/components/prose-page";
 import Link from "next/link";
 import { ArrowRight, Database, Globe2, Layers, ShieldCheck, Sparkles } from "lucide-react";
 import { COUNTRIES, NICHES, DATA_YEAR, DATA_UPDATED_AT, VIEW_PRESETS, viewsLabel } from "@/lib/data";
@@ -12,19 +13,14 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <article className="relative overflow-hidden pt-28 sm:pt-32">
-      <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 blob-pink" aria-hidden />
-      <div className="relative mx-auto max-w-3xl px-4 pb-10 sm:px-6">
-        <p className="tag-red w-fit text-[10px]">About · data reviewed {DATA_UPDATED_AT}</p>
-        <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-heading sm:text-5xl">
-          Built for creators who want <span className="text-yt-gradient">the real number</span>
-        </h1>
-        <p className="mt-4 text-base leading-relaxed text-fog">
-          ytcpm.online is a free YouTube CPM and RPM calculator. Most &quot;earnings&quot; tools show a single global
+    <ProsePage
+      eyebrow={<>About · data reviewed {DATA_UPDATED_AT}</>}
+      title={<>Built for creators who want <span className="text-yt-gradient">the real number</span></>}
+      lede={<>ytcpm.online is a free YouTube CPM and RPM calculator. Most &quot;earnings&quot; tools show a single global
           average; ad rates actually depend on <strong className="text-heading">where your viewers are</strong> and{" "}
           <strong className="text-heading">what your content is about</strong>. This tool models both, then converts
-          the result into your local currency.
-        </p>
+          the result into your local currency.</>}
+    >
 
         <div className="mt-8 grid gap-3 sm:grid-cols-3">
           {[
@@ -81,7 +77,6 @@ export default function AboutPage() {
             Open the calculator <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
-      </div>
-    </article>
+      </ProsePage>
   );
 }
