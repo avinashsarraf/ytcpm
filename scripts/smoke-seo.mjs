@@ -22,6 +22,20 @@ try {
       assert(await page.locator('main a[href^="https://support.google.com/"]').count() > 0, `primary source ${path}`);
       assert.equal(await page.locator('meta[property="og:url"]').getAttribute('content'), origin + path);
     }
+    if (['/privacy', '/terms', '/disclaimer', '/cookies'].includes(path)) {
+      assert.equal(await page.locator('meta[property="og:url"]').getAttribute('content'), origin + path);
+      assert.equal(await page.locator('main details.group').count(), 3, 'policy FAQs in initial HTML');
+      assert.equal(await page.locator('main nav[aria-label="Legal policies"] a[aria-current="page"]').count(), 1);
+      const schemas = (await page.locator('script[type="application/ld+json"]').allTextContents()).map(JSON.parse);
+      assert(schemas.some(s => s['@type'] === 'WebPage' && s.url === origin + path));
+      assert(schemas.some(s => s['@type'] === 'BreadcrumbList'));
+      const mobileToc = page.locator('details').filter({hasText: 'Jump to a section'});
+      await mobileToc.locator('summary').click();
+      const target = await mobileToc.locator('a').first().getAttribute('href');
+      assert.equal(await page.locator(target).count(), 1, 'TOC resolves to a section');
+      await page.locator('main details.group summary').first().click();
+      assert(await page.locator('main details.group').first().locator('p').isVisible(), 'policy FAQ works without JS');
+    }
     console.log('PASS SEO HTML',path);
   }
   await page.goto(base);

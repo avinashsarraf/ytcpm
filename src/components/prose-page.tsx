@@ -15,11 +15,13 @@ export default function ProsePage({
   title,
   lede,
   children,
+  wide = false,
 }: {
   eyebrow: ReactNode;
   title: ReactNode;
   lede?: ReactNode;
   children: ReactNode;
+  wide?: boolean;
 }) {
   return (
     <article className="relative overflow-hidden">
@@ -34,7 +36,7 @@ export default function ProsePage({
       </header>
 
       <div className="shell py-10 lg:py-12">
-        <div className="mx-auto w-full max-w-[82ch]">{children}</div>
+        <div className={wide ? "w-full" : "mx-auto w-full max-w-[82ch]"}>{children}</div>
       </div>
     </article>
   );

@@ -95,3 +95,7 @@ npm run test:seo
 - Removed unsupported niche payout/format guarantees and misleading health/kids policy advice from shared category copy; numerical model defaults remain unchanged. Seasonal descriptions now identify scenarios rather than forecast universal quarterly behavior.
 
 Browser commands used `BASE_URL=http://127.0.0.1:3100` against `next start`, with the available sandbox Chromium executable. This validates the local production build, not a deployed domain, Search Console indexing or actual search/AI visibility. The existing nonblocking Vitest config warning remains.
+
+## Legal-page follow-up
+
+The legal center and four separate policies now have descriptive topic-specific titles and descriptions, Open Graph/Twitter metadata, visible topic labels, breadcrumbs and WebPage/CollectionPage schema. Regional information is conditional educational context with official authority reference links, not a claim of global legal compliance. Useful summaries, native FAQs and responsive section navigation improve access to the disclosures; no obsolete meta-keywords or tool-keyword stuffing was added. Policies should support transparency and user understanding, not become thin landing pages targeting unrelated calculator queries. Operator/deployment-specific facts still need professional review.
