@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Play, Menu, X, ArrowRight } from "lucide-react";
 
 const LINKS = [
-  { href: "/", label: "Home" },
+  { href: "/#calculator", label: "Calculator" },
   { href: "/cpm-by-country", label: "CPM by Country" },
   { href: "/cpm-by-niche", label: "CPM by Niche" },
   { href: "/monitor", label: "Live Monitor" },
@@ -37,10 +37,10 @@ export default function SiteHeader() {
 
         <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
           {LINKS.map((l) => {
-            const active = l.href === "/" ? pathname === "/" : pathname.startsWith(l.href);
+            const active = l.href === "/#calculator" ? false : pathname.startsWith(l.href);
             return (
               <Link key={l.href} href={l.href} aria-current={active ? "page" : undefined}
-                className={`rounded-full px-4 py-1.5 text-[13px] font-medium transition-all duration-200 ${
+                className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-all duration-200 ${
                   active ? "bg-yt-red-light text-yt-red font-semibold" : "text-fog hover:bg-surface-2 hover:text-heading"
                 }`}
               >{l.label}</Link>

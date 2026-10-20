@@ -72,42 +72,42 @@ export default async function NichePage({ params }: { params: Promise<{ slug: st
 
           <div className="mt-6 grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
             <Reveal delay={0.05}>
-              <div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-xl bg-yt-red-bg"><Icon className="h-5 w-5 text-yt-red" /></span><span className="tag-red text-[10px]">{TD[niche.tier]} · #{rank}</span></div>
-              <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-heading sm:text-5xl">{niche.name} <span className="text-yt-gradient">YouTube CPM</span></h1>
-              <p className="mt-4 max-w-xl text-sm leading-relaxed text-fog">{niche.desc}</p>
+              <div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-xl bg-yt-red-bg"><Icon className="h-5 w-5 text-yt-red" /></span><span className="tag-red text-[11px]">{TD[niche.tier]} · #{rank}</span></div>
+              <h1 className="mt-4 display-2">{niche.name} <span className="text-yt-gradient">YouTube CPM</span></h1>
+              <p className="body-copy mt-4 max-w-xl">{niche.desc}</p>
             </Reveal>
             <Reveal delay={0.1}>
               <div className="panel p-5">
                 <div className="grid grid-cols-2 gap-4">
-                  <div><p className="text-[10px] font-bold uppercase tracking-wider text-fog">US CPM</p><p className="num-mono mt-1 text-2xl font-bold text-heading">${niche.cpmLow}–${niche.cpmHigh}</p></div>
-                  <div><p className="text-[10px] font-bold uppercase tracking-wider text-fog">RPM</p><p className="num-mono mt-1 text-2xl font-bold text-mint">${rpmLow.toFixed(2)}–${rpmHigh.toFixed(2)}</p></div>
+                  <div><p className="text-[11px] font-bold uppercase tracking-wider text-fog">US CPM</p><p className="num-mono mt-1 text-2xl font-bold text-heading">${niche.cpmLow}–${niche.cpmHigh}</p></div>
+                  <div><p className="text-[11px] font-bold uppercase tracking-wider text-fog">RPM</p><p className="num-mono mt-1 text-2xl font-bold text-mint">${rpmLow.toFixed(2)}–${rpmHigh.toFixed(2)}</p></div>
                 </div>
                 <div className="mt-4 flex items-center justify-between rounded-lg bg-surface px-3 py-2 text-xs"><span className="text-fog">per 1M views</span><span className="num-mono font-bold text-heading">{money(rpmLow * 1000)} – {money(rpmHigh * 1000)}</span></div>
-                <p className="mt-2 text-center text-[10px] text-fog/70">Benchmarks reviewed {DATA_UPDATED_AT}</p>
+                <p className="mt-2 text-center text-[11px] text-fog">Benchmarks reviewed {DATA_UPDATED_AT}</p>
               </div>
             </Reveal>
           </div>
 
-          <Reveal delay={0.08}><h2 className="mt-14 font-display text-2xl font-bold text-heading">Earnings by View Count</h2>
+          <Reveal delay={0.08}><h2 className="mt-14 display-sub">Earnings by View Count</h2>
             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {VIEW_PRESETS.map((v) => (<div key={v} className="panel p-5"><p className="num-mono text-[10px] font-bold uppercase tracking-widest text-fog">{viewsLabel(v)} views</p><p className="num-mono mt-2 text-xl font-bold text-gradient-green">{money((v / 1000) * rpmLow)}–{money((v / 1000) * rpmHigh)}</p><p className="mt-1 text-[11px] text-fog">US audience</p></div>))}
+              {VIEW_PRESETS.map((v) => (<div key={v} className="panel p-5"><p className="num-mono text-[11px] font-bold uppercase tracking-widest text-fog">{viewsLabel(v)} views</p><p className="num-mono mt-2 text-xl font-bold text-gradient-green">{money((v / 1000) * rpmLow)}–{money((v / 1000) * rpmHigh)}</p><p className="mt-1 text-[11px] text-fog">US audience</p></div>))}
             </div>
           </Reveal>
 
-          <section className="mt-14"><Reveal><h2 className="font-display text-2xl font-bold text-heading">{niche.name} CPM <span className="text-yt-gradient">by Country</span></h2></Reveal>
+          <section className="mt-14"><Reveal><h2 className="display-sub">{niche.name} CPM <span className="text-yt-gradient">by Country</span></h2></Reveal>
             <div className="mt-5 overflow-hidden rounded-xl border border-border">
               <div className="hidden grid-cols-[2fr_1fr_1fr_0.7fr] gap-3 border-b border-border bg-surface px-5 py-2.5 text-[11px] font-bold uppercase tracking-wider text-fog sm:grid"><span>Country</span><span className="text-right">CPM</span><span className="text-right">RPM</span><span className="text-right">vs US</span></div>
-              <div className="divide-y divide-border">{countryRows.map((c) => { const m = c.mult; const lo = niche.cpmLow * m; const hi = niche.cpmHigh * m; return (<Link key={c.slug} href={`/cpm-by-country/${c.slug}`} className="group grid grid-cols-2 gap-2 px-4 py-3 hover:bg-yt-red-bg sm:grid-cols-[2fr_1fr_1fr_0.7fr] sm:items-center sm:gap-3 sm:px-5"><span className="flex items-center gap-2 text-sm font-medium text-heading"><span className="num-mono grid h-6 w-7 place-items-center rounded bg-surface text-[10px] font-bold group-hover:bg-yt-red group-hover:text-white">{c.code}</span>{c.name}</span><span className="num-mono text-right text-sm text-fog">${lo.toFixed(2)}–${hi.toFixed(2)}</span><span className="num-mono text-right text-sm font-semibold text-mint">${(lo * CREATOR_SHARE).toFixed(2)}–${(hi * CREATOR_SHARE).toFixed(2)}</span><span className="hidden text-right sm:block num-mono text-xs text-fog">{Math.round(m * 100)}%</span></Link>); })}</div>
+              <div className="divide-y divide-border">{countryRows.map((c) => { const m = c.mult; const lo = niche.cpmLow * m; const hi = niche.cpmHigh * m; return (<Link key={c.slug} href={`/cpm-by-country/${c.slug}`} className="group grid grid-cols-2 gap-2 px-4 py-3 hover:bg-yt-red-bg sm:grid-cols-[2fr_1fr_1fr_0.7fr] sm:items-center sm:gap-3 sm:px-5"><span className="flex items-center gap-2 text-sm font-medium text-heading"><span className="num-mono grid h-6 w-7 place-items-center rounded bg-surface text-[11px] font-bold group-hover:bg-yt-red group-hover:text-white">{c.code}</span>{c.name}</span><span className="num-mono text-right text-sm text-fog">${lo.toFixed(2)}–${hi.toFixed(2)}</span><span className="num-mono text-right text-sm font-semibold text-mint">${(lo * CREATOR_SHARE).toFixed(2)}–${(hi * CREATOR_SHARE).toFixed(2)}</span><span className="hidden text-right sm:block num-mono text-xs text-fog">{Math.round(m * 100)}%</span></Link>); })}</div>
             </div>
           </section>
 
           <Reveal><div className="mt-8 rounded-xl border border-gold/30 bg-gradient-to-r from-amber-50 to-transparent p-4"><p className="text-sm"><Lightbulb className="mr-2 inline h-4 w-4 text-gold" /><strong className="text-heading">Pro tip:</strong> <span className="text-fog">{niche.tip}</span></p></div></Reveal>
 
-          <section className="mt-14"><Reveal><h2 className="font-display text-2xl font-bold text-heading">FAQs — {niche.name}</h2></Reveal><Reveal delay={0.06} className="mt-5"><Faq items={faqs} /></Reveal></section>
+          <section className="mt-14"><Reveal><h2 className="display-sub">FAQs — {niche.name}</h2></Reveal><Reveal delay={0.06} className="mt-5"><Faq items={faqs} /></Reveal></section>
 
           <section className="mt-14 grid gap-8 pb-4 lg:grid-cols-2">
-            <div><h2 className="font-display text-xl font-bold text-heading">Related Niches</h2><div className="mt-4 flex flex-wrap gap-2">{related.map((n) => { const RIcon = NICHE_ICONS[n.icon]; return (<Link key={n.slug} href={`/cpm-by-niche/${n.slug}`} className="group flex items-center gap-1.5 rounded-full border border-border bg-white px-3.5 py-1.5 text-xs font-medium text-fog hover:border-yt-red/40 hover:text-heading"><RIcon className="h-3 w-3 group-hover:text-yt-red" />{n.name}</Link>); })}</div></div>
-            <div className="panel p-6"><h2 className="font-display text-xl font-bold text-heading">Run your numbers</h2><p className="mt-2 text-sm text-fog">Your views × {niche.name.toLowerCase()} rates — computed live.</p><Link href="/#calculator" className="group mt-4 inline-flex items-center gap-2 rounded-full bg-yt-red px-5 py-2.5 text-sm font-semibold text-white hover:bg-yt-red-hover">Open Calculator<ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" /></Link></div>
+            <div><h2 className="display-3">Related Niches</h2><div className="mt-4 flex flex-wrap gap-2">{related.map((n) => { const RIcon = NICHE_ICONS[n.icon]; return (<Link key={n.slug} href={`/cpm-by-niche/${n.slug}`} className="group flex items-center gap-1.5 rounded-full border border-border bg-white px-3.5 py-1.5 text-xs font-medium text-fog hover:border-yt-red/40 hover:text-heading"><RIcon className="h-3 w-3 group-hover:text-yt-red" />{n.name}</Link>); })}</div></div>
+            <div className="panel p-6"><h2 className="display-3">Run your numbers</h2><p className="mt-2 text-sm text-fog">Your views × {niche.name.toLowerCase()} rates — computed live.</p><Link href="/#calculator" className="group mt-4 inline-flex items-center gap-2 rounded-full bg-yt-red px-5 py-2.5 text-sm font-semibold text-white hover:bg-yt-red-hover">Open Calculator<ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" /></Link></div>
           </section>
         </div>
       </article>

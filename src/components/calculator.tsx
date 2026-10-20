@@ -84,13 +84,13 @@ export default function Calculator() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-surface px-4 py-3 sm:px-6">
         <span className="rounded-full bg-yt-red px-5 py-2 text-[13px] font-bold text-white shadow-[0_2px_8px_rgba(0,0,0,0.18)]">
-          Basic Calculator
+          Earnings calculator
         </span>
         <Link
           href="/cpm-by-niche"
           className="group inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[13px] font-semibold text-fog transition-colors hover:bg-surface-2 hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yt-red/40"
         >
-          Compare niches
+          Compare all niches
           <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
         </Link>
       </div>
@@ -101,7 +101,7 @@ export default function Calculator() {
           <div>
             <div className="mb-1 flex items-center justify-between gap-3">
               <label htmlFor="views" className="flex items-center gap-2 text-sm font-bold text-heading">
-                <Eye className="h-4 w-4 text-yt-red" /> Monthly Views
+                <Eye className="h-4 w-4 text-yt-red" /> Monthly views
               </label>
               <div className="flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-1.5">
                 <Eye className="h-3.5 w-3.5 text-fog" />
@@ -139,7 +139,7 @@ export default function Calculator() {
 
           <div className="mt-5">
             <label htmlFor="niche" className="mb-1.5 flex items-center gap-2 text-sm font-bold text-heading">
-              <Layers className="h-4 w-4 text-yt-red" /> Channel Niche
+              <Layers className="h-4 w-4 text-yt-red" /> Channel niche
             </label>
             <select id="niche" className="select-field" value={nicheSlug} onChange={(e) => setNicheSlug(e.target.value)}>
               <optgroup label="S & A tier">{NICHES.filter((n) => n.tier === "S" || n.tier === "A").map((n) => <option key={n.slug} value={n.slug}>{n.name}</option>)}</optgroup>
@@ -150,7 +150,7 @@ export default function Calculator() {
           <div className="mt-5">
             <div className="mb-1.5 flex items-center justify-between">
               <label htmlFor="country" className="flex items-center gap-2 text-sm font-bold text-heading">
-                <Globe2 className="h-4 w-4 text-yt-red" /> Audience Country
+                <Globe2 className="h-4 w-4 text-yt-red" /> Audience country
               </label>
               <motion.span key={country.currency} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="num-mono inline-flex items-center gap-1 rounded-md bg-yt-red-bg px-2 py-0.5 text-[10px] font-bold text-yt-red">
                 <ArrowLeftRight className="h-2.5 w-2.5" /> {sym} {country.currency}
@@ -167,10 +167,10 @@ export default function Calculator() {
 
           <div className="mt-5">
             <p className="mb-1.5 flex items-center gap-2 text-sm font-bold text-heading">
-              <Clock3 className="h-4 w-4 text-yt-red" /> Content Type
+              <Clock3 className="h-4 w-4 text-yt-red" /> Content type
             </p>
             <div className="flex gap-2" role="group" aria-label="Content type">
-              {([{ v: "long", label: "Long Form" }, { v: "shorts", label: "Shorts" }] as const).map((o) => (
+              {([{ v: "long", label: "Long-form" }, { v: "shorts", label: "Shorts" }] as const).map((o) => (
                 <button key={o.v} type="button" onClick={() => setType(o.v)} aria-pressed={type === o.v}
                   className={`rounded-lg px-6 py-2.5 text-sm font-bold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yt-red/40 ${type === o.v ? "bg-yt-red text-white shadow-[0_2px_12px_rgba(0,0,0,0.2)] scale-[1.02]" : "border border-border bg-white text-fog hover:border-yt-red/30 hover:text-heading"}`}
                 >{o.label}</button>
@@ -198,7 +198,7 @@ export default function Calculator() {
               </label>
             </div>
             <p className="mt-2 text-[10px] leading-relaxed text-fog">
-              RPM = CPM × 55% creator share × ad-impression rate. Lower the rate if many views are ad-blocked or non-monetized.
+              RPM = CPM × 55% creator share × ad-impression rate. Lower the rate when many views are ad-blocked or never reach an ad.
             </p>
           </div>
         </div>
@@ -206,7 +206,7 @@ export default function Calculator() {
         {/* RIGHT */}
         <div className="flex flex-col p-5 sm:p-7">
           <div aria-live="polite">
-            <p className="text-sm font-bold text-heading">Estimated Monthly Earnings</p>
+            <p className="text-sm font-bold text-heading">Estimated monthly earnings</p>
             <div className="mt-2 flex flex-wrap items-baseline gap-3">
               <AnimatedMoney value={mid} format={(v) => cur(v)} className="num-mono font-display text-5xl font-bold tracking-tight text-heading" />
               <span className="num-mono text-xs font-semibold text-yt-red">{money(est.rpmLow, 2)} ~ {money(est.rpmHigh, 2)} per 1K views</span>
@@ -220,7 +220,7 @@ export default function Calculator() {
           <div className="mt-5 grid grid-cols-2 gap-3">
             <div className="rounded-xl border border-border bg-surface p-4 transition-all hover:border-yt-red/20 hover:shadow-sm">
               <p className="text-[11px] font-bold uppercase tracking-wider text-fog">CPM Range</p>
-              <p className="num-mono mt-1.5 text-lg font-bold text-heading">{type === "shorts" ? "n/a" : `${cur(est.cpmLow)} - ${cur(est.cpmHigh)}`}</p>
+              <p className="num-mono mt-1.5 text-lg font-bold text-heading">{type === "shorts" ? "n/a" : `${cur(est.cpmLow, 2)} - ${cur(est.cpmHigh, 2)}`}</p>
               <p className="mt-0.5 text-[11px] text-fog">{type === "shorts" ? "pooled Shorts revenue" : "per 1,000 ad impressions"}</p>
             </div>
             <div className="rounded-xl border border-border bg-surface p-4 transition-all hover:border-mint/20 hover:shadow-sm">
@@ -231,7 +231,7 @@ export default function Calculator() {
           </div>
 
           <div className="mt-5 overflow-hidden rounded-xl border border-border">
-            <div className="border-b border-border bg-surface px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-fog">Earnings Breakdown</div>
+            <div className="border-b border-border bg-surface px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-fog">Earnings breakdown</div>
             <div className="divide-y divide-border text-sm">
               {[
                 ["Estimated Views", viewsLabel(views)],
@@ -246,7 +246,7 @@ export default function Calculator() {
                 </div>
               ))}
               <div className="flex items-center justify-between bg-yt-red-light px-4 py-3">
-                <span className="font-bold text-heading">Total Estimated Earnings</span>
+                <span className="font-bold text-heading">Estimated earnings</span>
                 <span className="num-mono text-xl font-bold text-yt-red">{cur(mid)}</span>
               </div>
             </div>

@@ -22,23 +22,24 @@ export default function SiteFooter() {
     <footer>
       {/* ── CTA Banner ── */}
       <section className="section-full mx-auto max-w-[1400px] py-10">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0f4c3a] via-[#0e5a44] to-[#0d3d30] px-8 py-12 sm:px-14 sm:py-14">
-          <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-white/5 blur-3xl" aria-hidden />
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#171717] via-[#1d1d1d] to-[#0f0f0f] px-8 py-12 sm:px-14 sm:py-14">
+          <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-yt-red/25 blur-3xl" aria-hidden />
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-1 bg-yt-red" aria-hidden />
           <div className="relative flex flex-col items-start gap-8 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-5 sm:items-center">
               <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-yt-red shadow-[0_4px_20px_rgba(0,0,0,0.35)] transition-transform hover:scale-110">
                 <Play className="h-6 w-6 fill-white text-white" />
               </span>
               <div>
-                <h2 className="font-display text-xl font-bold text-white sm:text-2xl">Know your number before your next upload</h2>
-                <p className="mt-1.5 max-w-md text-sm text-white/70">Use our free YouTube CPM calculator and make smarter decisions for better earnings.</p>
+                <h2 className="font-display text-xl font-bold tracking-tight text-white sm:text-2xl">Know your number before your next upload</h2>
+                <p className="mt-1.5 max-w-md text-sm leading-relaxed text-white/75">Run the {DATA_YEAR} CPM and RPM benchmarks for your niche and audience country — then drill into the market pages for the full breakdown.</p>
               </div>
             </div>
             <div className="shrink-0 text-center">
               <Link href="/#calculator" className="group inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-bold text-heading shadow-lg transition-all duration-300 hover:bg-yt-red hover:text-white hover:shadow-[0_4px_20px_rgba(0,0,0,0.35)] hover:scale-105">
-                Open Calculator <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                Open calculator <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
-              <p className="mt-2 text-[11px] text-white/70">It only takes a minute</p>
+              <p className="mt-2 text-[11px] text-white/75">Free · no signup · updated {DATA_UPDATED_AT}</p>
             </div>
           </div>
         </div>
@@ -52,7 +53,13 @@ export default function SiteFooter() {
               <span className="grid h-9 w-9 place-items-center rounded-xl bg-yt-red shadow-[0_2px_12px_rgba(0,0,0,0.18)] transition-transform group-hover:scale-110"><Play className="h-4 w-4 fill-white text-white" /></span>
               <span className="font-display text-[15px] font-bold tracking-tight text-heading">ytcpm<span className="text-fog font-medium">.online</span></span>
             </Link>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-fog">Smarter insights. Higher earnings. The free YouTube CPM calculator with {DATA_YEAR} benchmarks.</p>
+            <p className="mt-4 max-w-xs text-[13.5px] leading-relaxed text-fog">
+              A free, transparent YouTube CPM calculator: {DATA_YEAR} benchmarks for {COUNTRIES_BY_CPM.length} countries
+              and {NICHES_BY_CPM.length} niches, with the formula behind every number published in full.
+            </p>
+            <p className="mt-3 max-w-xs text-[12px] leading-relaxed text-fog/90">
+              Independent project. Not affiliated with, endorsed by or sponsored by YouTube or Google.
+            </p>
           </div>
           <nav aria-label="Quick links">
             <h3 className="text-xs font-bold uppercase tracking-widest text-heading">Quick Links</h3>
@@ -77,7 +84,7 @@ export default function SiteFooter() {
         </div>
         <div className="mt-12 flex flex-col items-start justify-between gap-4 border-t border-border pt-6 text-xs text-fog sm:flex-row sm:items-center">
           <p>© {DATA_YEAR} ytcpm.online. All rights reserved.</p>
-          <p className="num-mono">Data reviewed {DATA_UPDATED_AT} · Better Data · Smarter Decisions</p>
+          <p className="num-mono">Data reviewed {DATA_UPDATED_AT} · CPM = cost per mille · RPM = revenue per mille</p>
         </div>
       </div>
     </footer>

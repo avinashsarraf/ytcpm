@@ -88,6 +88,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     >
       <body className="bg-ink antialiased">
         <a href="#main" className="skip-link">Skip to content</a>
+        {/* Without JS the reveal wrappers would stay at opacity 0. */}
+        <noscript>
+          <style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style>
+        </noscript>
         <div className="bg-noise" aria-hidden />
         <SiteHeader />
         <main id="main">{children}</main>

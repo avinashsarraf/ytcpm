@@ -20,12 +20,12 @@ export default function NicheIndex() {
         <Reveal>
           <div className="flex items-center gap-3">
             <span className="grid h-9 w-9 place-items-center rounded-full bg-yt-red-bg"><Layers className="h-4 w-4 text-yt-red" /></span>
-            <span className="tag-red text-[10px]">Niche benchmarks · {DATA_YEAR}</span>
+            <span className="tag-red text-[11px]">Niche benchmarks · {DATA_YEAR}</span>
           </div>
-          <h1 className="mt-5 font-display text-4xl font-bold tracking-tight text-heading sm:text-5xl">
+          <h1 className="mt-5 display-2">
             Highest CPM YouTube <span className="text-yt-gradient">Niches</span>
           </h1>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-fog">
+          <p className="lede mt-4">
             Advertisers don&apos;t pay for views — they pay for what viewers are likely to buy. Here&apos;s every major YouTube niche in {DATA_YEAR}.
           </p>
         </Reveal>
@@ -47,7 +47,7 @@ export default function NicheIndex() {
                 <Link href={`/cpm-by-niche/${n.slug}`} className="panel group block h-full p-5 transition-all hover:border-yt-red/40 hover:shadow-md">
                   <div className="flex items-start justify-between">
                     <span className="grid h-9 w-9 place-items-center rounded-lg bg-surface group-hover:bg-yt-red-bg"><Icon className="h-4 w-4 text-fog group-hover:text-yt-red" /></span>
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${n.tier === "S" ? "bg-amber-50 text-gold" : n.tier === "A" ? "bg-mint-bg text-mint" : "bg-surface text-fog"}`}>{n.tier}-tier</span>
+                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${n.tier === "S" ? "bg-amber-50 text-gold" : n.tier === "A" ? "bg-mint-bg text-mint" : "bg-surface text-fog"}`}>{n.tier}-tier</span>
                   </div>
                   <h2 className="mt-3 text-[15px] font-bold text-heading">{n.name}</h2>
                   <p className="num-mono mt-1 text-sm"><span className="text-heading">CPM ${n.cpmLow}–${n.cpmHigh}</span> <span className="text-fog">·</span> <span className="text-mint">RPM ${rpmLow.toFixed(0)}–${rpmHigh.toFixed(0)}</span></p>

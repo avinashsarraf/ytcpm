@@ -22,9 +22,9 @@ export default function Faq({ items, idPrefix = "faq" }: { items: FaqItem[]; idP
           <div key={item.q} className={`transition-colors duration-200 ${isOpen ? "bg-yt-red-light" : "hover:bg-surface"}`}>
             <button type="button" onClick={() => setOpen(isOpen ? null : i)}
               id={buttonId} aria-expanded={isOpen} aria-controls={panelId}
-              className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left sm:px-6"
+              className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left sm:px-6 sm:py-[1.15rem]"
             >
-              <span className="text-[14px] font-semibold text-heading">{item.q}</span>
+              <span className="pr-2 text-[15px] font-semibold leading-snug text-heading">{item.q}</span>
               <motion.span animate={{ rotate: isOpen && !reduced ? 45 : 0 }} transition={{ duration: 0.2 }}
                 className={`grid h-7 w-7 shrink-0 place-items-center rounded-full transition-all duration-200 ${isOpen ? "bg-yt-red text-white shadow-[0_2px_8px_rgba(0,0,0,0.2)]" : "border border-border text-fog hover:border-yt-red/30 hover:text-yt-red"}`}>
                 <Plus className="h-3.5 w-3.5" />
@@ -40,7 +40,7 @@ export default function Faq({ items, idPrefix = "faq" }: { items: FaqItem[]; idP
                   transition={reduced ? { duration: 0 } : { duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                   className="overflow-hidden"
                 >
-                  <p className="px-5 pb-5 text-sm leading-relaxed text-fog sm:px-6 sm:max-w-3xl">{item.a}</p>
+                  <p className="px-5 pb-5 text-[13.5px] leading-relaxed text-fog sm:max-w-[62ch] sm:px-6">{item.a}</p>
                 </motion.div>
               )}
             </AnimatePresence>

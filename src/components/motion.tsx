@@ -15,18 +15,32 @@ export function Reveal({
   className?: string;
 }) {
   const reduced = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.05, margin: "0px 0px -8% 0px" });
+  const [forced, setForced] = useState(false);
 
-  if (reduced) {
-    return <div className={className}>{children}</div>;
-  }
+  /* Safety net: if the observer never fires (print, full-page capture, an
+     embedded webview), reveal after 1.8s rather than leaving the block at
+     opacity 0. Keeps the same element mounted so inputs never reset. */
+  useEffect(() => {
+    const t = setTimeout(() => setForced(true), 1800);
+    return () => clearTimeout(t);
+  }, []);
+
+  const show = reduced || forced || inView;
 
   return (
     <motion.div
+      ref={ref}
       className={className}
+      data-reveal=""
       initial={{ opacity: 0, y }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
+      animate={show ? { opacity: 1, y: 0 } : { opacity: 0, y }}
+      transition={
+        reduced
+          ? { duration: 0 }
+          : { duration: 0.45, delay: Math.min(delay, 0.24), ease: [0.22, 1, 0.36, 1] }
+      }
     >
       {children}
     </motion.div>
