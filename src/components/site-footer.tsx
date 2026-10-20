@@ -1,97 +1,40 @@
 import Link from "next/link";
-import { Play } from "lucide-react";
-
-/** Shared footer; only real internal destinations, no placeholder social profiles. */
-const QUICK_LINKS = [
-  { label: "Home", href: "/" },
-  { label: "CPM Calculator", href: "/youtube-cpm-calculator" },
-  { label: "RPM Calculator", href: "/youtube-rpm-calculator" },
-  { label: "Guides", href: "/guides" },
-  { label: "Usage Monitor", href: "/monitor" },
-];
+import { Activity, BookOpen, Calculator, Globe2, Layers, Play } from "lucide-react";
+import { COUNTRIES, NICHES, DATA_YEAR } from "@/lib/data";
+import { LEGAL_POLICIES } from "@/lib/legal";
 
 const TOOLS = [
-  { label: "Country CPM", href: "/cpm-by-country" },
-  { label: "Niche CPM", href: "/cpm-by-niche" },
-  { label: "Methodology", href: "/methodology" },
-  { label: "Sources & policy", href: "/sources" },
+  { label: "YouTube CPM Calculator", href: "/youtube-cpm-calculator", icon: Calculator },
+  { label: "YouTube RPM Calculator", href: "/youtube-rpm-calculator", icon: Calculator },
+  { label: `CPM by Country (${COUNTRIES.length})`, href: "/cpm-by-country", icon: Globe2 },
+  { label: `CPM by Niche (${NICHES.length})`, href: "/cpm-by-niche", icon: Layers },
+  { label: "API Usage Monitor", href: "/monitor", icon: Activity },
+  { label: "Guides & Learning", href: "/guides", icon: BookOpen },
+  { label: "Methodology", href: "/methodology", icon: BookOpen },
+  { label: "Sources & Editorial Policy", href: "/sources", icon: BookOpen },
 ];
+const markets = ["united-states", "australia", "united-kingdom", "switzerland", "norway", "canada", "new-zealand", "germany"].map(slug => COUNTRIES.find(c => c.slug === slug)!);
+const niches = ["finance-investing", "insurance-legal", "business-marketing", "real-estate", "make-money-online", "technology-software", "health-fitness", "education-science"].map(slug => NICHES.find(n => n.slug === slug)!);
+const heading = "font-mono text-[10px] font-semibold uppercase tracking-[0.2em]";
+const link = "inline-flex min-h-11 items-center py-2 text-[13px] leading-relaxed text-fog transition-colors hover:text-yt-red";
 
-const LEGAL = [
-  { label: "Legal Overview", href: "/legal" },
-  { label: "Privacy Policy", href: "/privacy" },
-  { label: "Terms of Use", href: "/terms" },
-  { label: "Disclaimer", href: "/disclaimer" },
-  { label: "Cookie Policy", href: "/cookies" },
-];
-
+/** Reference-inspired light footer; preserve policy access and honest data provenance. */
 export default function SiteFooter() {
-  return (
-    <footer className="bg-navy text-white">
-      <div className="shell py-12 xl:py-16">
-        <div className="grid grid-cols-2 gap-8 sm:gap-10 lg:grid-cols-[1.6fr_1fr_1fr_1fr_1fr]">
-          <div className="col-span-2 lg:col-span-1">
-            <Link href="/" className="flex items-center gap-2">
-              <span className="grid h-8 w-8 place-items-center rounded-[9px] bg-yt-red">
-                <Play className="h-4 w-4 fill-white text-white" />
-              </span>
-              <span className="text-[19px] font-extrabold tracking-tight text-white">
-                ytcpm<span className="text-yt-red">.online</span>
-              </span>
-            </Link>
-            <p className="mt-4 max-w-[22rem] text-[14px] leading-relaxed text-white/60">
-              Free YouTube CPM Calculator, Earnings Estimator and Channel Projections.
-            </p>
-          </div>
-
-          <nav aria-label="Quick links">
-            <h3 className="text-[14px] font-bold text-white">Quick Links</h3>
-            <ul className="mt-4 space-y-2.5">
-              {QUICK_LINKS.map((l) => (
-                <li key={l.href}>
-                  <Link href={l.href} className="text-[14px] text-white/60 transition-colors hover:text-white">{l.label}</Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          <nav aria-label="More tools">
-            <h3 className="text-[14px] font-bold text-white">More Tools</h3>
-            <ul className="mt-4 space-y-2.5">
-              {TOOLS.map((l) => (
-                <li key={l.href}>
-                  <Link href={l.href} className="text-[14px] text-white/60 transition-colors hover:text-white">{l.label}</Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          <nav aria-label="Legal">
-            <h3 className="text-[14px] font-bold text-white">Legal</h3>
-            <ul className="mt-4 space-y-2.5">
-              {LEGAL.map((l) => (
-                <li key={l.href}>
-                  <Link href={l.href} className="text-[14px] text-white/60 transition-colors hover:text-white">{l.label}</Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          <nav aria-label="Help">
-            <h3 className="text-[14px] font-bold text-white">Need Help?</h3>
-            <div className="mt-4 flex flex-col items-start gap-3 text-[14px] text-white/60"><Link href="/about" className="hover:text-white">About Us</Link><Link href="/contact" className="hover:text-white">Contact Us</Link></div>
-            <p className="mt-4 max-w-48 text-[14px] leading-relaxed text-white/60">Understand the assumptions behind your estimate.</p>
-            <Link href="/methodology" className="mt-3 inline-block py-2 text-[14px] font-semibold text-white underline underline-offset-4">How it works</Link>
-          </nav>
+  return <footer className="reference-footer overflow-hidden border-t border-border bg-[#fafafb]">
+    <div className="shell pb-0 pt-12 sm:pt-16 lg:pt-20">
+      <div className="grid grid-cols-1 gap-8 min-[480px]:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr_1fr] lg:gap-9 xl:gap-12">
+        <div className="min-[480px]:col-span-2 lg:col-span-1">
+          <Link href="/" aria-label="ytcpm.online — home" className="inline-flex min-h-11 items-center gap-2.5"><span className="hot-gradient grid h-9 w-9 place-items-center rounded-xl shadow-[0_4px_15px_-4px_rgba(238,18,73,0.45)]"><Play aria-hidden="true" className="h-4 w-4 fill-white text-white" /></span><span className="text-lg font-bold tracking-tight text-heading">ytcpm<span className="font-medium text-fog">.online</span></span></Link>
+          <p className="mt-4 max-w-[36ch] text-[13px] leading-7 text-fog">Free YouTube CPM and RPM tools, an earnings estimator and a {DATA_YEAR} reference-model library. Explore niche and audience-country scenarios in your local currency, with no signup or paywall.</p>
+          <p className="mt-4 max-w-[42ch] text-xs leading-6 text-fog">Benchmarks are directional assumptions, not verified averages or live market data. Independent of YouTube and Google. Use your own Studio reports for actual channel metrics.</p>
         </div>
-
-        <div className="mt-10 flex flex-col items-start justify-between gap-3 border-t border-white/10 pt-6 text-[12px] text-white/50 sm:flex-row sm:items-center">
-          <p>© 2026 ytcpm.online. All rights reserved.</p>
-          <p className="flex items-center gap-1.5">
-            Made with <span className="text-yt-red">♥</span> for YouTube Creators
-          </p>
-        </div>
+        <nav aria-label="Footer tools"><h2 className={`${heading} flex min-h-11 items-center gap-2 text-yt-red`}><BookOpen aria-hidden="true" className="h-3.5 w-3.5" />Tools &amp; resources</h2><ul className="mt-2">{TOOLS.map(({ href, label, icon: Icon }) => <li key={href}><Link href={href} className={`${link} gap-2`}><Icon aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-yt-red/80" />{label}</Link></li>)}</ul></nav>
+        <nav aria-label="Footer country benchmarks"><h2 className={`${heading} flex min-h-11 items-center text-mint`}>Country benchmarks</h2><ul className="mt-2">{markets.map(c => <li key={c.slug}><Link href={`/cpm-by-country/${c.slug}`} className={link}>YouTube CPM in {c.name}</Link></li>)}</ul></nav>
+        <nav aria-label="Footer niche benchmarks"><h2 className={`${heading} flex min-h-11 items-center text-mint`}>Niche benchmarks</h2><ul className="mt-2">{niches.map(n => <li key={n.slug}><Link href={`/cpm-by-niche/${n.slug}`} className={link}>{n.name} CPM</Link></li>)}</ul></nav>
       </div>
-    </footer>
-  );
+      <nav aria-label="Legal and company" className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-border py-3"><Link href="/legal" className="inline-flex min-h-11 items-center font-mono text-[10px] font-semibold uppercase tracking-widest text-yt-red">Legal center</Link>{[...LEGAL_POLICIES, { path: "/about", title: "About" }, { path: "/contact", title: "Contact" }].map(p => <Link key={p.path} href={p.path} className="inline-flex min-h-11 items-center py-2 text-xs text-fog hover:text-yt-red">{p.title}</Link>)}</nav>
+      <div className="flex flex-col justify-between gap-3 border-t border-border py-6 text-[11px] leading-relaxed text-fog lg:flex-row lg:gap-8"><p>© {DATA_YEAR} ytcpm.online — YouTube CPM, RPM &amp; earnings tools. Model assumptions, not payout promises.</p><p className="shrink-0 font-mono text-[10px] tracking-wide">CPM = cost per mille · RPM = revenue per mille</p></div>
+      <div aria-hidden="true" className="footer-watermark select-none pt-6 text-center sm:pt-9">ytcpm.online</div>
+    </div>
+  </footer>;
 }

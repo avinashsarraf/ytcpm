@@ -55,7 +55,7 @@ export default function SiteHeader() {
                 href={l.href}
                 aria-current={active ? "page" : undefined}
                 className={`relative whitespace-nowrap py-5 text-[14px] font-semibold transition-colors xl:text-[14px] ${
-                  active ? "text-yt-red" : "text-[#4a5a6e] hover:text-heading"
+                  active ? "text-yt-red" : "text-fog hover:text-heading"
                 }`}
               >
                 {l.label}
@@ -88,7 +88,7 @@ export default function SiteHeader() {
               href={l.href}
               onClick={() => setOpen(false)}
               className={`block rounded-xl px-4 py-3.5 text-sm font-semibold transition-colors ${
-                isActive(l.href, l.exact) ? "bg-yt-red-light text-yt-red" : "text-[#4a5a6e] hover:bg-surface"
+                isActive(l.href, l.exact) ? "bg-yt-red-light text-yt-red" : "text-fog hover:bg-surface"
               }`}
             >
               {l.label}

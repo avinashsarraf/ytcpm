@@ -5,6 +5,7 @@ import {
   Zap, CheckCircle2, ShieldCheck, Calculator as CalcIcon, Database,
   PieChart, ArrowRight, ArrowUpRight, Lightbulb, Sparkles,
 } from "lucide-react";
+import CpmRateTicker from "@/components/cpm-rate-ticker";
 import LearningSection from "@/components/learning-section";
 import { pageMetadata } from "@/lib/seo";
 import Calculator from "@/components/calculator";
@@ -102,13 +103,13 @@ export default function Home() {
 
               <Reveal delay={0.06}>
                 <h1 className="display-hero mt-4">
-                  <span className="text-hot-gradient">YouTube</span> Earnings<br />
-                  Calculator
+                  YouTube Earnings<br />
+                  <span className="accent-serif text-yt-red">Calculator</span>
                 </h1>
               </Reveal>
 
               <Reveal delay={0.12}>
-                <p className="mt-4 max-w-[26rem] text-[15px] leading-relaxed text-[#5b6b80] sm:text-[16px]">
+                <p className="mt-4 max-w-[26rem] text-[15px] leading-relaxed text-fog sm:text-[16px]">
                   Estimate long-form ad earnings from views and CPM. Compare audience-country and niche scenarios—or calculate your actual CPM and RPM from matching report inputs.
                 </p>
               </Reveal>
@@ -124,7 +125,7 @@ export default function Home() {
                         </span>
                         <span>
                           <span className="block text-[14px] font-bold leading-tight text-heading">{p.title}</span>
-                          <span className="block text-[13px] leading-tight text-[#5b6b80]">{p.sub}</span>
+                          <span className="block text-[13px] leading-tight text-fog">{p.sub}</span>
                         </span>
                       </li>
                     );
@@ -160,6 +161,8 @@ export default function Home() {
         </div>
       </section>
 
+      <CpmRateTicker />
+
       {/* ══════ WHY USE ══════ */}
       <section className="bg-white pb-9 pt-6 sm:pb-12 sm:pt-8">
         <div className="shell">
@@ -168,7 +171,7 @@ export default function Home() {
               <h2 className="display-2 mx-auto max-w-[26ch]">
                 Why Use Our <span className="text-yt-red">YouTube CPM Calculator</span>?
               </h2>
-              <p className="mt-3 text-[14px] leading-relaxed text-[#5b6b80]">
+              <p className="mt-3 text-[14px] leading-relaxed text-fog">
                 Get indicative YouTube earnings estimates and insights to plan your content strategy better.
               </p>
             </div>
@@ -185,7 +188,7 @@ export default function Home() {
                     </span>
                     <div>
                       <h3 className="text-[15px] font-extrabold text-heading sm:mt-4">{w.title}</h3>
-                      <p className="mt-1 text-[14px] leading-relaxed text-[#5b6b80]">{w.copy}</p>
+                      <p className="mt-1 text-[14px] leading-relaxed text-fog">{w.copy}</p>
                     </div>
                   </div>
                 </Reveal>
@@ -214,7 +217,7 @@ export default function Home() {
                       <li key={c.slug}>
                         <Link href={`/cpm-by-country/${c.slug}`} className="group flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-yt-red-light">
                           <Image src={flagUrl(c.code)} alt={`${c.name} flag`} width={24} height={17} className="!h-[17px] !w-6 rounded-[3px] object-cover" unoptimized />
-                          <span className="min-w-0 flex-1 text-[14px] font-semibold text-[#4a5a6e] group-hover:text-heading">{c.name}</span>
+                          <span className="min-w-0 flex-1 text-[14px] font-semibold text-fog group-hover:text-heading">{c.name}</span>
                           <span className="num-mono text-[14px] font-extrabold text-heading">
                             {money(c.cpmLow, 2)} - {money(c.cpmHigh, 2)}
                           </span>
@@ -243,7 +246,7 @@ export default function Home() {
                         <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-md text-[13px] ${row.tint}`} aria-hidden>
                           {row.icon}
                         </span>
-                        <span className="min-w-0 flex-1 text-[14px] font-semibold text-[#4a5a6e] group-hover:text-heading">{row.niche!.name}</span>
+                        <span className="min-w-0 flex-1 text-[14px] font-semibold text-fog group-hover:text-heading">{row.niche!.name}</span>
                         <span className="num-mono text-[14px] font-extrabold text-heading">
                           {money(row.niche!.cpmLow, 2)} - {money(row.niche!.cpmHigh, 2)}
                         </span>
@@ -277,13 +280,13 @@ export default function Home() {
                 </span>
                 <h2 className="text-[15px] font-extrabold text-yt-red">Important Note</h2>
               </div>
-              <p className="mt-3 text-[14px] leading-relaxed text-[#5b6b80]">
+              <p className="mt-3 text-[14px] leading-relaxed text-fog">
                 This tool provides estimated earnings based on average CPM rates. Actual YouTube earnings
                 may vary depending on factors like audience location, content type, ad formats, and seasonal demand.
               </p>
               <div className="mt-4 flex items-center gap-2 rounded-xl bg-white px-3 py-2.5">
                 <Sparkles className="h-4 w-4 shrink-0 text-yt-red" />
-                <p className="text-[13px] leading-snug text-[#5b6b80]">
+                <p className="text-[13px] leading-snug text-fog">
                   Benchmark snapshot <strong className="font-bold text-heading">{DATA_UPDATED_AT}</strong> · {COUNTRIES.length} countries · {NICHES.length} niches
                 </p>
               </div>

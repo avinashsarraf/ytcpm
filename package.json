@@ -13,7 +13,8 @@
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",
     "test:ui": "node scripts/smoke-ui.mjs",
-    "test:seo": "node scripts/smoke-seo.mjs"
+    "test:seo": "node scripts/smoke-seo.mjs",
+    "test:branding": "node scripts/smoke-branding.mjs"
   },
   "dependencies": {
     "dotenv": "17.3.1",
