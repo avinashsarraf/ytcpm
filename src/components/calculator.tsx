@@ -70,7 +70,7 @@ export default function Calculator() {
       <div className="card overflow-hidden !rounded-[20px] !shadow-[0_2px_6px_rgba(11,22,38,0.05),0_24px_60px_-24px_rgba(11,22,38,0.22)]">
         <div className="p-4 sm:p-6 xl:p-8">
         {/* ── Tabs ── */}
-        <div className="flex flex-col gap-1.5 rounded-xl border border-border bg-white p-1.5 min-[480px]:flex-row" role="group" aria-label="Calculator mode">
+        <div className="grid grid-cols-3 gap-1 rounded-xl border border-border bg-white p-1 sm:gap-1.5 sm:p-1.5" role="group" aria-label="Calculator mode">
           {TABS.map((t) => {
             const active = tab === t.id;
             const Icon = t.icon;
@@ -79,21 +79,21 @@ export default function Calculator() {
                 key={t.id}
                 aria-pressed={active}
                 onClick={() => setTab(t.id)}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-[14px] font-bold transition-all duration-200 xl:px-4 xl:text-[13.5px] ${
+                className={`flex min-h-[76px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-lg px-1.5 py-2 text-[12px] leading-snug font-bold transition-all duration-200 sm:text-[14px] md:min-h-12 md:flex-row md:gap-2 md:px-3 ${
                   active
                     ? "hot-gradient text-white shadow-[0_6px_18px_-6px_rgba(238,18,73,0.6)]"
                     : "text-[#4a5a6e] hover:bg-surface"
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0" />
-                <span className="truncate">{t.label}</span>
+                <span className="min-w-0 whitespace-normal text-center [overflow-wrap:anywhere]">{t.label}</span>
               </button>
             );
           })}
         </div>
 
-        <div className="mt-4 rounded-xl border border-border bg-surface px-4 py-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="mt-4 rounded-xl border border-border bg-surface px-3 py-3 sm:px-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-sm font-semibold text-heading">Results update instantly as you type</p>
             <button type="button" onClick={() => setAdvanced((v) => !v)} aria-expanded={advanced} aria-controls="calculator-assumptions" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border bg-white px-3 text-sm font-bold text-yt-red hover:bg-yt-red-light">
               <SlidersHorizontal className="h-4 w-4" />{advanced ? "Hide assumptions" : "Edit assumptions"}
@@ -209,8 +209,9 @@ export default function Calculator() {
             </div>
 
             {/* Quick views */}
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <span className="mr-1 text-[14px] font-semibold text-[#4a5a6e]">Quick Views:</span>
+            <div className="mt-4">
+              <p className="mb-2 text-[14px] font-semibold text-[#4a5a6e]">Quick Views</p>
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-6" role="group" aria-label="Quick view presets">
               {QUICK.map((v) => {
                 const active = views === v;
                 return (
@@ -219,7 +220,7 @@ export default function Calculator() {
                     type="button"
                     onClick={() => { setViews(v); setViewsText(num(v)); }}
                     aria-pressed={active}
-                    className={`rounded-md border px-3 py-1 text-[14px] font-bold transition-all ${
+                    className={`min-h-11 min-w-0 rounded-lg border px-2 py-2 text-[14px] font-bold transition-all ${
                       active
                         ? "border-yt-red bg-yt-red-light text-yt-red"
                         : "border-border text-[#4a5a6e] hover:border-yt-red/40 hover:text-yt-red"
@@ -229,7 +230,7 @@ export default function Calculator() {
                   </button>
                 );
               })}
-
+              </div>
             </div>
 
 
@@ -318,7 +319,7 @@ export default function Calculator() {
                   ["Q4 scenario / month", money(afterShare / seasonMult * Math.max(...SEASONS.map((s) => s.mult)))],
                   ["Per 1,000 views", money(cpm * CREATOR_SHARE * adShare, 2)],
                 ].map(([k, v]) => (
-                  <div key={k} className="flex items-center justify-between border-b border-border/70 pb-1.5 last:border-0 last:pb-0">
+                  <div key={k} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-b border-border/70 pb-1.5 last:border-0 last:pb-0">
                     <dt className="text-[#64748b]">{k}</dt>
                     <dd className="num-mono font-bold text-heading">{v}</dd>
                   </div>
@@ -339,21 +340,21 @@ export default function Calculator() {
         <div className="tile tile-mint !px-3 !py-3 sm:!px-4">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#d3f3e1] text-mint sm:h-11 sm:w-11"><Eye className="h-5 w-5" /></span>
           <span className="min-w-0">
-            <span title={num(views)} className="num-mono block truncate text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{num(views)}</span>
+            <span title={num(views)} className="num-mono block break-all text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{num(views)}</span>
             <span className="mt-0.5 block text-[12px] font-medium leading-tight text-[#5b6b80] sm:text-[13px]">{tab === "channel" ? "Monthly Views" : "Total Views"}</span>
           </span>
         </div>
         <div className="tile tile-blue !px-3 !py-3 sm:!px-4">
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#d8e6fa] text-blue"><DollarSign className="h-5 w-5" /></span>
           <span className="min-w-0">
-            <span className="num-mono block truncate text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{money(cpm, 2)}</span>
+            <span className="num-mono block break-all text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{money(cpm, 2)}</span>
             <span className="mt-0.5 block text-[12px] font-medium leading-tight text-[#5b6b80] sm:text-[13px]">CPM (USD)</span>
           </span>
         </div>
         <div className="tile tile-amber !px-3 !py-3 sm:!px-4">
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#fbe9b8] text-[#c2810a]"><BarChart3 className="h-5 w-5" /></span>
           <span className="min-w-0">
-            <span className="num-mono block truncate text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{money(gross)}</span>
+            <span className="num-mono block break-all text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{money(gross)}</span>
             <span className="mt-0.5 block text-[12px] font-medium leading-tight text-[#5b6b80] sm:text-[13px]">Gross Ad Revenue</span>
           </span>
         </div>
@@ -364,7 +365,7 @@ export default function Calculator() {
             </svg>
           </span>
           <span className="min-w-0">
-            <span className="num-mono block truncate text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{money(afterShare)}</span>
+            <span className="num-mono block break-all text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{money(afterShare)}</span>
             <span className="mt-0.5 block text-[12px] font-medium leading-tight text-[#5b6b80] sm:text-[13px]">Creator Earnings ({Math.round(CREATOR_SHARE * 100)}%)</span>
           </span>
         </div>

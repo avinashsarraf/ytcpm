@@ -81,7 +81,7 @@ export default function SiteHeader() {
       </div>
 
       {open && (
-        <nav id="mobile-nav" className="border-t border-border bg-white p-3 lg:hidden" aria-label="Mobile">
+        <nav id="mobile-nav" className="max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-t border-border bg-white p-3 lg:hidden" aria-label="Mobile">
           {LINKS.map((l) => (
             <Link
               key={l.href}

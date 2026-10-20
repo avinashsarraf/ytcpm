@@ -99,3 +99,13 @@ The subsequent screenshot review has been addressed:
 - Extended browser smoke checks for the single shared channel projection, fill-dependent RPM, visible optimistic-scenario notice, disclosure and instant-mode CTA, plus header overflow at every tested width.
 
 Validation for this follow-up: 74 unit/API tests, lint, TypeScript and production build pass. Chromium smoke checks pass at 320, 375, 768, 1024, 1440, 1920 and 2560px. Hosted deployment and remaining production gates above are unchanged.
+
+## Mobile/tablet screenshot follow-up
+
+- Replaced the calculator's flex-mode strip with three equal-width grid buttons. Icons stack above wrapping labels on phones/small tablets; wider tablets use horizontal icon/label controls. Labels are no longer truncated or pushed outside the card around the old 480px breakpoint.
+- Quick view presets now form balanced 3×2 rows on phones and one 6-button row from 640px, with 44px minimum hit targets (no orphaned 50M preset).
+- Hero switches to a side-by-side layout at 768px rather than 1024px, reducing the tall, mostly empty tablet hero. Phone illustration size is capped to keep the calculator closer to the first screen.
+- Benefits use compact icon-plus-text rows below 640px, retaining the two/four-card desktop grid. Balanced heading measure avoids an excessively long heading at intermediate widths.
+- Financial values can wrap rather than silently truncate. Channel projection detail rows can reflow without colliding labels/amounts.
+- Mobile navigation gets a viewport-bounded, scrollable region so links remain reachable in landscape/short windows.
+- Browser regression coverage expanded to **12 widths: 320, 375, 420, 480, 600, 768, 820, 970, 1024, 1440, 1920, 2560px**, including checks for internal tab clipping, equal preset row counts, touch-target size, bounded tablet hero height, compact phone benefits, enlarged text and landscape navigation.

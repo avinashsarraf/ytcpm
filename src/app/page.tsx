@@ -106,8 +106,8 @@ export default function Home() {
       {/* ══════ HERO ══════ */}
       <section className="hero-shell relative overflow-hidden">
         <div className="shell relative">
-          <div className="grid items-center gap-2 lg:grid-cols-[1.05fr_0.95fr] lg:gap-4 xl:gap-8">
-            <div className="relative z-10 pt-9 sm:pt-12 lg:pb-14 xl:pb-16">
+          <div className="grid items-center gap-1 md:grid-cols-[1.1fr_0.9fr] md:gap-4 xl:gap-8">
+            <div className="relative z-10 pt-7 sm:pt-8 md:py-10 lg:py-14 xl:py-16">
               <Reveal>
                 <span className="inline-flex items-center gap-2 rounded-full border border-white bg-white/70 py-1 pl-1 pr-4 text-[14px] font-semibold text-heading shadow-[0_2px_10px_-4px_rgba(11,22,38,0.18)] backdrop-blur">
                   <span className="grid h-6 w-6 place-items-center rounded-full bg-[#fdf1d8]">
@@ -132,7 +132,7 @@ export default function Home() {
               </Reveal>
 
               <Reveal delay={0.18}>
-                <ul className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+                <ul className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-3 lg:gap-x-6">
                   {HERO_POINTS.map((p) => {
                     const Icon = p.icon;
                     return (
@@ -153,14 +153,14 @@ export default function Home() {
 
             <Reveal delay={0.1} className="relative">
               {/* Natural image aspect ratio keeps the edge mask aligned to the artwork. */}
-              <div className="relative mx-auto mb-2 w-full max-w-[400px] sm:max-w-[480px] lg:mb-0 lg:max-w-[620px]">
+              <div className="relative mx-auto mb-2 w-full max-w-[280px] min-[480px]:max-w-[340px] sm:max-w-[380px] md:mb-0 md:max-w-none lg:max-w-[620px]">
                 <Image
                   src="/hero-illustration.webp"
                   alt="3D illustration of a creator beside a laptop showing estimated YouTube earnings and CPM"
                   width={1200}
                   height={900}
                   priority
-                  sizes="(max-width: 640px) 400px, (max-width: 1024px) 480px, (max-width: 1600px) 48vw, 740px"
+                  sizes="(max-width: 479px) 280px, (max-width: 639px) 340px, (max-width: 767px) 380px, (max-width: 1600px) 44vw, 620px"
                   className="hero-art h-auto w-full object-contain"
                 />
               </div>
@@ -183,7 +183,7 @@ export default function Home() {
         <div className="shell">
           <Reveal>
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="display-2">
+              <h2 className="display-2 mx-auto max-w-[26ch]">
                 Why Use Our <span className="text-yt-red">YouTube CPM Calculator</span>?
               </h2>
               <p className="mt-3 text-[14px] leading-relaxed text-[#5b6b80]">
@@ -192,17 +192,19 @@ export default function Home() {
             </div>
           </Reveal>
 
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:gap-5">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:gap-5">
             {WHY.map((w, i) => {
               const Icon = w.icon;
               return (
                 <Reveal key={w.title} delay={i * 0.05}>
-                  <div className="card card-hover h-full p-5">
-                    <span className={`grid h-11 w-11 place-items-center rounded-xl ${w.tint}`}>
+                  <div className="card card-hover flex h-full items-start gap-3 p-4 sm:block sm:p-5" data-benefit-card="">
+                    <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl sm:h-11 sm:w-11 ${w.tint}`}>
                       <Icon className="h-5 w-5" />
                     </span>
-                    <h3 className="mt-4 text-[15px] font-extrabold text-heading">{w.title}</h3>
-                    <p className="mt-1.5 text-[14px] leading-relaxed text-[#5b6b80]">{w.copy}</p>
+                    <div>
+                      <h3 className="text-[15px] font-extrabold text-heading sm:mt-4">{w.title}</h3>
+                      <p className="mt-1 text-[14px] leading-relaxed text-[#5b6b80]">{w.copy}</p>
+                    </div>
                   </div>
                 </Reveal>
               );

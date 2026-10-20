@@ -8,7 +8,7 @@ if (screenshotDir) await mkdir(screenshotDir, { recursive: true });
 (async () => {
  const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_EXECUTABLE_PATH, args: ["--no-sandbox", "--disable-dev-shm-usage"], headless: true });
  const page=await browser.newPage(); const errors=[];page.on('pageerror',e=>errors.push(e.message));
- for(const width of [320,375,768,1024,1440,1920,2560]) {
+ for(const width of [320,375,420,480,600,768,820,970,1024,1440,1920,2560]) {
   await page.setViewportSize({width,height:1000});await page.goto(baseUrl);await page.waitForTimeout(600);
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`overflow at ${width}`);
   const box=await page.locator('.shell').first().boundingBox();assert(box.width<=1600);
@@ -18,8 +18,26 @@ if (screenshotDir) await mkdir(screenshotDir, { recursive: true });
   if(screenshotDir && width===1920) await page.screenshot({path:join(screenshotDir,'desktop.png'),fullPage:true});
   const controls = page.locator('header .shell');
   assert(await controls.evaluate(e=>e.scrollWidth<=e.clientWidth),`header controls overflow ${width}`);
+  const modes = page.getByRole('group',{name:'Calculator mode',exact:true});
+  assert.equal(await modes.getByRole('button').count(),3);
+  assert(await modes.evaluate(e => [...e.querySelectorAll('button, button span')].every(b => {
+    const r=b.getBoundingClientRect(), bounds=e.getBoundingClientRect();
+    return b.scrollWidth<=b.clientWidth+1 && r.left>=bounds.left-1 && r.right<=bounds.right+1 && r.top>=bounds.top-1 && r.bottom<=bounds.bottom+1;
+  })), `clipped calculator mode at ${width}`);
+  const presets=page.getByRole('group',{name:'Quick view presets',exact:true});
+  assert(await presets.getByRole('button').evaluateAll(buttons=>buttons.every(b=>b.getBoundingClientRect().height>=44)),`preset touch targets ${width}`);
+  const rows=await presets.getByRole('button').evaluateAll(buttons=>Object.values(buttons.reduce((rows,b)=>{const y=Math.round(b.getBoundingClientRect().top);rows[y]=(rows[y]||0)+1;return rows},{})));
+  assert.deepEqual(rows,width<640?[3,3]:[6],`uneven presets at ${width}`);
+  if(width>=768 && width<1024) assert((await page.locator('.hero-shell').boundingBox()).height<520,`oversized tablet hero ${width}`);
+  if(width<640) assert(await page.locator('[data-benefit-card]').evaluateAll(cards=>cards.every(c=>c.getBoundingClientRect().height<160)),`oversized benefits ${width}`);
+  if(screenshotDir && width===820) await page.screenshot({path:join(screenshotDir,'tablet.png'),fullPage:true});
   console.log('PASS layout',width);
  }
+ // Large browser text must not turn mode controls into clipped labels.
+ await page.setViewportSize({width:480,height:900});
+ await page.addStyleTag({content:'html { font-size: 20px; }'});
+ assert(await page.getByRole('group',{name:'Calculator mode',exact:true}).evaluate(e=>[...e.querySelectorAll('button span')].every(b=>b.scrollWidth<=b.clientWidth+1)),'clipped modes at enlarged text');
+ await page.goto(baseUrl);
  const cpm=page.getByRole('textbox',{name:'CPM in US dollars'});await cpm.fill('3.');assert.equal(await cpm.inputValue(),'3.');await cpm.fill('3.50');
  await page.getByRole('textbox',{name:'Total views',exact:true}).fill('1,000,000');assert((await page.locator('#results').innerText()).includes('$1,925'));
  await page.getByRole('button',{name:'Edit assumptions',exact:true}).click();await page.getByRole('slider',{name:'Views serving ads'}).fill('0');assert((await page.locator('#results').innerText()).includes('$0.00'));
@@ -40,6 +58,13 @@ if (screenshotDir) await mkdir(screenshotDir, { recursive: true });
  assert(await page.getByRole('link',{name:'View Results',exact:true}).isVisible());
  assert(await page.getByRole('complementary',{name:'Estimate limitations'}).isVisible());
  await page.setViewportSize({width:375,height:900});await page.getByRole('button',{name:'Open menu',exact:true}).click();assert(await page.getByRole('navigation',{name:'Mobile',exact:true}).isVisible());await page.keyboard.press('Escape');assert.equal(await page.getByRole('navigation',{name:'Mobile',exact:true}).count(),0);
+ await page.setViewportSize({width:740,height:320});
+ await page.getByRole('button',{name:'Open menu',exact:true}).click();
+ const landscapeMenu=page.getByRole('navigation',{name:'Mobile',exact:true});
+ await landscapeMenu.getByRole('link').last().scrollIntoViewIfNeeded();
+ assert(await landscapeMenu.evaluate(e=>{const r=e.getBoundingClientRect();return r.bottom<=innerHeight+1 && getComputedStyle(e).overflowY==='auto'}),'landscape menu extends beyond viewport');
+ await page.keyboard.press('Escape');
+ await page.setViewportSize({width:375,height:900});
  for(const path of ['/cpm-by-country','/cpm-by-country/india','/cpm-by-niche','/cpm-by-niche/finance-investing','/about','/contact','/methodology','/privacy','/terms','/monitor']) {
   const response=await page.goto(baseUrl+path);assert.equal(response.status(),200);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`overflow ${path}`);console.log('PASS page',path);
  }
