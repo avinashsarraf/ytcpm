@@ -1,266 +1,380 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Eye, Layers, Globe2, Clock3, ArrowLeftRight, Sparkles, ArrowRight, SlidersHorizontal } from "lucide-react";
 import {
-  COUNTRIES, NICHES, SEASONS, estimateEarnings, viewsLabel, money,
-  localMoney, currencySymbol, fxNote, type ContentType, type Country,
+  Calculator as CalcIcon, Eye, DollarSign, Globe, BarChart3, Users,
+  ArrowRight, SlidersHorizontal, TrendingUp,
+} from "lucide-react";
+import {
+  COUNTRIES, NICHES, SEASONS, CREATOR_SHARE, money, viewsLabel,
+  countryMultiplier, type Country,
 } from "@/lib/data";
-import { AnimatedMoney } from "./motion";
 
 /**
- * Views snap to human-readable stops so the tick labels, the readout and the
- * estimate always agree (the old log slider showed "10K" at 1,000 views).
+ * Reference-style calculator: views + CPM + country on one row, quick-view
+ * chips, and four pastel metric tiles. The CPM field is pre-filled from the
+ * live benchmark for the chosen niche/country but stays editable, so visitors
+ * who already know their CPM can type it and the ones who don't get a value.
  */
-const VIEW_STOPS = [
-  1_000, 2_500, 5_000, 10_000, 25_000, 50_000, 100_000,
-  250_000, 500_000, 1_000_000, 2_500_000, 5_000_000, 10_000_000,
-] as const;
-const DEFAULT_STOP = 6; // 100K
-const TICK_STOPS = [0, 3, 6, 9, 12];
 
-const AD_SHARE_OPTIONS = [
-  { value: 1, label: "100% — every view monetized" },
-  { value: 0.85, label: "85% — strong ad fill" },
-  { value: 0.7, label: "70% — typical long-form" },
-  { value: 0.55, label: "55% — heavy ad-blocking" },
-  { value: 0.4, label: "40% — limited ads" },
-];
+const QUICK = [1_000, 10_000, 100_000, 1_000_000, 10_000_000, 50_000_000];
+const DEFAULT_VIEWS = 1_000_000;
+
+const avgOf = (c: { cpmLow: number; cpmHigh: number }) => (c.cpmLow + c.cpmHigh) / 2;
+const mean = (nums: number[]) => nums.reduce((a, b) => a + b, 0) / nums.length;
+
+/** Synthetic "Worldwide (Average)" entry so the default country is honest. */
+const WORLDWIDE: Country = {
+  slug: "worldwide",
+  name: "Worldwide (Average)",
+  code: "WW",
+  tier: 1,
+  cpmLow: mean(COUNTRIES.map((c) => c.cpmLow)),
+  cpmHigh: mean(COUNTRIES.map((c) => c.cpmHigh)),
+  currency: "USD",
+  fx: 1,
+  locale: "en-US",
+  note: "The blended average of every market tracked — a neutral starting point.",
+};
+
+const COUNTRIES_WITH_WORLD = [WORLDWIDE, ...COUNTRIES];
+const num = (n: number) => n.toLocaleString("en-US");
+const TABS = [
+  { id: "cpm", label: "CPM Calculator", icon: CalcIcon },
+  { id: "views", label: "Earnings by Views", icon: BarChart3 },
+  { id: "channel", label: "Channel Estimator", icon: Users },
+] as const;
+type TabId = (typeof TABS)[number]["id"];
 
 export default function Calculator() {
-  const [stop, setStop] = useState(DEFAULT_STOP);
+  const [tab, setTab] = useState<TabId>("cpm");
+  const [views, setViews] = useState(DEFAULT_VIEWS);
+  const [viewsText, setViewsText] = useState(num(DEFAULT_VIEWS));
   const [nicheSlug, setNicheSlug] = useState("technology-software");
-  const [countrySlug, setCountrySlug] = useState("united-states");
-  const [type, setType] = useState<ContentType>("long");
+  const [countrySlug, setCountrySlug] = useState("worldwide");
   const [seasonKey, setSeasonKey] = useState("annual");
-  const [adShare, setAdShare] = useState(1);
+  const [advanced, setAdvanced] = useState(false);
 
-  const views = VIEW_STOPS[stop];
   const niche = NICHES.find((n) => n.slug === nicheSlug) ?? NICHES[0];
-  const country = COUNTRIES.find((c) => c.slug === countrySlug) ?? COUNTRIES[0];
+  const country = COUNTRIES_WITH_WORLD.find((c) => c.slug === countrySlug) ?? WORLDWIDE;
   const season = SEASONS.find((s) => s.q === seasonKey);
   const seasonMult = season?.mult ?? 1;
 
-  const est = useMemo(
-    () => estimateEarnings({ views, niche, country, type, season: seasonMult, monetizedShare: adShare }),
-    [views, niche, country, type, seasonMult, adShare]
+  const benchmarkCpm = useMemo(
+    () => avgOf(niche) * countryMultiplier(country) * seasonMult,
+    [niche, country, seasonMult]
   );
 
-  const mid = (est.monthlyLow + est.monthlyHigh) / 2;
-  const rpmMid = (est.rpmLow + est.rpmHigh) / 2;
-  const cpmMid = (est.cpmLow + est.cpmHigh) / 2;
-  const cur = useMemo(() => (usd: number, d?: number) => localMoney(usd, country as Country, d), [country]);
-  const sym = currencySymbol(country);
+  /* Derived, not synced: the benchmark is the value until the visitor types
+     their own CPM, and clearing the override snaps it back to the benchmark. */
+  const [cpmOverride, setCpmOverride] = useState<number | null>(null);
+  const cpm = cpmOverride ?? Math.round(benchmarkCpm * 100) / 100;
 
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const mounted = useRef(false);
-  useEffect(() => {
-    if (!mounted.current) { mounted.current = true; return; }
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => {
-      fetch("/api/calculate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          views, niche: niche.slug, country: country.slug, type,
-          season: seasonKey, monetizedShare: adShare,
-        }),
-        keepalive: true,
-      }).catch(() => {});
-    }, 900);
-    return () => { if (timer.current) clearTimeout(timer.current); };
-  }, [views, niche.slug, country.slug, type, seasonKey, adShare]);
+  const gross = (views / 1000) * cpm;
+  const afterShare = gross * CREATOR_SHARE;
+  const fill70 = afterShare * 0.7;
 
-  const tiers = useMemo(() => {
-    const g: Record<number, typeof COUNTRIES> = { 1: [], 2: [], 3: [], 4: [] };
-    COUNTRIES.forEach((c) => g[c.tier].push(c));
-    return g;
-  }, []);
+  const setViewsFromInput = (raw: string) => {
+    const digits = raw.replace(/[^\d]/g, "").slice(0, 12);
+    const value = digits ? Number(digits) : 0;
+    setViews(value);
+    setViewsText(digits ? num(value) : "");
+  };
 
   return (
-    <div className="panel overflow-hidden !rounded-2xl !shadow-[0_4px_8px_rgba(0,0,0,0.04),0_16px_48px_-12px_rgba(0,0,0,0.1)]">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-surface px-4 py-3 sm:px-6">
-        <span className="rounded-full bg-yt-red px-5 py-2 text-[13px] font-bold text-white shadow-[0_2px_8px_rgba(0,0,0,0.18)]">
-          Earnings calculator
-        </span>
-        <Link
-          href="/cpm-by-niche"
-          className="group inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[13px] font-semibold text-fog transition-colors hover:bg-surface-2 hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yt-red/40"
-        >
-          Compare all niches
-          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-        </Link>
-      </div>
+    <>
+      <div className="card overflow-hidden !rounded-[20px] !shadow-[0_2px_6px_rgba(11,22,38,0.05),0_24px_60px_-24px_rgba(11,22,38,0.22)]">
+        <div className="p-4 sm:p-6">
+        {/* ── Tabs ── */}
+        <div className="flex flex-col gap-2 rounded-xl sm:flex-row" role="group" aria-label="Calculator mode">
+          {TABS.map((t) => {
+            const active = tab === t.id;
+            const Icon = t.icon;
+            return (
+              <button
+                key={t.id}
+                aria-pressed={active}
+                onClick={() => setTab(t.id)}
+                className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-[13.5px] font-bold transition-all duration-200 ${
+                  active
+                    ? "hot-gradient text-white shadow-[0_6px_18px_-6px_rgba(238,18,73,0.6)]"
+                    : "border border-transparent text-[#4a5a6e] hover:bg-surface sm:border-0"
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
 
-      <div className="grid gap-0 lg:grid-cols-[1.1fr_0.9fr]">
-        {/* LEFT */}
-        <div className="border-b border-border p-5 sm:p-7 lg:border-b-0 lg:border-r">
-          <div>
-            <div className="mb-1 flex items-center justify-between gap-3">
-              <label htmlFor="views" className="flex items-center gap-2 text-sm font-bold text-heading">
-                <Eye className="h-4 w-4 text-yt-red" /> Monthly views
+        {/* ── Mode: CPM calculator ── */}
+        {tab === "cpm" && (
+          <>
+            <div className="mt-5 grid gap-4 lg:grid-cols-[1.1fr_0.85fr_1fr_auto] lg:items-end">
+              <label className="block">
+                <span className="mb-1.5 block text-[13px] font-bold text-heading">Total Views</span>
+                <span className="relative block">
+                  <Eye className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />
+                  <input
+                    inputMode="numeric"
+                    value={viewsText}
+                    onChange={(e) => setViewsFromInput(e.target.value)}
+                    placeholder="e.g. 1,000,000"
+                    className="field pl-9"
+                    aria-label="Total views"
+                  />
+                </span>
               </label>
-              <div className="flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-1.5">
-                <Eye className="h-3.5 w-3.5 text-fog" />
-                <span className="num-mono text-sm font-bold text-heading">{views.toLocaleString("en-US")}</span>
-              </div>
-            </div>
-            <input
-              id="views"
-              type="range"
-              min={0}
-              max={VIEW_STOPS.length - 1}
-              step={1}
-              value={stop}
-              aria-valuetext={`${views.toLocaleString("en-US")} monthly views`}
-              onChange={(e) => setStop(Number(e.target.value))}
-              className="slider"
-              style={{ ["--fill" as string]: `${(stop / (VIEW_STOPS.length - 1)) * 100}%` }}
-            />
-            {/* Labels sit at the exact thumb positions (0/25/50/75/100%). */}
-            <div className="relative h-4 text-[10px] font-mono font-medium text-fog/80" aria-hidden>
-              {TICK_STOPS.map((i) => {
-                const pct = (i / (VIEW_STOPS.length - 1)) * 100;
-                return (
-                  <span
-                    key={i}
-                    className="absolute -translate-x-1/2 whitespace-nowrap first:translate-x-0 last:-translate-x-full"
-                    style={{ left: `${pct}%` }}
+
+              <label className="block">
+                <span className="mb-1.5 block text-[13px] font-bold text-heading">CPM (USD)</span>
+                <span className="relative block">
+                  <DollarSign className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />
+                  <input
+                    inputMode="decimal"
+                    value={Number.isFinite(cpm) ? String(cpm) : ""}
+                    onChange={(e) => {
+                      const next = Number(e.target.value.replace(/[^\d.]/g, ""));
+                      setCpmOverride(Number.isFinite(next) ? Math.max(0, next) : 0);
+                    }}
+                    placeholder="e.g. 3.50"
+                    className="field pl-9"
+                    aria-label="CPM in US dollars"
+                  />
+                </span>
+              </label>
+
+              <label className="block">
+                <span className="mb-1.5 block text-[13px] font-bold text-heading">
+                  Country <span className="font-medium text-[#94a3b8]">(Optional)</span>
+                </span>
+                <span className="relative block">
+                  <Globe className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />
+                  <select
+                    value={countrySlug}
+                    onChange={(e) => { setCountrySlug(e.target.value); setCpmOverride(null); }}
+                    aria-label="Audience country"
+                    className="select-field pl-9"
                   >
-                    {viewsLabel(VIEW_STOPS[i])}
-                  </span>
+                    <option value="worldwide">Worldwide (Average)</option>
+                    {([1, 2, 3, 4] as const).map((tier) => (
+                      <optgroup
+                        key={tier}
+                        label={["Tier 1 — Premium", "Tier 2 — Strong", "Tier 3 — Emerging", "Tier 4 — Volume"][tier - 1]}
+                      >
+                        {COUNTRIES.filter((c) => c.tier === tier).map((c) => (
+                          <option key={c.slug} value={c.slug}>{c.name} ({c.currency})</option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                </span>
+              </label>
+
+              <a
+                href="#results"
+                className="hot-gradient inline-flex h-[42px] items-center justify-center gap-2 rounded-lg px-6 text-[13.5px] font-bold text-white shadow-[0_8px_20px_-8px_rgba(238,18,73,0.7)] transition-transform hover:scale-[1.02]"
+              >
+                <CalcIcon className="h-4 w-4" /> Calculate Earnings <ArrowRight className="h-4 w-4" />
+              </a>
+            </div>
+
+            {/* Quick views */}
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <span className="mr-1 text-[12.5px] font-semibold text-[#4a5a6e]">Quick Views:</span>
+              {QUICK.map((v) => {
+                const active = views === v;
+                return (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => { setViews(v); setViewsText(num(v)); }}
+                    aria-pressed={active}
+                    className={`rounded-md border px-3 py-1 text-[12px] font-bold transition-all ${
+                      active
+                        ? "border-yt-red bg-yt-red-light text-yt-red"
+                        : "border-border text-[#4a5a6e] hover:border-yt-red/40 hover:text-yt-red"
+                    }`}
+                  >
+                    {viewsLabel(v)}
+                  </button>
                 );
               })}
+              <button
+                type="button"
+                onClick={() => setAdvanced((v) => !v)}
+                aria-expanded={advanced}
+                className="ml-auto inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[12px] font-semibold text-[#64748b] transition-colors hover:text-yt-red"
+              >
+                <SlidersHorizontal className="h-3.5 w-3.5" />
+                {advanced ? "Hide assumptions" : "Assumptions"}
+              </button>
             </div>
-          </div>
 
+            {advanced && (
+              <div className="mt-3 grid gap-3 rounded-xl border border-border bg-surface p-3.5 sm:grid-cols-2 lg:grid-cols-3">
+                <label className="block">
+                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-[#7c8a9c]">Channel niche</span>
+                  <select value={nicheSlug} onChange={(e) => { setNicheSlug(e.target.value); setCpmOverride(null); }} className="select-field !py-2 !text-[13px]">
+                    {NICHES.map((n) => <option key={n.slug} value={n.slug}>{n.name}</option>)}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-[#7c8a9c]">Season</span>
+                  <select value={seasonKey} onChange={(e) => { setSeasonKey(e.target.value); setCpmOverride(null); }} className="select-field !py-2 !text-[13px]">
+                    <option value="annual">Full year (1.00×)</option>
+                    {SEASONS.map((s) => <option key={s.q} value={s.q}>{s.q} · {s.label} ({s.mult.toFixed(2)}×)</option>)}
+                  </select>
+                </label>
+                <p className="self-center text-[12px] leading-relaxed text-[#64748b]">
+                  Changing the niche or country re-fills the CPM with the live benchmark until you edit it yourself.
+                </p>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── Mode: earnings by views ── */}
+        {tab === "views" && (
           <div className="mt-5">
-            <label htmlFor="niche" className="mb-1.5 flex items-center gap-2 text-sm font-bold text-heading">
-              <Layers className="h-4 w-4 text-yt-red" /> Channel niche
-            </label>
-            <select id="niche" className="select-field" value={nicheSlug} onChange={(e) => setNicheSlug(e.target.value)}>
-              <optgroup label="S & A tier">{NICHES.filter((n) => n.tier === "S" || n.tier === "A").map((n) => <option key={n.slug} value={n.slug}>{n.name}</option>)}</optgroup>
-              <optgroup label="B & C tier">{NICHES.filter((n) => n.tier === "B" || n.tier === "C").map((n) => <option key={n.slug} value={n.slug}>{n.name}</option>)}</optgroup>
-            </select>
-          </div>
-
-          <div className="mt-5">
-            <div className="mb-1.5 flex items-center justify-between">
-              <label htmlFor="country" className="flex items-center gap-2 text-sm font-bold text-heading">
-                <Globe2 className="h-4 w-4 text-yt-red" /> Audience country
-              </label>
-              <motion.span key={country.currency} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="num-mono inline-flex items-center gap-1 rounded-md bg-yt-red-bg px-2 py-0.5 text-[10px] font-bold text-yt-red">
-                <ArrowLeftRight className="h-2.5 w-2.5" /> {sym} {country.currency}
-              </motion.span>
-            </div>
-            <select id="country" className="select-field" value={countrySlug} onChange={(e) => setCountrySlug(e.target.value)}>
-              {([1, 2, 3, 4] as const).map((t) => (
-                <optgroup key={t} label={["Tier 1 — Premium", "Tier 2 — Strong", "Tier 3 — Emerging", "Tier 4 — Volume"][t - 1]}>
-                  {tiers[t].map((c) => <option key={c.slug} value={c.slug}>{c.name} ({c.currency})</option>)}
-                </optgroup>
-              ))}
-            </select>
-          </div>
-
-          <div className="mt-5">
-            <p className="mb-1.5 flex items-center gap-2 text-sm font-bold text-heading">
-              <Clock3 className="h-4 w-4 text-yt-red" /> Content type
+            <p className="text-[13px] text-[#64748b]">
+              Earnings for <strong className="text-heading">{niche.name}</strong> at a {money(cpm, 2)} CPM
+              ({countrySlug === "worldwide" ? "worldwide average" : country.name}).
             </p>
-            <div className="flex gap-2" role="group" aria-label="Content type">
-              {([{ v: "long", label: "Long-form" }, { v: "shorts", label: "Shorts" }] as const).map((o) => (
-                <button key={o.v} type="button" onClick={() => setType(o.v)} aria-pressed={type === o.v}
-                  className={`rounded-lg px-6 py-2.5 text-sm font-bold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yt-red/40 ${type === o.v ? "bg-yt-red text-white shadow-[0_2px_12px_rgba(0,0,0,0.2)] scale-[1.02]" : "border border-border bg-white text-fog hover:border-yt-red/30 hover:text-heading"}`}
-                >{o.label}</button>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-5 rounded-xl border border-border bg-surface p-3.5">
-            <p className="flex items-center gap-2 text-[12px] font-bold text-heading">
-              <SlidersHorizontal className="h-3.5 w-3.5 text-yt-red" /> Assumptions
-            </p>
-            <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2">
-              <label className="block">
-                <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-fog">Season</span>
-                <select className="select-field !py-2 !text-xs" value={seasonKey} onChange={(e) => setSeasonKey(e.target.value)}>
-                  <option value="annual">Full year (1.00×)</option>
-                  {SEASONS.map((s) => <option key={s.q} value={s.q}>{s.q} · {s.label} ({s.mult.toFixed(2)}×)</option>)}
-                </select>
-              </label>
-              <label className="block">
-                <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-fog">Ad-impression rate</span>
-                <select className="select-field !py-2 !text-xs" value={adShare} onChange={(e) => setAdShare(Number(e.target.value))}>
-                  {AD_SHARE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
-              </label>
-            </div>
-            <p className="mt-2 text-[10px] leading-relaxed text-fog">
-              RPM = CPM × 55% creator share × ad-impression rate. Lower the rate when many views are ad-blocked or never reach an ad.
-            </p>
-          </div>
-        </div>
-
-        {/* RIGHT */}
-        <div className="flex flex-col p-5 sm:p-7">
-          <div aria-live="polite">
-            <p className="text-sm font-bold text-heading">Estimated monthly earnings</p>
-            <div className="mt-2 flex flex-wrap items-baseline gap-3">
-              <AnimatedMoney value={mid} format={(v) => cur(v)} className="num-mono font-display text-5xl font-bold tracking-tight text-heading" />
-              <span className="num-mono text-xs font-semibold text-yt-red">{money(est.rpmLow, 2)} ~ {money(est.rpmHigh, 2)} per 1K views</span>
-            </div>
-            <p className="num-mono mt-1 text-[11px] text-fog">
-              Range {cur(est.monthlyLow)} – {cur(est.monthlyHigh)} per month
-            </p>
-            {country.currency !== "USD" && <p className="num-mono mt-1 text-xs text-fog">≈ {money(mid)} USD · {fxNote(country)}</p>}
-          </div>
-
-          <div className="mt-5 grid grid-cols-2 gap-3">
-            <div className="rounded-xl border border-border bg-surface p-4 transition-all hover:border-yt-red/20 hover:shadow-sm">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-fog">CPM Range</p>
-              <p className="num-mono mt-1.5 text-lg font-bold text-heading">{type === "shorts" ? "n/a" : `${cur(est.cpmLow, 2)} - ${cur(est.cpmHigh, 2)}`}</p>
-              <p className="mt-0.5 text-[11px] text-fog">{type === "shorts" ? "pooled Shorts revenue" : "per 1,000 ad impressions"}</p>
-            </div>
-            <div className="rounded-xl border border-border bg-surface p-4 transition-all hover:border-mint/20 hover:shadow-sm">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-fog">RPM Range</p>
-              <p className="num-mono mt-1.5 text-lg font-bold text-mint">{cur(est.rpmLow)} - {cur(est.rpmHigh)}</p>
-              <p className="mt-0.5 text-[11px] text-fog">per 1,000 total views</p>
-            </div>
-          </div>
-
-          <div className="mt-5 overflow-hidden rounded-xl border border-border">
-            <div className="border-b border-border bg-surface px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-fog">Earnings breakdown</div>
-            <div className="divide-y divide-border text-sm">
-              {[
-                ["Estimated Views", viewsLabel(views)],
-                ["Season", seasonKey === "annual" ? "Full year" : `${seasonKey} (${seasonMult.toFixed(2)}×)`],
-                ["Monetized views", `${Math.round(adShare * 100)}%`],
-                ["CPM (avg.)", type === "shorts" ? "n/a" : cur(cpmMid)],
-                ["RPM (avg.)", cur(rpmMid)],
-                ["Yearly Projection", cur(mid * 12)],
-              ].map(([l, v]) => (
-                <div key={l} className="flex items-center justify-between px-4 py-2.5 transition-colors hover:bg-surface">
-                  <span className="text-fog">{l}</span><span className="num-mono font-semibold text-heading">{v}</span>
-                </div>
-              ))}
-              <div className="flex items-center justify-between bg-yt-red-light px-4 py-3">
-                <span className="font-bold text-heading">Estimated earnings</span>
-                <span className="num-mono text-xl font-bold text-yt-red">{cur(mid)}</span>
+            <div className="mt-3 overflow-hidden rounded-xl border border-border">
+              <div className="grid grid-cols-3 gap-2 border-b border-border bg-surface px-4 py-2.5 text-[11px] font-bold uppercase tracking-wide text-[#7c8a9c]">
+                <span>Views</span>
+                <span className="text-right">Est. earnings</span>
+                <span className="text-right">After share</span>
+              </div>
+              <div className="divide-y divide-border">
+                {QUICK.map((v) => {
+                  const g = (v / 1000) * cpm;
+                  return (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => { setViews(v); setViewsText(num(v)); setTab("cpm"); }}
+                      className="grid w-full grid-cols-3 gap-2 px-4 py-2.5 text-left transition-colors hover:bg-yt-red-light"
+                    >
+                      <span className="text-sm font-semibold text-heading">{viewsLabel(v)}</span>
+                      <span className="num-mono text-right text-sm text-[#4a5a6e]">{money(g)}</span>
+                      <span className="num-mono text-right text-sm font-bold text-mint">{money(g * CREATOR_SHARE)}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
-          </div>
-
-          <div className="mt-4 flex items-start gap-2.5 rounded-lg bg-yt-red-light p-3">
-            <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-yt-red" />
-            <p className="text-xs leading-relaxed text-fog">
-              <strong className="text-heading">Note:</strong> CPM and RPM vary with audience mix, niche, seasonality and ad fill.
-              These are directional 2026 benchmarks, not a guarantee.
+            <p className="mt-3 text-[12px] text-[#64748b]">
+              Tap a row to load it into the calculator. “After share” is what reaches AdSense at a{" "}
+              {Math.round(CREATOR_SHARE * 100)}% creator share.
             </p>
           </div>
+        )}
+
+        {/* ── Mode: channel estimator ── */}
+        {tab === "channel" && (
+          <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_1.15fr]">
+            <div className="space-y-3">
+              <label className="block">
+                <span className="mb-1.5 block text-[13px] font-bold text-heading">Monthly views</span>
+                <span className="relative block">
+                  <Eye className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />
+                  <input
+                    inputMode="numeric"
+                    value={viewsText}
+                    onChange={(e) => setViewsFromInput(e.target.value)}
+                    className="field pl-9"
+                    aria-label="Channel monthly views"
+                  />
+                </span>
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-[13px] font-bold text-heading">Niche</span>
+                <select value={nicheSlug} onChange={(e) => { setNicheSlug(e.target.value); setCpmOverride(null); }} className="select-field">
+                  {NICHES.map((n) => <option key={n.slug} value={n.slug}>{n.name}</option>)}
+                </select>
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-[13px] font-bold text-heading">Audience country</span>
+                <select value={countrySlug} onChange={(e) => { setCountrySlug(e.target.value); setCpmOverride(null); }} className="select-field">
+                  <option value="worldwide">Worldwide (Average)</option>
+                  {COUNTRIES.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
+                </select>
+              </label>
+            </div>
+
+            <div className="rounded-xl border border-border bg-surface p-4">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-[#7c8a9c]">Channel projection</p>
+              <p className="num-mono mt-1 font-display text-3xl font-extrabold tracking-tight text-heading">
+                {money(afterShare)}
+                <span className="ml-1 text-[13px] font-semibold text-[#64748b]">/ month</span>
+              </p>
+              <dl className="mt-3 space-y-2 text-[13px]">
+                {[
+                  ["Annual", money(afterShare * 12)],
+                  ["Best-case Q4 month", money(afterShare * 1.6)],
+                  ["Per 1,000 views", money(cpm * CREATOR_SHARE, 2)],
+                ].map(([k, v]) => (
+                  <div key={k} className="flex items-center justify-between border-b border-border/70 pb-1.5 last:border-0 last:pb-0">
+                    <dt className="text-[#64748b]">{k}</dt>
+                    <dd className="num-mono font-bold text-heading">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="mt-3 text-[11.5px] leading-relaxed text-[#64748b]">
+                Estimates from the view count you enter — we never query YouTube&apos;s API or scrape a channel.
+              </p>
+            </div>
+            </div>
+          )}
+
         </div>
       </div>
-    </div>
+
+      {/* Result tiles sit outside the card, as in the reference */}
+      <div id="results" className="mt-4 grid scroll-mt-24 grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="tile tile-mint">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#d3f3e1] text-mint"><Eye className="h-5 w-5" /></span>
+          <span className="min-w-0">
+            <span className="num-mono block truncate text-[19px] font-extrabold leading-tight tracking-tight text-heading">{num(views)}</span>
+            <span className="mt-0.5 block text-[11.5px] font-medium leading-tight text-[#5b6b80]">Total Views</span>
+          </span>
+        </div>
+        <div className="tile tile-blue">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#d8e6fa] text-blue"><DollarSign className="h-5 w-5" /></span>
+          <span className="min-w-0">
+            <span className="num-mono block truncate text-[19px] font-extrabold leading-tight tracking-tight text-heading">{money(cpm, 2)}</span>
+            <span className="mt-0.5 block text-[11.5px] font-medium leading-tight text-[#5b6b80]">CPM (USD)</span>
+          </span>
+        </div>
+        <div className="tile tile-amber">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#fbe9b8] text-[#c2810a]"><BarChart3 className="h-5 w-5" /></span>
+          <span className="min-w-0">
+            <span className="num-mono block truncate text-[19px] font-extrabold leading-tight tracking-tight text-heading">{money(gross)}</span>
+            <span className="mt-0.5 block text-[11.5px] font-medium leading-tight text-[#5b6b80]">Estimated Earnings</span>
+          </span>
+        </div>
+        <div className="tile tile-pink">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#fbd6e0] text-yt-red">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
+              <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.6 3.6 12 3.6 12 3.6s-7.6 0-9.4.5A3 3 0 0 0 .5 6.2C0 8 0 12 0 12s0 4 .5 5.8a3 3 0 0 0 2.1 2.1c1.8.5 9.4.5 9.4.5s7.6 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 16 24 12 24 12s0-4-.5-5.8ZM9.6 15.6V8.4L15.8 12l-6.2 3.6Z" />
+            </svg>
+          </span>
+          <span className="min-w-0">
+            <span className="num-mono block truncate text-[19px] font-extrabold leading-tight tracking-tight text-heading">{money(afterShare)}</span>
+            <span className="mt-0.5 block text-[11.5px] font-medium leading-tight text-[#5b6b80]">After YouTube Share ({Math.round(CREATOR_SHARE * 100)}%)</span>
+          </span>
+        </div>
+      </div>
+
+      <p className="mt-3 flex items-start gap-1.5 text-[11.5px] leading-relaxed text-[#7c8a9c]">
+        <TrendingUp className="mt-0.5 h-3.5 w-3.5 shrink-0 text-mint" />
+        Assumes every view serves an ad. At a realistic 70% ad fill the same {viewsLabel(views)} views return{" "}
+        <strong className="font-semibold text-[#5b6b80]">{money(fill70)}</strong>.
+      </p>
+    </>
   );
 }
