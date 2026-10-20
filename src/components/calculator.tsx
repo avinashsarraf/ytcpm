@@ -87,7 +87,7 @@ export default function Calculator() {
       <div className="card overflow-hidden !rounded-[20px] !shadow-[0_2px_6px_rgba(11,22,38,0.05),0_24px_60px_-24px_rgba(11,22,38,0.22)]">
         <div className="p-4 sm:p-6">
         {/* ── Tabs ── */}
-        <div className="flex flex-col gap-2 rounded-xl sm:flex-row" role="group" aria-label="Calculator mode">
+        <div className="flex flex-col gap-1.5 rounded-xl border border-border bg-white p-1.5 sm:flex-row" role="group" aria-label="Calculator mode">
           {TABS.map((t) => {
             const active = tab === t.id;
             const Icon = t.icon;
@@ -96,10 +96,10 @@ export default function Calculator() {
                 key={t.id}
                 aria-pressed={active}
                 onClick={() => setTab(t.id)}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-[13.5px] font-bold transition-all duration-200 ${
+                className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-[13px] font-bold transition-all duration-200 ${
                   active
                     ? "hot-gradient text-white shadow-[0_6px_18px_-6px_rgba(238,18,73,0.6)]"
-                    : "border border-transparent text-[#4a5a6e] hover:bg-surface sm:border-0"
+                    : "text-[#4a5a6e] hover:bg-surface"
                 }`}
               >
                 <Icon className="h-4 w-4" />
