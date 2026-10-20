@@ -12,7 +12,8 @@
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",
-    "test:ui": "node scripts/smoke-ui.mjs"
+    "test:ui": "node scripts/smoke-ui.mjs",
+    "test:seo": "node scripts/smoke-seo.mjs"
   },
   "dependencies": {
     "dotenv": "17.3.1",

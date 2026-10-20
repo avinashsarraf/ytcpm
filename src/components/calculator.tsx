@@ -25,7 +25,7 @@ const DEFAULT_VIEWS = 1_000_000;
 const COUNTRIES_WITH_WORLD = [WORLDWIDE, ...COUNTRIES];
 const num = (n: number) => n.toLocaleString("en-US");
 const TABS = [
-  { id: "cpm", label: "CPM Calculator", icon: CalcIcon },
+  { id: "cpm", label: "Earnings Estimate", icon: CalcIcon },
   { id: "views", label: "Earnings by Views", icon: BarChart3 },
   { id: "channel", label: "Channel Estimator", icon: Users },
 ] as const;
@@ -69,6 +69,7 @@ export default function Calculator() {
       <noscript><p className="mb-4 rounded-xl border border-border bg-surface p-4 text-sm text-heading">Enable JavaScript to use the interactive calculator. You can still browse the country and niche benchmark pages.</p></noscript>
       <div className="card overflow-hidden !rounded-[20px] !shadow-[0_2px_6px_rgba(11,22,38,0.05),0_24px_60px_-24px_rgba(11,22,38,0.22)]">
         <div className="p-4 sm:p-6 xl:p-8">
+        <p className="mb-3 text-sm leading-relaxed">This tool estimates earnings from a CPM you enter or a model benchmark. To find your rate from report inputs, use the <a href="/youtube-cpm-calculator" className="font-semibold text-yt-red underline">CPM calculator</a> or <a href="/youtube-rpm-calculator" className="font-semibold text-yt-red underline">RPM calculator</a>.</p>
         {/* ── Tabs ── */}
         <div className="grid grid-cols-3 gap-1 rounded-xl border border-border bg-white p-1 sm:gap-1.5 sm:p-1.5" role="group" aria-label="Calculator mode">
           {TABS.map((t) => {

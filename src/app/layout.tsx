@@ -4,6 +4,8 @@ import localFont from "next/font/local";
 import "./globals.css";
 import SiteHeader from "@/components/site-header";
 import SiteFooter from "@/components/site-footer";
+import { SITE_URL } from "@/lib/editorial";
+import { serializeJsonLd } from "@/lib/seo";
 import { DATA_UPDATED_AT, DATA_YEAR } from "@/lib/data";
 
 /**
@@ -32,28 +34,19 @@ export const metadata: Metadata = {
     template: "%s | ytcpm.online",
   },
   description:
-    `Free YouTube CPM calculator & money calculator. Check ${DATA_YEAR} CPM and RPM rates for 23 countries and 18 niches, and estimate how much YouTube pays per 1,000 views for your channel.`,
-  keywords: [
-    "youtube cpm calculator",
-    "youtube money calculator",
-    "youtube earnings calculator",
-    "youtube rpm calculator",
-    "youtube cpm rates by country",
-    "how much does youtube pay per 1000 views",
-    "youtube cpm checker",
-  ],
+    "Free YouTube CPM, RPM and earnings calculators. Understand your report metrics and compare clearly labeled audience-country and niche scenarios.",
   applicationName: "ytcpm.online",
   manifest: "/site.webmanifest",
   authors: [{ name: "ytcpm.online" }],
   creator: "ytcpm.online",
   alternates: { canonical: "/" },
-  other: { "data-last-reviewed": DATA_UPDATED_AT },
+  other: { "data-snapshot-date": DATA_UPDATED_AT },
   openGraph: {
     type: "website",
     siteName: "ytcpm.online",
     title: `YouTube CPM Calculator ${DATA_YEAR} — Check Rates by Country & Niche`,
     description:
-      "How much does YouTube pay you? Check CPM/RPM rates for your country and niche, then calculate your earnings per 1,000 views — free.",
+      "Calculate CPM and RPM from your reports, estimate YouTube earnings, and learn how to check your actual monetization metrics.",
     url: "https://ytcpm.online",
   },
   twitter: {
@@ -88,6 +81,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style>
         </noscript>
         <div className="bg-noise" aria-hidden />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd({ "@context": "https://schema.org", "@graph": [
+          { "@type": "Organization", "@id": SITE_URL + "/#organization", name: "YTCPM", url: SITE_URL, logo: SITE_URL + "/icon.svg" },
+          { "@type": "WebSite", "@id": SITE_URL + "/#website", name: "YTCPM", alternateName: "ytcpm.online", url: SITE_URL, inLanguage: "en", publisher: { "@id": SITE_URL + "/#organization" } }
+        ] }) }} />
         <SiteHeader />
         <main id="main">{children}</main>
         <SiteFooter />

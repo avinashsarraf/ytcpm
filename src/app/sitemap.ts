@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { CONTENT_UPDATED, GUIDES } from "@/lib/editorial";
 import { COUNTRIES, NICHES, DATA_UPDATED_AT } from "@/lib/data";
 
 const BASE = "https://ytcpm.online";
@@ -7,7 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date(`${DATA_UPDATED_AT}T00:00:00Z`);
 
   const staticRoutes: MetadataRoute.Sitemap = [
-    { url: BASE, lastModified: now, changeFrequency: "daily", priority: 1 },
+    { url: BASE, lastModified: now, changeFrequency: "monthly", priority: 1 },
     { url: `${BASE}/cpm-by-country`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE}/cpm-by-niche`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE}/methodology`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
@@ -30,5 +31,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: n.tier === "S" || n.tier === "A" ? 0.8 : 0.7,
   }));
 
-  return [...staticRoutes, ...countryRoutes, ...nicheRoutes];
+  const editorialRoutes: MetadataRoute.Sitemap = ["/youtube-cpm-calculator", "/youtube-rpm-calculator", "/guides", "/sources", "/contact", ...GUIDES.map(g => `/guides/${g.slug}`)].map(path => ({ url: BASE + path, lastModified: new Date(`${CONTENT_UPDATED}T00:00:00Z`) }));
+  return [...staticRoutes, ...countryRoutes, ...nicheRoutes, ...editorialRoutes];
 }

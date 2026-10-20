@@ -5,21 +5,22 @@ import {
   Zap, CheckCircle2, ShieldCheck, Calculator as CalcIcon, Database,
   PieChart, ArrowRight, ArrowUpRight, Lightbulb, Sparkles,
 } from "lucide-react";
+import LearningSection from "@/components/learning-section";
+import { pageMetadata } from "@/lib/seo";
 import Calculator from "@/components/calculator";
 import Faq from "@/components/faq";
 import { Reveal } from "@/components/motion";
 import {
-  COUNTRIES, NICHES, COUNTRIES_BY_CPM, NICHES_BY_CPM, CREATOR_SHARE,
-  DATA_YEAR, DATA_UPDATED_AT, money,
+  COUNTRIES, NICHES, COUNTRIES_BY_CPM,
+  DATA_UPDATED_AT, money,
 } from "@/lib/data";
 import { flagUrl } from "@/lib/flags";
 
-export const metadata: Metadata = {
-  title: `YouTube CPM Calculator ${DATA_YEAR} — Calculate Your YouTube Earnings`,
-  description:
-    "Calculate how much your YouTube videos earn. Enter views, CPM and country for an instant earnings estimate with the creator share already applied. Free, no signup.",
-  alternates: { canonical: "/" },
-};
+export const metadata: Metadata = pageMetadata(
+  "YouTube Earnings Calculator — CPM & RPM Estimates",
+  "Estimate YouTube ad earnings from views and CPM. Calculate CPM or RPM from your own reports, compare audience-country benchmarks, and learn how to check CPM in Studio.",
+  "/"
+);
 
 
 /* The reference orders its tables for readability, not strictly by CPM. */
@@ -41,7 +42,7 @@ const NICHE_ROWS = [
 const WHY = [
   { icon: CalcIcon, tint: "bg-[#fde4ea] text-yt-red", title: "Easy to Use", copy: "Simple and clean interface with instant results." },
   { icon: Database, tint: "bg-[#e8f0fb] text-blue", title: "Country Benchmarks", copy: "Compare indicative CPM ranges across tracked markets." },
-  { icon: PieChart, tint: "bg-[#f0eafd] text-[#7c3aed]", title: "Multiple Tools", copy: "CPM calculator, earnings tables & monthly channel projections." },
+  { icon: PieChart, tint: "bg-[#f0eafd] text-[#7c3aed]", title: "Multiple Tools", copy: "CPM and RPM tools, earnings tables and monthly projections." },
   { icon: ShieldCheck, tint: "bg-[#e7f9ef] text-mint", title: "100% Free", copy: "No signup, no hidden charges, completely free to use." },
 ];
 
@@ -52,30 +53,12 @@ const HERO_POINTS = [
 ];
 
 const FAQS = [
-  {
-    q: "What is YouTube CPM?",
-    a: `CPM — cost per mille — is what advertisers pay for 1,000 ad impressions on your videos. It is set at auction and varies with audience country, topic and season. The ${DATA_YEAR} benchmark for US long-form content is ${money(18)} blended, while finance and insurance topics routinely clear ${money(30)}.`,
-  },
-  {
-    q: "How is YouTube earnings calculated?",
-    a: `Advertisers pay CPM; you receive RPM. Long-form revenue is shared ${Math.round(CREATOR_SHARE * 100)}% to the creator, so RPM ≈ CPM × ${Math.round(CREATOR_SHARE * 100)}% × the share of views that actually served an ad. At ${money(18)} CPM and full ad fill that is ${money(18 * CREATOR_SHARE, 2)} per 1,000 views.`,
-  },
-  {
-    q: "Why does CPM vary by country?",
-    a: `Advertisers bid more for audiences with higher purchasing power. The United States pays roughly 26× what Bangladesh pays for the same 1,000 views, and Tier-1 markets such as the UK, Canada and Australia sit 15–45% below the US. It is the single biggest lever on your revenue.`,
-  },
-  {
-    q: "Do I need to sign up to use this tool?",
-    a: "No. The calculator runs entirely in your browser, requires no account and stores nothing personal. Browser calculations are not logged. Direct requests to our calculation API may be stored anonymously for the Usage Monitor.",
-  },
-  {
-    q: "How much does YouTube pay for 1,000 views?",
-    a: `Long-form views in the US earn about ${money(18 * CREATOR_SHARE, 2)} at full ad fill and ${money(18 * CREATOR_SHARE * 0.7, 2)} at a realistic 70% fill rate. Shorts pay far less — roughly $0.02–$0.10 per 1,000 views — because they use a pooled revenue share rather than a per-view CPM.`,
-  },
-  {
-    q: "Which niche has the highest CPM?",
-    a: `Finance & Investing leads at ${money(NICHES_BY_CPM[0].cpmLow, 0)}–${money(NICHES_BY_CPM[0].cpmHigh, 0)} CPM, followed by Insurance & Legal and Business & Marketing. Kids & Family sits at the bottom (${money(NICHES_BY_CPM.at(-1)!.cpmLow, 0)}–${money(NICHES_BY_CPM.at(-1)!.cpmHigh, 0)}) because personalised ads are restricted on made-for-kids content.`,
-  },
+  { q: "How do I check my YouTube CPM?", a: "Sign in to YouTube Studio, select Analytics and Revenue, and inspect the available ad-performance metrics for your date range. Use Advanced mode where needed. Record whether you are reading impression CPM or playback-based CPM; they use different denominators. Our public tools do not access your private channel reports." },
+  { q: "What is the YouTube CPM formula?", a: "CPM = gross ad revenue or advertiser spend divided by ad impressions, multiplied by 1,000. For example, $100 across 10,000 ad impressions is a $10 CPM. Net creator revenue and total video views cannot replace those inputs." },
+  { q: "How is YouTube RPM different from CPM?", a: "CPM describes advertiser cost before revenue sharing. RPM describes creator revenue per 1,000 corresponding views after revenue sharing. Studio RPM can include more than advertising, while this homepage models long-form ad revenue only. For Shorts RPM, use the engaged-view basis described by YouTube." },
+  { q: "How much does YouTube pay for 1,000 views?", a: "There is no fixed payout. A hypothetical $3 RPM implies $3 per 1,000 comparable views and $3,000 per million. Audience, format, ad eligibility, revenue sources and the reporting period affect the result. These examples are calculations, not market averages." },
+  { q: "Can I check any channel's actual CPM without permission?", a: "Not with these public tools. Views and subscriber counts do not reveal private gross ad revenue or ad impressions. YouTube Analytics monetary reports require appropriate owner authorization. Estimates and actual channel reports must be labeled separately." },
+  { q: "Do I need to sign up, and are my calculations monitored?", a: "No signup is needed. Browser calculator inputs stay in your browser. Direct calculation API requests may be stored anonymously. The Usage Monitor shows that API activity, not live YouTube channel analytics. We do not provide a connected-channel monitoring service." },
 ];
 
 export default function Home() {
@@ -91,7 +74,7 @@ export default function Home() {
   const appLd = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: "YouTube CPM Calculator — ytcpm.online",
+    name: "YouTube Earnings Calculator — YTCPM",
     url: "https://ytcpm.online",
     applicationCategory: "FinanceApplication",
     operatingSystem: "Any",
@@ -113,21 +96,20 @@ export default function Home() {
                   <span className="grid h-6 w-6 place-items-center rounded-full bg-[#fdf1d8]">
                     <Zap className="h-3.5 w-3.5 fill-[#f59e0b] text-[#f59e0b]" />
                   </span>
-                  Free YouTube CPM Calculator
+                  Free YouTube earnings estimator
                 </span>
               </Reveal>
 
               <Reveal delay={0.06}>
                 <h1 className="display-hero mt-4">
-                  Calculate Your<br />
-                  <span className="text-hot-gradient">YouTube</span> Earnings
+                  <span className="text-hot-gradient">YouTube</span> Earnings<br />
+                  Calculator
                 </h1>
               </Reveal>
 
               <Reveal delay={0.12}>
                 <p className="mt-4 max-w-[26rem] text-[15px] leading-relaxed text-[#5b6b80] sm:text-[16px]">
-                  Estimate how much you can earn from your YouTube videos based on views, CPM and country.
-                  Free, fast and transparent.
+                  Estimate long-form ad earnings from views and CPM. Compare audience-country and niche scenarios—or calculate your actual CPM and RPM from matching report inputs.
                 </p>
               </Reveal>
 
@@ -275,6 +257,8 @@ export default function Home() {
         </div>
       </section>
 
+      <LearningSection />
+
       {/* ══════ FAQ ══════ */}
       <section className="bg-white py-10 sm:py-12">
         <div className="shell">
@@ -300,7 +284,7 @@ export default function Home() {
               <div className="mt-4 flex items-center gap-2 rounded-xl bg-white px-3 py-2.5">
                 <Sparkles className="h-4 w-4 shrink-0 text-yt-red" />
                 <p className="text-[13px] leading-snug text-[#5b6b80]">
-                  Benchmarks reviewed <strong className="font-bold text-heading">{DATA_UPDATED_AT}</strong> · {COUNTRIES.length} countries · {NICHES.length} niches
+                  Benchmark snapshot <strong className="font-bold text-heading">{DATA_UPDATED_AT}</strong> · {COUNTRIES.length} countries · {NICHES.length} niches
                 </p>
               </div>
               <Link href="/methodology" className="mt-3 inline-flex items-center gap-1 text-[13px] font-bold text-yt-red hover:gap-2 transition-all">

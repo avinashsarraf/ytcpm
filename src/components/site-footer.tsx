@@ -4,7 +4,9 @@ import { Play } from "lucide-react";
 /** Shared footer; only real internal destinations, no placeholder social profiles. */
 const QUICK_LINKS = [
   { label: "Home", href: "/" },
-  { label: "CPM Calculator", href: "/#calculator" },
+  { label: "CPM Calculator", href: "/youtube-cpm-calculator" },
+  { label: "RPM Calculator", href: "/youtube-rpm-calculator" },
+  { label: "Guides", href: "/guides" },
   { label: "Usage Monitor", href: "/monitor" },
 ];
 
@@ -12,6 +14,7 @@ const TOOLS = [
   { label: "Country CPM", href: "/cpm-by-country" },
   { label: "Niche CPM", href: "/cpm-by-niche" },
   { label: "Methodology", href: "/methodology" },
+  { label: "Sources & policy", href: "/sources" },
 ];
 
 const LEGAL = [

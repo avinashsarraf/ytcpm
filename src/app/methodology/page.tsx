@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SourceLinks } from "@/components/source-notice";
 import ProsePage from "@/components/prose-page";
 import Link from "next/link";
 import { ArrowRight, Calculator, Database, Globe2, Layers, Percent, TrendingUp } from "lucide-react";
@@ -27,7 +28,7 @@ const Section = ({ icon: Icon, title, children }: { icon: typeof Globe2; title: 
 export default function MethodologyPage() {
   return (
     <ProsePage
-      eyebrow={<>Transparency · reviewed {DATA_UPDATED_AT}</>}
+      eyebrow={<>Transparency · snapshot {DATA_UPDATED_AT}</>}
       title={<>How we calculate <span className="text-yt-gradient">CPM &amp; RPM</span></>}
       lede={<>Every number on this site comes from a single published dataset and one formula module.
           This page documents both, so you can judge — and challenge — the estimates.</>}
@@ -36,19 +37,17 @@ export default function MethodologyPage() {
         <Section icon={Database} title="Where the numbers come from">
           <p>
             The benchmark table covers <strong className="text-heading">{COUNTRIES.length} countries</strong> and{" "}
-            <strong className="text-heading">{NICHES.length} niches</strong> for {DATA_YEAR}. Ranges are compiled from
-            publicly disclosed creator earnings, creator-economy survey reports, third-party CPM trackers, and
-            published ad-spend forecasts. We publish ranges instead of single points because real CPMs vary by
+            <strong className="text-heading">{NICHES.length} niches</strong> for {DATA_YEAR}. Ranges are manually maintained planning assumptions. A per-record first-party source ledger and independently verified national averages are not currently available. We publish ranges instead of single points because real CPMs vary by
             advertiser demand, audience intent, device mix, and ad placement.
           </p>
           <p className="rounded-lg border border-border bg-white p-4 text-[13px]">
-            <strong className="text-heading">Known gap:</strong> the current dataset is a manually reviewed snapshot,
+            <strong className="text-heading">Known gap:</strong> the current dataset is a manually maintained model snapshot,
             not a live feed. Each range is directional and should be treated as a starting hypothesis, not a payout
-            guarantee. We publish the review date ({DATA_UPDATED_AT}) on every page.
+            guarantee. We publish the dataset snapshot date ({DATA_UPDATED_AT}) on every page.
           </p>
         </Section>
 
-        <Section icon={Percent} title="Long-form formula">
+        <Section icon={Percent} title="Simplified long-form ad forecast (not Studio RPM)">
           <pre className="overflow-x-auto rounded-lg bg-surface p-4 text-[12px] leading-relaxed text-heading"><code>{`countryMultiplier = (countryLow + countryHigh) / (USLow + USHigh)
 
 cpmLow  = nicheCpmLow  × countryMultiplier × seasonMultiplier
@@ -62,24 +61,23 @@ monthly = (views / 1000) × rpm`}</code></pre>
             <strong className="text-heading">{CREATOR_SHARE * 100}% creator share</strong> reflects YouTube&apos;s
             long-form revenue split. The <strong className="text-heading">ad-impression rate</strong> is the share of
             views that actually served an ad — the calculator defaults to 100% (an optimistic upper bound) and lets you
-            lower it for ad-blocking, non-monetized views, and limited-ads status.
+            lower it for non-monetized views. This model assumes one ad impression per monetized view. Multiple ads per playback and non-ad revenue are not modeled, so the output is an ad-only RPM estimate, not a universal conversion from CPM to Studio RPM.
           </p>
         </Section>
 
         <Section icon={TrendingUp} title="Shorts formula">
           <p>
-            Shorts revenue is pooled, so there is no classic CPM. We model a base range of{" "}
-            <strong className="text-heading">$0.02–$0.08 RPM per 1,000 views</strong> for a Tier-1 audience,
+            The public homepage models long-form only. The API has a separate, unverified Shorts scenario with a base range of{" "}
+            <strong className="text-heading">$0.02–$0.08 RPM per 1,000 views</strong> for the configured view-count input (not a guaranteed payout),
             scaled by a country factor (floored at 25% of US rates) and a modest niche tier factor
-            (S 1.25×, A 1.15×, B 1.00×, C 0.85×). Seasonality applies the same way as long-form.
+            (S 1.25×, A 1.15×, B 1.00×, C 0.85×). These parameters are model assumptions, not official benchmarks. YouTube describes Studio Shorts RPM using engaged views; use matching engaged views and creator revenue in the dedicated RPM tool for a report-based calculation.
           </p>
         </Section>
 
         <Section icon={Globe2} title="Country scaling & currency">
           <p>
             A country&apos;s multiplier is its blended CPM divided by the US blended CPM ({money(US_BLENDED_CPM)}).
-            This assumes the country premium is similar across niches — a simplification. For example, the US premium
-            is typically larger for finance and B2B than for gaming or vlogs.
+            This assumes the country premium is similar across niches — an unverified simplification, not an empirical relationship for every channel. Worldwide is an unweighted average of the tracked model defaults.
           </p>
           <p>
             Local-currency values use indicative FX rates captured {FX_UPDATED_AT}. They are for display only;
@@ -89,8 +87,7 @@ monthly = (views / 1000) × rpm`}</code></pre>
 
         <Section icon={Calculator} title="Seasonality">
           <p>
-            Ad auctions peak in Q4 and reset in January. Seasonality is expressed as a multiplier against the annual
-            baseline and can be applied in the calculator:
+            Seasonality is modeled as a selectable multiplier against an annual baseline. These are scenarios for sensitivity testing, not a promise that Q4 will pay more on your channel:
           </p>
           <ul className="grid gap-2 sm:grid-cols-2">
             {SEASONS.map((s) => (
@@ -113,6 +110,8 @@ monthly = (views / 1000) × rpm`}</code></pre>
             <li>Ad rates change with advertiser demand, policy changes, and the viewer&apos;s device and geography mix.</li>
           </ul>
         </Section>
+
+        <SourceLinks ids={["definitions", "metrics", "share", "access"]} />
 
         <div className="mt-12 rounded-xl border border-border bg-white p-6">
           <h2 className="font-display text-lg font-bold text-heading">Run your own numbers</h2>

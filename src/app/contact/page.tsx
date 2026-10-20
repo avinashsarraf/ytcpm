@@ -56,7 +56,7 @@ export default function ContactPage() {
         </div>
 
         <p className="mt-8 text-xs text-fog">
-          Dataset last reviewed {DATA_UPDATED_AT}. We do not run a support phone line or live chat.
+          Dataset snapshot {DATA_UPDATED_AT}. We do not run a support phone line or live chat.
         </p>
       </ProsePage>
   );

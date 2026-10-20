@@ -12,11 +12,11 @@ import { Menu, X, Play } from "lucide-react";
  */
 const LINKS = [
   { href: "/", label: "Home", exact: true },
-  { href: "/#calculator", label: "CPM Calculator", exact: false },
-  { href: "/monitor", label: "Usage Monitor" },
+  { href: "/youtube-cpm-calculator", label: "CPM Calculator", exact: false },
+  { href: "/youtube-rpm-calculator", label: "RPM Calculator" },
   { href: "/cpm-by-country", label: "Country CPM" },
   { href: "/cpm-by-niche", label: "Niche CPM" },
-  { href: "/methodology", label: "Methodology" },
+  { href: "/guides", label: "Guides" },
   { href: "/about", label: "About" },
 ];
 

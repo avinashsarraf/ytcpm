@@ -1,4 +1,6 @@
+import { pageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
+import { BenchmarkNotice } from "@/components/source-notice";
 import Link from "next/link";
 import { Layers } from "lucide-react";
 import { Reveal } from "@/components/motion";
@@ -6,27 +8,24 @@ import { NicheRangeChart } from "@/components/charts";
 import { NICHE_ICONS } from "@/lib/niche-icons";
 import { NICHES_BY_CPM, CREATOR_SHARE, DATA_YEAR, money, perMillionViews } from "@/lib/data";
 
-export const metadata: Metadata = {
-  title: `Highest CPM YouTube Niches ${DATA_YEAR} — All 18 Categories Ranked`,
-  description: `The highest-paying YouTube niches by CPM in ${DATA_YEAR}: finance ($15–$50), insurance, business, tech and 14 more.`,
-  alternates: { canonical: "/cpm-by-niche" },
-};
+export const metadata: Metadata = pageMetadata(`YouTube CPM by Niche ${DATA_YEAR} — Compare Scenarios`, "Compare indicative YouTube CPM scenarios across 18 niches. See model assumptions, ad-only RPM projections and why actual channel earnings differ.", "/cpm-by-niche");
 
 export default function NicheIndex() {
   return (
     <section className="relative overflow-hidden pt-24 sm:pt-28 lg:pt-32">
       <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 blob-pink" aria-hidden />
       <div className="relative shell">
+        <BenchmarkNotice />
         <Reveal>
           <div className="flex items-center gap-3">
             <span className="grid h-9 w-9 place-items-center rounded-full bg-yt-red-bg"><Layers className="h-4 w-4 text-yt-red" /></span>
             <span className="tag-red text-[11px]">Niche benchmarks · {DATA_YEAR}</span>
           </div>
           <h1 className="mt-5 display-2">
-            Highest CPM YouTube <span className="text-yt-gradient">Niches</span>
+            YouTube CPM by <span className="text-yt-gradient">Niches</span>
           </h1>
           <p className="lede mt-4">
-            Advertisers don&apos;t pay for views — they pay for what viewers are likely to buy. Here&apos;s every major YouTube niche in {DATA_YEAR}.
+            Advertisers don&apos;t pay for views — they pay for what viewers are likely to buy. Compare the niches tracked in our model in {DATA_YEAR}.
           </p>
         </Reveal>
 

@@ -109,3 +109,9 @@ Validation for this follow-up: 74 unit/API tests, lint, TypeScript and productio
 - Financial values can wrap rather than silently truncate. Channel projection detail rows can reflow without colliding labels/amounts.
 - Mobile navigation gets a viewport-bounded, scrollable region so links remain reachable in landscape/short windows.
 - Browser regression coverage expanded to **12 widths: 320, 375, 420, 480, 600, 768, 820, 970, 1024, 1440, 1920, 2560px**, including checks for internal tab clipping, equal preset row counts, touch-target size, bounded tablet hero height, compact phone benefits, enlarged text and landscape navigation.
+
+## Content/SEO follow-up — 2026-10-20
+
+Implemented dedicated report-input CPM/RPM tools, three sourced guides, editorial policy/source page, no-JavaScript FAQs, homepage learning links, updated canonical/social metadata, identity/article/breadcrumb/application structured data and sitemap coverage. Country/niche figures are explicitly unverified directional model scenarios; shared category copy no longer promises payout improvements or ad-policy eligibility. Usage Monitor is explicitly API analytics, not a connected YouTube account dashboard. See `SEO_STRATEGY.md` for the intent map, source registry and measurement limits.
+
+Validation: lint/typecheck passed; 100 unit tests passed; production build generated 63 outputs; production UI smoke passed at 12 widths (320–2560px) with no browser errors; SEO smoke passed no-JS HTML/FAQ, canonical/social/schema/sitemap/404, responsive guides/tools and CPM/RPM interactions. No keyword volumes, indexing, rankings, AI recommendations or live channel monitoring are claimed as verified.

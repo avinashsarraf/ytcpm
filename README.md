@@ -392,3 +392,12 @@ npm run test:ui
 ```
 
 The UI smoke test checks seven viewport sizes, key routes, calculator interactions and API error handling. It submits test calculations, so use a local/test deployment rather than an unapproved live database.
+
+
+## SEO content and report-based CPM/RPM tools
+
+See [SEO_STRATEGY.md](./SEO_STRATEGY.md) for the researched keyword-to-page plan, architecture decision, sources and remaining measurement work. New public static pages include `/youtube-cpm-calculator`, `/youtube-rpm-calculator`, `/guides` and `/sources`. The existing homepage estimates ad earnings; the dedicated tools calculate metrics from matching report inputs. `/monitor` remains API usage analytics, not authenticated YouTube channel monitoring.
+
+`npm run test:seo` checks initial HTML without JavaScript, page-specific metadata, JSON-LD syntax, sitemap coverage, native FAQ disclosures, guide 404 behavior and responsive CPM/RPM tools against a running local server. It uses the same `BASE_URL` / `CHROMIUM_EXECUTABLE_PATH` configuration as the UI smoke test.
+
+No keyword-volume figures, Google ranking, AI recommendation or financial accuracy certification is implied. Official metric sources do not substantiate the directional country/niche model ranges; see the public sources policy before presenting those figures.

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BenchmarkNotice } from "@/components/source-notice";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, ArrowUpRight, Lightbulb } from "lucide-react";
@@ -14,7 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!c) return {};
   return {
     title: `YouTube CPM in ${c.name} ${DATA_YEAR}: Rates, RPM & Pay per 1,000 Views`,
-    description: `YouTube CPM in ${c.name} averages $${c.cpmLow}–$${c.cpmHigh} (≈ ${localMoney(c.cpmLow, c, 0)}–${localMoney(c.cpmHigh, c, 0)}) in ${DATA_YEAR}.`,
+    description: `YouTube CPM in ${c.name} model range is $${c.cpmLow}–$${c.cpmHigh} (≈ ${localMoney(c.cpmLow, c, 0)}–${localMoney(c.cpmHigh, c, 0)}) in ${DATA_YEAR}.`,
     alternates: { canonical: `/cpm-by-country/${c.slug}` },
     openGraph: {
       type: "article",
@@ -42,9 +43,9 @@ export default async function CountryPage({ params }: { params: Promise<{ slug: 
   const cur = (usd: number, d?: number) => localMoney(usd, country, d);
   const topNiches = NICHES_BY_CPM.slice(0, 6).map((n) => ({ ...n, lCpmLow: n.cpmLow * mult, lCpmHigh: n.cpmHigh * mult }));
   const faqs = [
-    { q: `What is the average YouTube CPM in ${country.name}?`, a: `Blended CPM is $${country.cpmLow}–$${country.cpmHigh} (≈ ${cur(country.cpmLow)}–${cur(country.cpmHigh)}). Creator RPM: $${rpmLow.toFixed(2)}–$${rpmHigh.toFixed(2)}.` },
-    { q: `How much does YouTube pay for 1M views in ${country.name}?`, a: `Approximately ${cur(rpmLow * 1000)}–${cur(rpmHigh * 1000)} from AdSense for long-form content.` },
-    { q: `How can ${country.name} creators increase RPM?`, a: mult < 0.5 ? `Target Tier-1 audiences with English content. Make 8+ min videos, publish in Q4.` : `Lean into finance/B2B niches, use mid-roll ads, time uploads for Q4.` },
+    { q: `What is the average YouTube CPM in ${country.name}?`, a: `Our directional CPM model uses $${country.cpmLow}–$${country.cpmHigh} (≈ ${cur(country.cpmLow)}–${cur(country.cpmHigh)}). Ad-only RPM at full fill and 55% creator share: $${rpmLow.toFixed(2)}–$${rpmHigh.toFixed(2)}.` },
+    { q: `How much does YouTube pay for 1M views in ${country.name}?`, a: `Our full-fill model implies ${cur(rpmLow * 1000)}–${cur(rpmHigh * 1000)} for long-form advertising. This assumes one ad impression per view and a 55% creator share, not a guaranteed AdSense payout.` },
+    { q: `How should ${country.name} audience benchmarks be used?`, a: "Compare your own Studio reports for matching periods and formats. Audience country is not creator residence. Public country ranges cannot establish your actual CPM; see our sources policy for the model's limitations." },
   ];
   const breadcrumbLd = {
     "@context": "https://schema.org",
@@ -72,22 +73,24 @@ export default async function CountryPage({ params }: { params: Promise<{ slug: 
             <Reveal delay={0.05}>
               <p className="tag-red text-[11px] w-fit">{TIER_LABEL[country.tier]} · #{rank} of {COUNTRIES.length}</p>
               <h1 className="mt-3 display-2">YouTube CPM in <span className="text-yt-gradient">{country.name}</span></h1>
-              <p className="body-copy mt-4 max-w-xl">{country.note}</p>
+              <p className="body-copy mt-4 max-w-xl">Compare CPM scenarios for viewers in {country.name}, not simply creators who live there. The figures below are model defaults; use your own YouTube Studio reports to check actual advertiser demand.</p>
             </Reveal>
             <Reveal delay={0.1}>
               <div className="panel p-5">
                 <div className="grid grid-cols-2 gap-4">
                   <div><p className="text-[11px] font-bold uppercase tracking-wider text-fog">CPM</p><p className="num-mono mt-1 text-2xl font-bold text-heading">${country.cpmLow}–${country.cpmHigh}</p><p className="num-mono text-xs font-semibold text-yt-red">≈ {cur(country.cpmLow, 0)}–{cur(country.cpmHigh, 0)}</p></div>
-                  <div><p className="text-[11px] font-bold uppercase tracking-wider text-fog">RPM</p><p className="num-mono mt-1 text-2xl font-bold text-mint">${rpmLow.toFixed(2)}–${rpmHigh.toFixed(2)}</p><p className="num-mono text-xs text-fog">≈ {cur(rpmLow)}–{cur(rpmHigh)}</p></div>
+                  <div><p className="text-[11px] font-bold uppercase tracking-wider text-fog">Modeled ad RPM</p><p className="num-mono mt-1 text-2xl font-bold text-mint">${rpmLow.toFixed(2)}–${rpmHigh.toFixed(2)}</p><p className="num-mono text-xs text-fog">≈ {cur(rpmLow)}–{cur(rpmHigh)}</p></div>
                 </div>
                 <div className="mt-4 flex items-center justify-between rounded-lg bg-surface px-3 py-2 text-xs"><span className="text-fog">vs US</span><span className="num-mono font-bold text-heading">{mult >= 1 ? `${mult.toFixed(2)}×` : `${Math.round(mult * 100)}%`}</span></div>
                 <p className="num-mono mt-2 text-center text-[11px] text-fog">{fxNote(country)}</p>
-                <p className="mt-1 text-center text-[11px] text-fog">Benchmarks reviewed {DATA_UPDATED_AT} · FX {FX_UPDATED_AT}</p>
+                <p className="mt-1 text-center text-[11px] text-fog">Benchmark snapshot {DATA_UPDATED_AT} · FX {FX_UPDATED_AT}</p>
               </div>
             </Reveal>
           </div>
 
-          <Reveal delay={0.08}><h2 className="mt-12 display-sub sm:mt-14">Earnings by View Count</h2>
+          <BenchmarkNotice />
+
+          <Reveal delay={0.08}><h2 className="mt-12 display-sub sm:mt-14">Full-fill Ad Earnings Scenarios</h2>
             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:gap-4">
               {VIEW_PRESETS.map((v) => (<div key={v} className="panel p-5 hover:border-mint/40 transition-colors"><p className="num-mono text-[11px] font-bold uppercase tracking-widest text-fog">{viewsLabel(v)} views</p><p className="num-mono mt-2 text-xl font-bold text-gradient-green">{cur((v / 1000) * rpmLow)}–{cur((v / 1000) * rpmHigh)}</p>{country.currency !== "USD" && <p className="num-mono mt-0.5 text-[11px] text-fog">≈ {money((v / 1000) * rpmLow)}–{money((v / 1000) * rpmHigh)}</p>}</div>))}
             </div>
@@ -100,7 +103,7 @@ export default async function CountryPage({ params }: { params: Promise<{ slug: 
             </div>
           </section>
 
-          <Reveal><div className="mt-8 flex items-start gap-3 rounded-xl border border-gold/30 bg-gradient-to-r from-amber-50 to-transparent p-4"><Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-gold" /><p className="text-sm text-fog"><strong className="text-heading">{mult < 0.5 ? "Audience-arbitrage:" : "Mid-roll tip:"}</strong> {mult < 0.5 ? `English content targeting US/UK audiences can earn 3–8× ${country.name} rates.` : "8+ minute videos unlock mid-rolls (+30–50% revenue), and Q4 doubles December RPM."}</p></div></Reveal>
+          <Reveal><div className="mt-8 flex items-start gap-3 rounded-xl border border-border p-4"><Lightbulb className="h-4 w-4 shrink-0 text-gold" /><p className="text-sm leading-relaxed">Compare the same metric, period, audience and video format. Changing language, length or upload date does not guarantee higher CPM or revenue.</p></div></Reveal>
 
           <section className="mt-14"><Reveal><h2 className="display-sub">FAQs — {country.name}</h2></Reveal><Reveal delay={0.06} className="mt-5"><Faq items={faqs} /></Reveal></section>
 

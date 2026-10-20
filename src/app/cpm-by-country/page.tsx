@@ -1,4 +1,6 @@
+import { pageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
+import { BenchmarkNotice } from "@/components/source-notice";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight, Globe2 } from "lucide-react";
@@ -6,7 +8,7 @@ import { Reveal } from "@/components/motion";
 import { COUNTRIES_BY_CPM, TIER_LABEL, DATA_YEAR, perMillionViews, CREATOR_SHARE, localMoney } from "@/lib/data";
 import { flagUrl } from "@/lib/flags";
 
-export const metadata: Metadata = { title: `YouTube CPM Rates by Country ${DATA_YEAR}`, description: `Full ${DATA_YEAR} table of YouTube CPM rates by country with local currency conversions.`, alternates: { canonical: "/cpm-by-country" } };
+export const metadata: Metadata = pageMetadata(`YouTube CPM by Country ${DATA_YEAR} — Model Benchmarks`, "Compare directional YouTube CPM scenarios by audience country, with local-currency conversions, full-fill assumptions and links to check your actual Studio CPM.", "/cpm-by-country");
 
 export default function CountryIndex() {
   return (
@@ -16,11 +18,12 @@ export default function CountryIndex() {
           <Reveal>
             <div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-full bg-yt-red-bg"><Globe2 className="h-5 w-5 text-yt-red" /></span><span className="tag-red text-[11px]">{DATA_YEAR} Benchmarks</span></div>
             <h1 className="mt-5 display-2">YouTube CPM Rates <span className="text-yt-gradient">by Country</span></h1>
-            <p className="lede mt-4">Where your viewers live decides what advertisers pay. Compare all {COUNTRIES_BY_CPM.length} markets, ranked by blended CPM and converted to local currency.</p>
+            <p className="lede mt-4">Where your viewers live decides what advertisers pay. Compare all {COUNTRIES_BY_CPM.length} markets, ranked within our model by blended CPM and converted to local currency.</p>
           </Reveal>
         </div>
       </div>
       <div className="shell py-8 sm:py-10">
+        <BenchmarkNotice />
         <Reveal delay={0.1}>
           <div className="panel overflow-hidden !rounded-xl">
             <div className="hidden grid-cols-[2.2fr_0.5fr_1fr_1fr_1.2fr_0.6fr_28px] gap-2 border-b border-border bg-surface px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-fog md:grid">

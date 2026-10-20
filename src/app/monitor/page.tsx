@@ -9,7 +9,7 @@ import { StatBar } from "@/components/charts";
 import { viewsLabel, money } from "@/lib/data";
 import { logOnce } from "@/lib/log";
 
-export const metadata: Metadata = { title: "Live Usage Monitor", description: "Usage analytics for the ytcpm.online YouTube CPM calculator.", robots: { index: false, follow: true }, alternates: { canonical: "/monitor" } };
+export const metadata: Metadata = { title: "Calculator API Usage Monitor", description: "Usage analytics for the ytcpm.online YouTube CPM calculator.", robots: { index: false, follow: true }, alternates: { canonical: "/monitor" } };
 
 /**
  * Rendered on demand, never prerendered: a build-time query against the
@@ -67,10 +67,10 @@ export default async function MonitorPage() {
         <Reveal>
           <div className="flex items-center gap-3">
             <span className="grid h-9 w-9 place-items-center rounded-full bg-yt-red-bg"><Activity className="h-4 w-4 text-yt-red" /></span>
-            <span className="flex items-center gap-1.5 tag-red text-[10px]"><span className="h-1.5 w-1.5 rounded-full bg-mint animate-pulse-dot" /> Live · PostgreSQL</span>
+            <span className="flex items-center gap-1.5 tag-red text-[10px]"><span className="h-1.5 w-1.5 rounded-full bg-mint animate-pulse-dot" /> API usage · PostgreSQL</span>
           </div>
           <h1 className="mt-5 font-display text-4xl font-bold tracking-tight text-heading sm:text-5xl">Calculator Usage <span className="text-yt-gradient">Monitor</span></h1>
-          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-fog">Anonymous, aggregated usage analytics from PostgreSQL. Cached for 60 seconds to keep queries cheap.</p>
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-fog">Anonymous calculation API activity, not YouTube channel CPM monitoring. Browser-only estimates are not logged here. Cached for 60 seconds.</p>
         </Reveal>
 
         {!s.ok ? (

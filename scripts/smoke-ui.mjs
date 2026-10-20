@@ -54,7 +54,7 @@ if (screenshotDir) await mkdir(screenshotDir, { recursive: true });
  assert((await projection.innerText()).includes('Per 1,000 views\n$0.00'));
  await page.getByRole('slider',{name:'Views serving ads'}).fill('100');
  assert(await page.getByText('100% ad fill — optimistic scenario, not a guaranteed payout',{exact:true}).isVisible());
- await page.getByRole('button',{name:'CPM Calculator',exact:true}).click();
+ await page.getByRole('button',{name:'Earnings Estimate',exact:true}).click();
  assert(await page.getByRole('link',{name:'View Results',exact:true}).isVisible());
  assert(await page.getByRole('complementary',{name:'Estimate limitations'}).isVisible());
  await page.setViewportSize({width:375,height:900});await page.getByRole('button',{name:'Open menu',exact:true}).click();assert(await page.getByRole('navigation',{name:'Mobile',exact:true}).isVisible());await page.keyboard.press('Escape');assert.equal(await page.getByRole('navigation',{name:'Mobile',exact:true}).count(),0);
