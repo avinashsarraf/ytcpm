@@ -14,9 +14,9 @@ export const metadata: Metadata = {
 
 export default function NicheIndex() {
   return (
-    <section className="relative overflow-hidden pt-28 sm:pt-36">
+    <section className="relative overflow-hidden pt-24 sm:pt-28 lg:pt-32">
       <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 blob-pink" aria-hidden />
-      <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="relative shell">
         <Reveal>
           <div className="flex items-center gap-3">
             <span className="grid h-9 w-9 place-items-center rounded-full bg-yt-red-bg"><Layers className="h-4 w-4 text-yt-red" /></span>
@@ -31,12 +31,12 @@ export default function NicheIndex() {
         </Reveal>
 
         <Reveal delay={0.1}>
-          <div className="mt-8">
+          <div className="mt-8 xl:mt-10">
             <NicheRangeChart niches={NICHES_BY_CPM} />
           </div>
         </Reveal>
 
-        <div className="mt-12 grid gap-3 pb-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid gap-3 pb-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:gap-4">
           {NICHES_BY_CPM.map((n, i) => {
             const Icon = NICHE_ICONS[n.icon];
             const rpmLow = n.cpmLow * CREATOR_SHARE;

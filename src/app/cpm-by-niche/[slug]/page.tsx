@@ -67,7 +67,7 @@ export default async function NichePage({ params }: { params: Promise<{ slug: st
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       <article className="relative overflow-hidden pt-28 sm:pt-36">
         <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 blob-pink" aria-hidden />
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="relative shell">
           <Reveal><nav className="flex items-center gap-2 text-xs text-fog"><Link href="/" className="hover:text-heading"><ArrowLeft className="inline h-3 w-3" /> Calculator</Link><span className="text-border">/</span><Link href="/cpm-by-niche" className="hover:text-heading">Niches</Link><span className="text-border">/</span><span className="text-heading font-medium">{niche.name}</span></nav></Reveal>
 
           <div className="mt-6 grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
@@ -89,7 +89,7 @@ export default async function NichePage({ params }: { params: Promise<{ slug: st
           </div>
 
           <Reveal delay={0.08}><h2 className="mt-14 display-sub">Earnings by View Count</h2>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:gap-4">
               {VIEW_PRESETS.map((v) => (<div key={v} className="panel p-5"><p className="num-mono text-[11px] font-bold uppercase tracking-widest text-fog">{viewsLabel(v)} views</p><p className="num-mono mt-2 text-xl font-bold text-gradient-green">{money((v / 1000) * rpmLow)}–{money((v / 1000) * rpmHigh)}</p><p className="mt-1 text-[11px] text-fog">US audience</p></div>))}
             </div>
           </Reveal>
@@ -97,7 +97,7 @@ export default async function NichePage({ params }: { params: Promise<{ slug: st
           <section className="mt-14"><Reveal><h2 className="display-sub">{niche.name} CPM <span className="text-yt-gradient">by Country</span></h2></Reveal>
             <div className="mt-5 overflow-hidden rounded-xl border border-border">
               <div className="hidden grid-cols-[2fr_1fr_1fr_0.7fr] gap-3 border-b border-border bg-surface px-5 py-2.5 text-[11px] font-bold uppercase tracking-wider text-fog sm:grid"><span>Country</span><span className="text-right">CPM</span><span className="text-right">RPM</span><span className="text-right">vs US</span></div>
-              <div className="divide-y divide-border">{countryRows.map((c) => { const m = c.mult; const lo = niche.cpmLow * m; const hi = niche.cpmHigh * m; return (<Link key={c.slug} href={`/cpm-by-country/${c.slug}`} className="group grid grid-cols-2 gap-2 px-4 py-3 hover:bg-yt-red-bg sm:grid-cols-[2fr_1fr_1fr_0.7fr] sm:items-center sm:gap-3 sm:px-5"><span className="flex items-center gap-2 text-sm font-medium text-heading"><span className="num-mono grid h-6 w-7 place-items-center rounded bg-surface text-[11px] font-bold group-hover:bg-yt-red group-hover:text-white">{c.code}</span>{c.name}</span><span className="num-mono text-right text-sm text-fog">${lo.toFixed(2)}–${hi.toFixed(2)}</span><span className="num-mono text-right text-sm font-semibold text-mint">${(lo * CREATOR_SHARE).toFixed(2)}–${(hi * CREATOR_SHARE).toFixed(2)}</span><span className="hidden text-right sm:block num-mono text-xs text-fog">{Math.round(m * 100)}%</span></Link>); })}</div>
+              <div className="divide-y divide-border">{countryRows.map((c) => { const m = c.mult; const lo = niche.cpmLow * m; const hi = niche.cpmHigh * m; return (<Link key={c.slug} href={`/cpm-by-country/${c.slug}`} className="group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 hover:bg-yt-red-bg sm:grid-cols-[2fr_1fr_1fr_0.7fr] sm:gap-3 sm:px-5"><span className="flex min-w-0 items-center gap-2 text-sm font-medium text-heading"><span className="num-mono grid h-6 w-7 shrink-0 place-items-center rounded bg-surface text-[11px] font-bold group-hover:bg-yt-red group-hover:text-white">{c.code}</span><span className="truncate">{c.name}</span></span><span className="num-mono hidden text-right text-sm text-fog sm:block">${lo.toFixed(2)}–${hi.toFixed(2)}</span><span className="num-mono hidden text-right text-sm font-semibold text-mint sm:block">${(lo * CREATOR_SHARE).toFixed(2)}–${(hi * CREATOR_SHARE).toFixed(2)}</span><span className="hidden text-right sm:block num-mono text-xs text-fog">{Math.round(m * 100)}%</span><span className="text-right sm:hidden"><span className="num-mono block text-[13px] font-bold leading-tight text-heading">${lo.toFixed(2)}–${hi.toFixed(2)}</span><span className="num-mono block text-[11px] leading-tight text-mint">RPM ${(lo * CREATOR_SHARE).toFixed(2)}–${(hi * CREATOR_SHARE).toFixed(2)}</span></span></Link>); })}</div>
             </div>
           </section>
 

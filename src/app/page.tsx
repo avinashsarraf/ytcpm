@@ -117,9 +117,9 @@ export default function Home() {
 
       {/* ══════ HERO ══════ */}
       <section className="hero-shell relative overflow-hidden">
-        <div className="relative mx-auto max-w-[1180px] px-4 sm:px-6">
-          <div className="grid items-center gap-2 lg:grid-cols-[1.02fr_0.98fr] lg:gap-4">
-            <div className="relative z-10 pt-9 sm:pt-12 lg:pb-20">
+        <div className="shell relative">
+          <div className="grid items-center gap-2 lg:grid-cols-[1.05fr_0.95fr] lg:gap-4 xl:gap-8">
+            <div className="relative z-10 pt-9 sm:pt-12 lg:pb-16 xl:pb-24 2xl:pb-28">
               <Reveal>
                 <span className="inline-flex items-center gap-2 rounded-full border border-white bg-white/70 py-1 pl-1 pr-4 text-[12.5px] font-semibold text-heading shadow-[0_2px_10px_-4px_rgba(11,22,38,0.18)] backdrop-blur">
                   <span className="grid h-6 w-6 place-items-center rounded-full bg-[#fdf1d8]">
@@ -164,14 +164,17 @@ export default function Home() {
             </div>
 
             <Reveal delay={0.1} className="relative">
-              <div className="relative -mx-4 mb-2 h-[250px] sm:-mx-6 sm:h-[330px] lg:mx-0 lg:mb-0 lg:h-[420px]">
+              {/* contain, never cover: cropping this render decapitates the
+                  character at some breakpoints. Letterboxing is invisible
+                  because the art is masked into the hero gradient. */}
+              <div className="relative mx-auto mb-2 h-[280px] w-full max-w-[400px] sm:h-[340px] sm:max-w-[480px] lg:mx-0 lg:mb-0 lg:h-[400px] lg:max-w-none xl:h-[470px] 2xl:h-[540px]">
                 <Image
                   src="/hero-illustration.webp"
                   alt="3D illustration of a creator beside a laptop showing estimated YouTube earnings and CPM"
                   fill
                   priority
-                  sizes="(max-width: 1024px) 100vw, 560px"
-                  className="hero-art object-contain object-right lg:object-cover lg:object-left"
+                  sizes="(max-width: 640px) 400px, (max-width: 1024px) 480px, 50vw"
+                  className="hero-art object-contain object-center"
                 />
               </div>
             </Reveal>
@@ -180,8 +183,8 @@ export default function Home() {
       </section>
 
       {/* ══════ CALCULATOR ══════ */}
-      <section id="calculator" className="relative scroll-mt-20 bg-white pb-8 sm:pb-10">
-        <div className="mx-auto max-w-[1180px] px-4 sm:px-6">
+      <section id="calculator" className="relative scroll-mt-24 bg-white pb-8 sm:pb-10">
+        <div className="shell">
           <div className="relative -mt-4 sm:-mt-6">
             <Calculator />
           </div>
@@ -190,7 +193,7 @@ export default function Home() {
 
       {/* ══════ WHY USE ══════ */}
       <section className="section-y bg-white">
-        <div className="mx-auto max-w-[1180px] px-4 sm:px-6">
+        <div className="shell">
           <Reveal>
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="display-2">
@@ -202,12 +205,12 @@ export default function Home() {
             </div>
           </Reveal>
 
-          <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:gap-5">
             {WHY.map((w, i) => {
               const Icon = w.icon;
               return (
                 <Reveal key={w.title} delay={i * 0.05}>
-                  <div className="card card-hover h-full p-5">
+                  <div className="card card-hover h-full p-5 xl:p-6">
                     <span className={`grid h-11 w-11 place-items-center rounded-xl ${w.tint}`}>
                       <Icon className="h-5 w-5" />
                     </span>
@@ -223,8 +226,8 @@ export default function Home() {
 
       {/* ══════ CPM BY COUNTRY + NICHE ══════ */}
       <section className="bg-surface py-7 sm:py-9">
-        <div className="mx-auto max-w-[1180px] px-4 sm:px-6">
-          <div className="grid gap-4 lg:grid-cols-2">
+        <div className="shell">
+          <div className="grid gap-4 lg:grid-cols-2 xl:gap-5 2xl:grid-cols-[1.08fr_0.92fr]">
             {/* Country */}
             <Reveal>
               <div className="card h-full overflow-hidden">
@@ -234,7 +237,7 @@ export default function Home() {
                     View All Countries <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </div>
-                <div className="grid gap-2 sm:grid-cols-[1.05fr_0.95fr]">
+                <div className="grid gap-2 sm:grid-cols-[1.05fr_0.95fr] xl:grid-cols-[1fr_1.05fr]">
                   <ul className="divide-y divide-border/70 px-3 py-2">
                     {COUNTRY_ORDER.map((c) => (
                       <li key={c.slug}>
@@ -290,8 +293,8 @@ export default function Home() {
 
       {/* ══════ FAQ ══════ */}
       <section className="bg-white py-10 sm:py-12">
-        <div className="mx-auto max-w-[1180px] px-4 sm:px-6">
-          <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
+        <div className="shell">
+          <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-start xl:gap-8 2xl:grid-cols-[1.3fr_0.7fr]">
             <div>
               <h2 className="display-sub mb-4">
                 Frequently Asked <span className="text-yt-red">Questions</span>

@@ -22,8 +22,8 @@ export default function ChannelCheck({ cpm }: { cpm: number }) {
   return (
     <section className="relative overflow-hidden bg-[linear-gradient(100deg,#fdeef3_0%,#fde7ee_45%,#fcd8df_100%)]">
       <div className="pointer-events-none absolute -left-24 top-0 h-64 w-64 rounded-full bg-white/40 blur-3xl" aria-hidden />
-      <div className="section-full relative mx-auto max-w-[1180px] py-10 sm:py-12">
-        <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+      <div className="shell relative py-10 sm:py-12 xl:py-14">
+        <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center xl:gap-10 2xl:grid-cols-[1.3fr_0.7fr]">
           <div>
             <div className="flex flex-wrap items-center gap-3">
               <span className="rounded-full bg-yt-red px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide text-white">

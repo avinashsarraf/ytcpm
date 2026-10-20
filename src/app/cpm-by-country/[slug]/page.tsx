@@ -64,7 +64,7 @@ export default async function CountryPage({ params }: { params: Promise<{ slug: 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       <article className="relative overflow-hidden pt-28 sm:pt-36">
         <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 blob-pink" aria-hidden />
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="relative shell">
           <Reveal>
             <nav className="flex items-center gap-2 text-xs text-fog"><Link href="/" className="hover:text-heading"><ArrowLeft className="inline h-3 w-3" /> Calculator</Link><span className="text-border">/</span><Link href="/cpm-by-country" className="hover:text-heading">Countries</Link><span className="text-border">/</span><span className="text-heading font-medium">{country.name}</span></nav>
           </Reveal>
@@ -87,8 +87,8 @@ export default async function CountryPage({ params }: { params: Promise<{ slug: 
             </Reveal>
           </div>
 
-          <Reveal delay={0.08}><h2 className="mt-14 display-sub">Earnings by View Count</h2>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Reveal delay={0.08}><h2 className="mt-12 display-sub sm:mt-14">Earnings by View Count</h2>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:gap-4">
               {VIEW_PRESETS.map((v) => (<div key={v} className="panel p-5 hover:border-mint/40 transition-colors"><p className="num-mono text-[11px] font-bold uppercase tracking-widest text-fog">{viewsLabel(v)} views</p><p className="num-mono mt-2 text-xl font-bold text-gradient-green">{cur((v / 1000) * rpmLow)}–{cur((v / 1000) * rpmHigh)}</p>{country.currency !== "USD" && <p className="num-mono mt-0.5 text-[11px] text-fog">≈ {money((v / 1000) * rpmLow)}–{money((v / 1000) * rpmHigh)}</p>}</div>))}
             </div>
           </Reveal>
@@ -96,7 +96,7 @@ export default async function CountryPage({ params }: { params: Promise<{ slug: 
           <section className="mt-14"><Reveal><h2 className="display-sub">{country.name} CPM <span className="text-yt-gradient">by Niche</span></h2></Reveal>
             <div className="mt-5 overflow-hidden rounded-xl border border-border">
               <div className="hidden grid-cols-[2fr_1.2fr_1.2fr_0.7fr] gap-3 border-b border-border bg-surface px-5 py-2.5 text-[11px] font-bold uppercase tracking-wider text-fog sm:grid"><span>Niche</span><span className="text-right">CPM ({country.currency})</span><span className="text-right">RPM ({country.currency})</span><span className="text-right">Tier</span></div>
-              <div className="divide-y divide-border">{topNiches.map((n) => (<Link key={n.slug} href={`/cpm-by-niche/${n.slug}`} className="group grid grid-cols-2 gap-2 px-4 py-3 hover:bg-yt-red-bg sm:grid-cols-[2fr_1.2fr_1.2fr_0.7fr] sm:items-center sm:gap-3 sm:px-5"><span className="flex items-center gap-2 text-sm font-medium text-heading">{n.name}<ArrowUpRight className="h-3 w-3 text-fog/40 group-hover:text-yt-red" /></span><span className="num-mono text-right text-sm text-fog">{cur(n.lCpmLow)}–{cur(n.lCpmHigh)}</span><span className="num-mono text-right text-sm font-semibold text-mint">{cur(n.lCpmLow * CREATOR_SHARE)}–{cur(n.lCpmHigh * CREATOR_SHARE)}</span><span className="hidden text-right sm:block"><span className="rounded-full bg-surface px-2 py-0.5 text-[11px] font-bold text-fog">{n.tier}</span></span></Link>))}</div>
+              <div className="divide-y divide-border">{topNiches.map((n) => (<Link key={n.slug} href={`/cpm-by-niche/${n.slug}`} className="group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 hover:bg-yt-red-bg sm:grid-cols-[2fr_1.2fr_1.2fr_0.7fr] sm:gap-3 sm:px-5"><span className="flex min-w-0 items-center gap-2 text-sm font-medium text-heading"><span className="truncate">{n.name}</span><ArrowUpRight className="h-3 w-3 shrink-0 text-fog/40 group-hover:text-yt-red" /></span><span className="num-mono hidden text-right text-sm text-fog sm:block">{cur(n.lCpmLow)}–{cur(n.lCpmHigh)}</span><span className="num-mono hidden text-right text-sm font-semibold text-mint sm:block">{cur(n.lCpmLow * CREATOR_SHARE)}–{cur(n.lCpmHigh * CREATOR_SHARE)}</span><span className="hidden text-right sm:block"><span className="rounded-full bg-surface px-2 py-0.5 text-[11px] font-bold text-fog">{n.tier}</span></span><span className="text-right sm:hidden"><span className="num-mono block text-[13px] font-bold leading-tight text-heading">{cur(n.lCpmLow)}–{cur(n.lCpmHigh)}</span><span className="num-mono block text-[11px] leading-tight text-mint">RPM {cur(n.lCpmLow * CREATOR_SHARE)}–{cur(n.lCpmHigh * CREATOR_SHARE)}</span></span></Link>))}</div>
             </div>
           </section>
 

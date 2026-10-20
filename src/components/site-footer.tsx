@@ -51,9 +51,9 @@ const SOCIAL = [
 export default function SiteFooter() {
   return (
     <footer className="bg-navy text-white">
-      <div className="section-full mx-auto max-w-[1180px] py-12">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr_1.1fr]">
-          <div>
+      <div className="shell py-12 xl:py-16">
+        <div className="grid grid-cols-2 gap-8 sm:gap-10 lg:grid-cols-[1.6fr_1fr_1fr_1fr_1fr]">
+          <div className="col-span-2 lg:col-span-1">
             <Link href="/" className="flex items-center gap-2">
               <span className="grid h-8 w-8 place-items-center rounded-[9px] bg-yt-red">
                 <Play className="h-4 w-4 fill-white text-white" />
@@ -62,7 +62,7 @@ export default function SiteFooter() {
                 ytcpm<span className="text-yt-red">.online</span>
               </span>
             </Link>
-            <p className="mt-4 max-w-[15rem] text-[13px] leading-relaxed text-white/60">
+            <p className="mt-4 max-w-[22rem] text-[13px] leading-relaxed text-white/60">
               Free YouTube CPM Calculator, Earnings Estimator and Channel Analyzer.
             </p>
           </div>
@@ -110,7 +110,7 @@ export default function SiteFooter() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={s.label}
-                  className="grid h-8 w-8 place-items-center rounded-md bg-yt-red text-white transition-transform hover:scale-110 hover:bg-yt-red-hover"
+                  className="grid h-9 w-9 place-items-center rounded-md bg-yt-red text-white transition-transform hover:scale-110 hover:bg-yt-red-hover"
                 >
                   <svg viewBox="0 0 24 24" className="h-[15px] w-[15px]" fill="currentColor" aria-hidden>
                     <path d={s.path} />

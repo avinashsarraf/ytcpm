@@ -1,7 +1,7 @@
 export default function Loading() {
   return (
     <div className="pt-32 sm:pt-36" aria-busy="true" aria-live="polite">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="shell">
         <div className="h-4 w-28 animate-pulse rounded-full bg-surface-2" />
         <div className="mt-5 h-10 w-2/3 animate-pulse rounded-lg bg-surface-2" />
         <div className="mt-3 h-4 w-1/2 animate-pulse rounded-full bg-surface-2/70" />

@@ -45,7 +45,13 @@
   --shadow-float: 0 2px 6px rgba(11, 22, 38, 0.05), 0 24px 60px -24px rgba(11, 22, 38, 0.22);
 }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  /* Stop iOS landscape from inflating text unpredictably. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+img, svg, video { max-width: 100%; }
 :focus-visible { outline: 2px solid var(--color-yt-red); outline-offset: 2px; }
 
 /* ─── Skip link ─── */
@@ -61,6 +67,7 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--color-ink); color: var(--color-fog);
   font-family: var(--font-body); overflow-x: hidden;
+  min-width: 320px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -148,25 +155,25 @@ p, li, figcaption { text-wrap: pretty; }
 /* ─── Type scale ─── */
 .display-hero {
   font-family: var(--font-display);
-  font-size: clamp(2.3rem, 4.4vw, 3.6rem);
+  font-size: clamp(2.25rem, 3.5vw, 4.15rem);
   line-height: 1.06; letter-spacing: -0.035em; font-weight: 800;
   color: var(--color-heading);
 }
 .display-1 {
   font-family: var(--font-display);
-  font-size: clamp(2.1rem, 4vw, 3.25rem);
+  font-size: clamp(2rem, 3vw, 3.5rem);
   line-height: 1.08; letter-spacing: -0.033em; font-weight: 800;
   color: var(--color-heading);
 }
 .display-2 {
   font-family: var(--font-display);
-  font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+  font-size: clamp(1.55rem, 2.1vw, 2.35rem);
   line-height: 1.14; letter-spacing: -0.028em; font-weight: 800;
   color: var(--color-heading);
 }
 .display-sub {
   font-family: var(--font-display);
-  font-size: clamp(1.25rem, 1.8vw, 1.5rem);
+  font-size: clamp(1.2rem, 1.5vw, 1.65rem);
   line-height: 1.2; letter-spacing: -0.022em; font-weight: 800;
   color: var(--color-heading);
 }
@@ -179,7 +186,7 @@ p, li, figcaption { text-wrap: pretty; }
 .accent-serif { font-family: var(--font-display); font-style: normal; font-weight: 800; }
 
 .lede {
-  font-size: clamp(0.98rem, 1.05vw, 1.0625rem);
+  font-size: clamp(0.98rem, 0.95vw, 1.1875rem);
   line-height: 1.65; color: #5b6b80; max-width: 60ch;
 }
 .body-copy { font-size: 0.9375rem; line-height: 1.7; color: #5b6b80; }
@@ -191,10 +198,37 @@ p, li, figcaption { text-wrap: pretty; }
 }
 .num-mono { font-variant-numeric: tabular-nums; }
 
+/* ─── Layout shell ───
+   Full-bleed by design: the page uses the whole viewport, gutters grow with it,
+   and the 1760px stop only exists so 4K monitors do not stretch a table to
+   unreadable widths. Everything inside is grid-based, so each breakpoint
+   reflows rather than simply scaling. */
+.shell {
+  width: 100%;
+  margin-inline: auto;
+  /* Edge-to-edge on a 1920 display; the cap only stops a 4K/5K monitor from
+     stretching a four-column table into unreadable strips. */
+  max-width: 1920px;
+  padding-inline: clamp(1rem, 2.4vw, 3.5rem);
+}
+.shell-narrow {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 92ch;
+  padding-inline: clamp(1rem, 2.4vw, 3.5rem);
+}
+
 /* ─── Section rhythm ─── */
-.section-y { padding-top: 3.25rem; padding-bottom: 3.25rem; }
-@media (min-width: 640px) { .section-y { padding-top: 4.5rem; padding-bottom: 4.5rem; } }
+.section-y {
+  padding-top: clamp(2.75rem, 5vw, 5rem);
+  padding-bottom: clamp(2.75rem, 5vw, 5rem);
+}
 .section-head { display: flex; flex-direction: column; gap: 0.75rem; }
+
+/* Long-form copy keeps a readable measure even on a 2560px display. */
+.prose { max-width: 74ch; }
+.prose h2 { margin-top: 2.25rem; }
+.prose p, .prose li { line-height: 1.75; }
 
 /* ─── Hero ─── */
 .hero-shell {
@@ -206,11 +240,11 @@ p, li, figcaption { text-wrap: pretty; }
 }
 /* The render's own pastel backdrop melts into the hero gradient. */
 .hero-art {
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.35) 9%, #000 30%),
-    linear-gradient(to bottom, #000 88%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.4) 7%, #000 17%),
+    linear-gradient(to bottom, #000 90%, transparent 100%);
   -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.35) 9%, #000 30%),
-    linear-gradient(to bottom, #000 88%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.4) 7%, #000 17%),
+    linear-gradient(to bottom, #000 90%, transparent 100%);
   mask-composite: intersect;
 }
 
@@ -233,13 +267,29 @@ p, li, figcaption { text-wrap: pretty; }
 }
 .flag-img:hover, .group:hover .flag-img { transform: scale(1.08); }
 
-/* ─── Full-width sections ─── */
+/* ─── Full-width sections (legacy alias of .shell gutters) ─── */
 .section-full {
-  width: 100%; padding-left: 1rem; padding-right: 1rem;
+  width: 100%;
+  padding-left: clamp(1rem, 2.4vw, 3.5rem);
+  padding-right: clamp(1rem, 2.4vw, 3.5rem);
 }
-@media (min-width: 640px) { .section-full { padding-left: 1.5rem; padding-right: 1.5rem; } }
-@media (min-width: 1024px) { .section-full { padding-left: 2.5rem; padding-right: 2.5rem; } }
-@media (min-width: 1280px) { .section-full { padding-left: 4rem; padding-right: 4rem; } }
+
+/* ─── Touch targets ───
+   Anything tappable keeps a 44px hit area on coarse pointers. */
+@media (pointer: coarse) {
+  .tap { min-height: 44px; min-width: 44px; }
+  .tap-row > * { min-height: 44px; }
+}
+
+/* ─── Horizontal data tables ───
+   Below their breakpoint, tables scroll instead of squeezing columns into
+   unreadable slivers. */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.table-scroll > table { min-width: 640px; }
 
 /* ─── Slider ─── */
 input[type="range"].slider {
@@ -286,6 +336,16 @@ input[type="range"].slider::-moz-range-thumb { width: 18px; height: 18px; border
 }
 .field::placeholder { color: #94a3b8; font-weight: 500; }
 .field:focus { outline: none; border-color: #ee1249; box-shadow: 0 0 0 3px rgba(238, 18, 73, 0.1); }
+
+/* iOS zooms the page when a focused control is under 16px. Keep controls at
+   16px on small screens so the calculator never jumps mid-entry. */
+@media (max-width: 640px) {
+  .field, .select-field, select, input[type="text"], input[type="number"] { font-size: 16px; }
+}
+
+/* Long numbers must never push a tile wider than its column. */
+.tile { min-width: 0; }
+.tile > span { min-width: 0; }
 
 /* ─── Links ─── */
 .link-hover { position: relative; transition: color 0.2s; }

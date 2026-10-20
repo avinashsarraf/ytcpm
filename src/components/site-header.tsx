@@ -36,17 +36,17 @@ export default function SiteHeader() {
 
   return (
     <header className="sticky top-0 inset-x-0 z-40 border-b border-border/70 bg-white/95 backdrop-blur-xl">
-      <div className="section-full mx-auto flex h-16 max-w-[1180px] items-center justify-between gap-6">
+      <div className="shell flex h-16 items-center justify-between gap-4 xl:h-[72px] xl:gap-8">
         <Link href="/" className="flex shrink-0 items-center gap-2" aria-label="ytcpm.online — home">
           <span className="grid h-8 w-8 place-items-center rounded-[9px] bg-yt-red shadow-[0_2px_8px_rgba(238,18,73,0.35)]">
             <Play className="h-4 w-4 fill-white text-white" />
           </span>
-          <span className="text-[19px] font-extrabold tracking-tight text-heading">
+          <span className="text-[18px] font-extrabold tracking-tight text-heading sm:text-[19px]">
             ytcpm<span className="text-yt-red">.online</span>
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-7 lg:flex" aria-label="Primary">
+        <nav className="hidden items-center gap-5 lg:flex xl:gap-8 2xl:gap-10" aria-label="Primary">
           {LINKS.map((l) => {
             const active = isActive(l.href, l.exact);
             return (
@@ -54,7 +54,7 @@ export default function SiteHeader() {
                 key={l.href}
                 href={l.href}
                 aria-current={active ? "page" : undefined}
-                className={`relative py-5 text-[13.5px] font-semibold transition-colors ${
+                className={`relative whitespace-nowrap py-5 text-[13px] font-semibold transition-colors xl:text-[13.5px] ${
                   active ? "text-yt-red" : "text-[#4a5a6e] hover:text-heading"
                 }`}
               >
@@ -69,7 +69,7 @@ export default function SiteHeader() {
 
         <div className="ml-auto flex items-center gap-2">
           <button
-            className="grid h-10 w-10 place-items-center rounded-lg border border-border text-heading lg:hidden"
+            className="grid h-11 w-11 place-items-center rounded-lg border border-border text-heading lg:hidden"
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
@@ -87,7 +87,7 @@ export default function SiteHeader() {
               key={l.href}
               href={l.href}
               onClick={() => setOpen(false)}
-              className={`block rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
+              className={`block rounded-xl px-4 py-3.5 text-sm font-semibold transition-colors ${
                 isActive(l.href, l.exact) ? "bg-yt-red-light text-yt-red" : "text-[#4a5a6e] hover:bg-surface"
               }`}
             >

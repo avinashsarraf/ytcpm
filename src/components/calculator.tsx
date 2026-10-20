@@ -85,9 +85,9 @@ export default function Calculator() {
   return (
     <>
       <div className="card overflow-hidden !rounded-[20px] !shadow-[0_2px_6px_rgba(11,22,38,0.05),0_24px_60px_-24px_rgba(11,22,38,0.22)]">
-        <div className="p-4 sm:p-6">
+        <div className="p-4 sm:p-6 xl:p-8">
         {/* ── Tabs ── */}
-        <div className="flex flex-col gap-1.5 rounded-xl border border-border bg-white p-1.5 sm:flex-row" role="group" aria-label="Calculator mode">
+        <div className="flex flex-col gap-1.5 rounded-xl border border-border bg-white p-1.5 min-[480px]:flex-row" role="group" aria-label="Calculator mode">
           {TABS.map((t) => {
             const active = tab === t.id;
             const Icon = t.icon;
@@ -96,14 +96,14 @@ export default function Calculator() {
                 key={t.id}
                 aria-pressed={active}
                 onClick={() => setTab(t.id)}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-[13px] font-bold transition-all duration-200 ${
+                className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-[12.5px] font-bold transition-all duration-200 xl:px-4 xl:text-[13.5px] ${
                   active
                     ? "hot-gradient text-white shadow-[0_6px_18px_-6px_rgba(238,18,73,0.6)]"
                     : "text-[#4a5a6e] hover:bg-surface"
                 }`}
               >
-                <Icon className="h-4 w-4" />
-                {t.label}
+                <Icon className="h-4 w-4 shrink-0" />
+                <span className="truncate">{t.label}</span>
               </button>
             );
           })}
@@ -112,7 +112,7 @@ export default function Calculator() {
         {/* ── Mode: CPM calculator ── */}
         {tab === "cpm" && (
           <>
-            <div className="mt-5 grid gap-4 lg:grid-cols-[1.1fr_0.85fr_1fr_auto] lg:items-end">
+            <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-[1.1fr_0.85fr_1fr_auto] lg:items-end xl:gap-5">
               <label className="block">
                 <span className="mb-1.5 block text-[13px] font-bold text-heading">Total Views</span>
                 <span className="relative block">
@@ -175,7 +175,7 @@ export default function Calculator() {
 
               <a
                 href="#results"
-                className="hot-gradient inline-flex h-[42px] items-center justify-center gap-2 rounded-lg px-6 text-[13.5px] font-bold text-white shadow-[0_8px_20px_-8px_rgba(238,18,73,0.7)] transition-transform hover:scale-[1.02]"
+                className="hot-gradient inline-flex h-[46px] w-full items-center justify-center gap-2 rounded-lg px-6 text-[13.5px] font-bold text-white shadow-[0_8px_20px_-8px_rgba(238,18,73,0.7)] transition-transform hover:scale-[1.02] lg:h-[42px] lg:w-auto"
               >
                 <CalcIcon className="h-4 w-4" /> Calculate Earnings <ArrowRight className="h-4 w-4" />
               </a>
@@ -206,7 +206,7 @@ export default function Calculator() {
                 type="button"
                 onClick={() => setAdvanced((v) => !v)}
                 aria-expanded={advanced}
-                className="ml-auto inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[12px] font-semibold text-[#64748b] transition-colors hover:text-yt-red"
+                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[12px] font-semibold text-[#64748b] transition-colors hover:text-yt-red sm:ml-auto"
               >
                 <SlidersHorizontal className="h-3.5 w-3.5" />
                 {advanced ? "Hide assumptions" : "Assumptions"}
@@ -335,37 +335,37 @@ export default function Calculator() {
       </div>
 
       {/* Result tiles sit outside the card, as in the reference */}
-      <div id="results" className="mt-4 grid scroll-mt-24 grid-cols-2 gap-3 lg:grid-cols-4">
-        <div className="tile tile-mint">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#d3f3e1] text-mint"><Eye className="h-5 w-5" /></span>
+      <div id="results" className="mt-4 grid scroll-mt-24 grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4 xl:gap-4">
+        <div className="tile tile-mint !px-3 !py-3 sm:!px-4">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#d3f3e1] text-mint sm:h-11 sm:w-11"><Eye className="h-5 w-5" /></span>
           <span className="min-w-0">
-            <span className="num-mono block truncate text-[19px] font-extrabold leading-tight tracking-tight text-heading">{num(views)}</span>
-            <span className="mt-0.5 block text-[11.5px] font-medium leading-tight text-[#5b6b80]">Total Views</span>
+            <span className="num-mono block truncate text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{num(views)}</span>
+            <span className="mt-0.5 block text-[10.5px] font-medium leading-tight text-[#5b6b80] sm:text-[11.5px]">Total Views</span>
           </span>
         </div>
-        <div className="tile tile-blue">
+        <div className="tile tile-blue !px-3 !py-3 sm:!px-4">
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#d8e6fa] text-blue"><DollarSign className="h-5 w-5" /></span>
           <span className="min-w-0">
-            <span className="num-mono block truncate text-[19px] font-extrabold leading-tight tracking-tight text-heading">{money(cpm, 2)}</span>
-            <span className="mt-0.5 block text-[11.5px] font-medium leading-tight text-[#5b6b80]">CPM (USD)</span>
+            <span className="num-mono block truncate text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{money(cpm, 2)}</span>
+            <span className="mt-0.5 block text-[10.5px] font-medium leading-tight text-[#5b6b80] sm:text-[11.5px]">CPM (USD)</span>
           </span>
         </div>
-        <div className="tile tile-amber">
+        <div className="tile tile-amber !px-3 !py-3 sm:!px-4">
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#fbe9b8] text-[#c2810a]"><BarChart3 className="h-5 w-5" /></span>
           <span className="min-w-0">
-            <span className="num-mono block truncate text-[19px] font-extrabold leading-tight tracking-tight text-heading">{money(gross)}</span>
-            <span className="mt-0.5 block text-[11.5px] font-medium leading-tight text-[#5b6b80]">Estimated Earnings</span>
+            <span className="num-mono block truncate text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{money(gross)}</span>
+            <span className="mt-0.5 block text-[10.5px] font-medium leading-tight text-[#5b6b80] sm:text-[11.5px]">Estimated Earnings</span>
           </span>
         </div>
-        <div className="tile tile-pink">
+        <div className="tile tile-pink !px-3 !py-3 sm:!px-4">
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#fbd6e0] text-yt-red">
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
               <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.6 3.6 12 3.6 12 3.6s-7.6 0-9.4.5A3 3 0 0 0 .5 6.2C0 8 0 12 0 12s0 4 .5 5.8a3 3 0 0 0 2.1 2.1c1.8.5 9.4.5 9.4.5s7.6 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 16 24 12 24 12s0-4-.5-5.8ZM9.6 15.6V8.4L15.8 12l-6.2 3.6Z" />
             </svg>
           </span>
           <span className="min-w-0">
-            <span className="num-mono block truncate text-[19px] font-extrabold leading-tight tracking-tight text-heading">{money(afterShare)}</span>
-            <span className="mt-0.5 block text-[11.5px] font-medium leading-tight text-[#5b6b80]">After YouTube Share ({Math.round(CREATOR_SHARE * 100)}%)</span>
+            <span className="num-mono block truncate text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{money(afterShare)}</span>
+            <span className="mt-0.5 block text-[10.5px] font-medium leading-tight text-[#5b6b80] sm:text-[11.5px]">After YouTube Share ({Math.round(CREATOR_SHARE * 100)}%)</span>
           </span>
         </div>
       </div>
