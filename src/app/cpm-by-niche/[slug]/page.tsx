@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, ArrowUpRight, Percent, Lightbulb } from "lucide-react";
+import { ArrowLeft, ArrowRight, Lightbulb } from "lucide-react";
 import Faq from "@/components/faq";
 import { Reveal } from "@/components/motion";
 import { NICHE_ICONS } from "@/lib/niche-icons";
-import { NICHES, getNiche, countryMultiplier, CREATOR_SHARE, DATA_YEAR, money, viewsLabel, VIEW_PRESETS, COUNTRIES_BY_CPM, NICHES_BY_CPM } from "@/lib/data";
+import { NICHES, getNiche, countryMultiplier, CREATOR_SHARE, DATA_YEAR, DATA_UPDATED_AT, money, viewsLabel, VIEW_PRESETS, COUNTRIES_BY_CPM, NICHES_BY_CPM } from "@/lib/data";
 
 export function generateStaticParams() { return NICHES.map((n) => ({ slug: n.slug })); }
 
@@ -13,7 +13,23 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const n = getNiche(slug);
   if (!n) return {};
-  return { title: `${n.name} YouTube CPM ${DATA_YEAR}: $${n.cpmLow}–$${n.cpmHigh} Rates`, description: `${n.name} channels earn $${n.cpmLow}–$${n.cpmHigh} CPM (US audience) in ${DATA_YEAR}.`, alternates: { canonical: `/cpm-by-niche/${n.slug}` } };
+  return {
+    title: `${n.name} YouTube CPM ${DATA_YEAR}: $${n.cpmLow}–$${n.cpmHigh} Rates`,
+    description: `${n.name} channels earn $${n.cpmLow}–$${n.cpmHigh} CPM (US audience) in ${DATA_YEAR}.`,
+    alternates: { canonical: `/cpm-by-niche/${n.slug}` },
+    openGraph: {
+      type: "article",
+      title: `${n.name} CPM ${DATA_YEAR}: $${n.cpmLow}–$${n.cpmHigh}`,
+      description: `${n.name} niche benchmarks: CPM, RPM and per-1M-view earnings.`,
+      url: `https://ytcpm.online/cpm-by-niche/${n.slug}`,
+      siteName: "ytcpm.online",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${n.name} CPM ${DATA_YEAR}`,
+      description: `CPM $${n.cpmLow}–$${n.cpmHigh} · RPM $${(n.cpmLow * CREATOR_SHARE).toFixed(2)}–$${(n.cpmHigh * CREATOR_SHARE).toFixed(2)}.`,
+    },
+  };
 }
 
 const TD: Record<string, string> = { S: "S-tier — highest-paying", A: "A-tier — above average", B: "B-tier — mid-market", C: "C-tier — volume plays" };
@@ -33,12 +49,22 @@ export default async function NichePage({ params }: { params: Promise<{ slug: st
     { q: `What is the average CPM for ${niche.name} channels?`, a: `CPM $${niche.cpmLow}–$${niche.cpmHigh} (US). RPM $${rpmLow.toFixed(2)}–$${rpmHigh.toFixed(2)}.` },
     { q: `How can I increase my ${niche.name} CPM?`, a: `${niche.tip} Target Tier-1 audiences, use mid-roll ads, publish in Q4.` },
   ];
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Calculator", item: "https://ytcpm.online/" },
+      { "@type": "ListItem", position: 2, name: "CPM by Niche", item: "https://ytcpm.online/cpm-by-niche" },
+      { "@type": "ListItem", position: 3, name: niche.name, item: `https://ytcpm.online/cpm-by-niche/${niche.slug}` },
+    ],
+  };
   const faqLd = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) };
   const related = NICHES_BY_CPM.filter((n) => n.slug !== slug).slice(0, 6);
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       <article className="relative overflow-hidden pt-28 sm:pt-36">
         <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 blob-pink" aria-hidden />
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
@@ -57,6 +83,7 @@ export default async function NichePage({ params }: { params: Promise<{ slug: st
                   <div><p className="text-[10px] font-bold uppercase tracking-wider text-fog">RPM</p><p className="num-mono mt-1 text-2xl font-bold text-mint">${rpmLow.toFixed(2)}–${rpmHigh.toFixed(2)}</p></div>
                 </div>
                 <div className="mt-4 flex items-center justify-between rounded-lg bg-surface px-3 py-2 text-xs"><span className="text-fog">per 1M views</span><span className="num-mono font-bold text-heading">{money(rpmLow * 1000)} – {money(rpmHigh * 1000)}</span></div>
+                <p className="mt-2 text-center text-[10px] text-fog/70">Benchmarks reviewed {DATA_UPDATED_AT}</p>
               </div>
             </Reveal>
           </div>

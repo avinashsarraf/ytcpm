@@ -2,30 +2,35 @@ import type { Metadata } from "next";
 import { sql, desc, gte, count } from "drizzle-orm";
 import Link from "next/link";
 import { Activity, Database, MousePointerClick, CircleDollarSign, Globe2, Layers, Clock3 } from "lucide-react";
-import { db } from "@/db";
+import { db, isDatabaseConfigured } from "@/db";
 import { calculations } from "@/db/schema";
 import { Reveal } from "@/components/motion";
 import { StatBar } from "@/components/charts";
 import { viewsLabel, money } from "@/lib/data";
+import { logOnce } from "@/lib/log";
 
 export const metadata: Metadata = { title: "Live Usage Monitor", description: "Real-time analytics of the ytcpm.online YouTube CPM calculator.", robots: { index: false, follow: true }, alternates: { canonical: "/monitor" } };
-export const dynamic = "force-dynamic";
+// Cached for 60s: the aggregate queries are expensive and the data is an
+// anonymous usage summary, not per-user state. See deployment.md#performance.
+export const revalidate = 60;
 
 interface DayRow { day: string; dv: string; c: number }
 interface GroupRow { name: string; c: number }
 
 async function getStats() {
+  if (!isDatabaseConfigured()) return { ok: false as const };
   try {
     const [totalRow] = await db.select({ c: count() }).from(calculations);
     const [avgRow] = await db.select({ avg: sql<number>`coalesce(avg((est_low::numeric + est_high::numeric) / 2), 0)` }).from(calculations);
     const [weekRow] = await db.select({ c: count() }).from(calculations).where(gte(calculations.createdAt, sql`now() - interval '7 days'`));
     const byNiche = (await db.select({ name: calculations.nicheName, c: count() }).from(calculations).groupBy(calculations.nicheName).orderBy(desc(count())).limit(8)) as GroupRow[];
     const byCountry = (await db.select({ name: calculations.countryName, c: count() }).from(calculations).groupBy(calculations.countryName).orderBy(desc(count())).limit(8)) as GroupRow[];
-    const byDay = (await db.select({ day: sql<string>`to_char(date_trunc('day', created_at), 'Dy DD')`, dv: sql<string>`to_char(date_trunc('day', created_at), 'YYYY-MM-DD')`, c: count() }).from(calculations).where(gte(calculations.createdAt, sql`now() - interval '14 days'`)).groupBy(sql`date_trunc('day', created_at)`).orderBy(sql`date_trunc('day', created_at)`)) as unknown as DayRow[];
+    const byDay = (await db.select({ day: sql<string>`to_char(date_trunc('day', created_at), 'DD Mon')`, dv: sql<string>`to_char(date_trunc('day', created_at), 'YYYY-MM-DD')`, c: count() }).from(calculations).where(gte(calculations.createdAt, sql`now() - interval '14 days'`)).groupBy(sql`date_trunc('day', created_at)`).orderBy(sql`date_trunc('day', created_at)`)) as unknown as DayRow[];
     const recent = await db.select().from(calculations).orderBy(desc(calculations.createdAt)).limit(9);
     const shortsRow = await db.select({ c: count() }).from(calculations).where(sql`content_type = 'shorts'`);
-    return { ok: true as const, total: Number(totalRow?.c ?? 0), avgEst: Number(avgRow?.avg ?? 0), week: Number(weekRow?.c ?? 0), shortsPct: Number(totalRow?.c ?? 0) > 0 ? Math.round((Number(shortsRow[0]?.c ?? 0) / Number(totalRow?.c ?? 1)) * 100) : 0, byNiche, byCountry, byDay, recent };
-  } catch (e) { console.error("[monitor]", e); return { ok: false as const }; }
+    const usesAssumptions = await db.select({ c: count() }).from(calculations).where(sql`season <> 'annual' OR monetized_share < 1`);
+    return { ok: true as const, total: Number(totalRow?.c ?? 0), avgEst: Number(avgRow?.avg ?? 0), week: Number(weekRow?.c ?? 0), assumptions: Number(usesAssumptions[0]?.c ?? 0), shortsPct: Number(totalRow?.c ?? 0) > 0 ? Math.round((Number(shortsRow[0]?.c ?? 0) / Number(totalRow?.c ?? 1)) * 100) : 0, byNiche, byCountry, byDay, recent };
+  } catch (e) { logOnce("monitor", "aggregate query failed", e); return { ok: false as const }; }
 }
 
 export default async function MonitorPage() {
@@ -44,7 +49,7 @@ export default async function MonitorPage() {
             <span className="flex items-center gap-1.5 tag-red text-[10px]"><span className="h-1.5 w-1.5 rounded-full bg-mint animate-pulse-dot" /> Live · PostgreSQL</span>
           </div>
           <h1 className="mt-5 font-display text-4xl font-bold tracking-tight text-heading sm:text-5xl">Calculator Usage <span className="text-yt-gradient">Monitor</span></h1>
-          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-fog">Every calculation is logged. This page shows real-time usage analytics.</p>
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-fog">Anonymous, aggregated usage analytics from PostgreSQL. Cached for 60 seconds to keep queries cheap.</p>
         </Reveal>
 
         {!s.ok ? (
@@ -64,8 +69,9 @@ export default async function MonitorPage() {
 
             <Reveal delay={0.1}><div className="panel mt-5 p-6">
               <h2 className="font-display text-lg font-bold text-heading">Calculations per day</h2>
+              {s.byDay.length === 0 && <p className="mt-5 text-sm text-fog">No calculations logged yet — run the calculator to populate this chart.</p>}
               <div className="mt-5 flex h-36 items-end gap-1.5 sm:gap-2.5">
-                {s.byDay.map((d, i) => (<div key={d.dv} className="group flex h-full flex-1 flex-col items-center justify-end gap-1.5"><span className="num-mono text-[10px] text-fog opacity-0 group-hover:opacity-100">{Number(d.c)}</span><div style={{ height: `${Math.max((Number(d.c) / maxDay) * 85, 4)}%` }} className={`w-full rounded-t-md transition-colors ${i === s.byDay.length - 1 ? "bg-gradient-to-t from-yt-red-deep to-yt-red" : "bg-gradient-to-t from-yt-red-bg to-yt-red/40 group-hover:to-yt-red/70"}`} /><span className="num-mono hidden text-[9px] text-fog sm:block">{d.day.split(" ")[1]}</span></div>))}
+                {s.byDay.map((d, i) => (<div key={d.dv} className="group flex h-full flex-1 flex-col items-center justify-end gap-1.5"><span className="num-mono text-[10px] text-fog opacity-0 group-hover:opacity-100">{Number(d.c)}</span><div style={{ height: `${Math.max((Number(d.c) / maxDay) * 85, 4)}%` }} className={`w-full rounded-t-md transition-colors ${i === s.byDay.length - 1 ? "bg-gradient-to-t from-yt-red-deep to-yt-red" : "bg-gradient-to-t from-yt-red-bg to-yt-red/40 group-hover:to-yt-red/70"}`} /><span className="num-mono hidden text-[9px] text-fog sm:block">{d.day.split(" ")[1] ?? d.day}</span></div>))}
               </div>
             </div></Reveal>
 
@@ -78,6 +84,7 @@ export default async function MonitorPage() {
               <div className="flex items-center justify-between border-b border-border px-5 py-3"><h2 className="font-display text-lg font-bold text-heading">Latest calculations</h2><span className="flex items-center gap-1.5 text-[10px] font-bold text-mint"><span className="h-1.5 w-1.5 rounded-full bg-mint animate-pulse-dot" /> streaming</span></div>
               <div className="divide-y divide-border">{s.recent.map((r) => { const mid = (Number(r.estLow) + Number(r.estHigh)) / 2; return (<div key={r.id} className="grid grid-cols-[1fr_auto] items-center gap-3 px-4 py-3 sm:grid-cols-[auto_1fr_1fr_auto_auto] sm:gap-5 sm:px-5"><span className="num-mono hidden w-20 text-xs text-fog sm:block">#{String(r.id).padStart(5, "0")}</span><span className="truncate text-sm font-medium text-heading">{r.nicheName} <span className="text-fog">in</span> {r.countryName}</span><span className="num-mono hidden text-xs text-fog sm:block">{viewsLabel(r.views)} · {r.contentType === "shorts" ? "Shorts" : "Long"}</span><span className="num-mono text-right text-sm font-bold text-mint">{money(mid)}/mo</span><span className="num-mono hidden w-24 text-right text-[11px] text-fog sm:block">{new Date(r.createdAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span></div>); })}</div>
             </div></Reveal>
+            <p className="mt-4 text-center text-xs text-fog">{s.assumptions.toLocaleString()} runs used a season or ad-impression adjustment.</p>
             <p className="mt-6 pb-4 text-center text-xs text-fog">Anonymous aggregates only. <Link href="/#calculator" className="font-semibold text-heading underline decoration-brand/40 hover:decoration-brand">Run the calculator</Link>.</p>
           </>
         )}

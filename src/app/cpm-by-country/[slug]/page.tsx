@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, ArrowUpRight, Globe2, Percent, Lightbulb } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, Lightbulb } from "lucide-react";
 import Faq from "@/components/faq";
 import { Reveal } from "@/components/motion";
-import { COUNTRIES, getCountry, countryMultiplier, CREATOR_SHARE, DATA_YEAR, money, localMoney, fxNote, viewsLabel, VIEW_PRESETS, NICHES_BY_CPM, COUNTRIES_BY_CPM, TIER_LABEL } from "@/lib/data";
+import { COUNTRIES, getCountry, countryMultiplier, CREATOR_SHARE, DATA_YEAR, DATA_UPDATED_AT, FX_UPDATED_AT, money, localMoney, fxNote, viewsLabel, VIEW_PRESETS, NICHES_BY_CPM, COUNTRIES_BY_CPM, TIER_LABEL } from "@/lib/data";
 
 export function generateStaticParams() { return COUNTRIES.map((c) => ({ slug: c.slug })); }
 
@@ -16,6 +16,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: `YouTube CPM in ${c.name} ${DATA_YEAR}: Rates, RPM & Pay per 1,000 Views`,
     description: `YouTube CPM in ${c.name} averages $${c.cpmLow}–$${c.cpmHigh} (≈ ${localMoney(c.cpmLow, c, 0)}–${localMoney(c.cpmHigh, c, 0)}) in ${DATA_YEAR}.`,
     alternates: { canonical: `/cpm-by-country/${c.slug}` },
+    openGraph: {
+      type: "article",
+      title: `YouTube CPM in ${c.name} ${DATA_YEAR}: $${c.cpmLow}–$${c.cpmHigh}`,
+      description: `CPM and RPM benchmarks for ${c.name} with local-currency conversions (${c.currency}).`,
+      url: `https://ytcpm.online/cpm-by-country/${c.slug}`,
+      siteName: "ytcpm.online",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `YouTube CPM in ${c.name} ${DATA_YEAR}`,
+      description: `CPM $${c.cpmLow}–$${c.cpmHigh} · RPM benchmarks in ${c.currency}.`,
+    },
   };
 }
 
@@ -34,12 +46,22 @@ export default async function CountryPage({ params }: { params: Promise<{ slug: 
     { q: `How much does YouTube pay for 1M views in ${country.name}?`, a: `Approximately ${cur(rpmLow * 1000)}–${cur(rpmHigh * 1000)} from AdSense for long-form content.` },
     { q: `How can ${country.name} creators increase RPM?`, a: mult < 0.5 ? `Target Tier-1 audiences with English content. Make 8+ min videos, publish in Q4.` : `Lean into finance/B2B niches, use mid-roll ads, time uploads for Q4.` },
   ];
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Calculator", item: "https://ytcpm.online/" },
+      { "@type": "ListItem", position: 2, name: "CPM by Country", item: "https://ytcpm.online/cpm-by-country" },
+      { "@type": "ListItem", position: 3, name: country.name, item: `https://ytcpm.online/cpm-by-country/${country.slug}` },
+    ],
+  };
   const faqLd = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) };
   const related = COUNTRIES_BY_CPM.filter((c) => c.slug !== slug).sort((a, b) => Math.abs(countryMultiplier(a) - mult) - Math.abs(countryMultiplier(b) - mult)).slice(0, 6);
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       <article className="relative overflow-hidden pt-28 sm:pt-36">
         <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 blob-pink" aria-hidden />
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
@@ -60,6 +82,7 @@ export default async function CountryPage({ params }: { params: Promise<{ slug: 
                 </div>
                 <div className="mt-4 flex items-center justify-between rounded-lg bg-surface px-3 py-2 text-xs"><span className="text-fog">vs US</span><span className="num-mono font-bold text-heading">{mult >= 1 ? `${mult.toFixed(2)}×` : `${Math.round(mult * 100)}%`}</span></div>
                 <p className="num-mono mt-2 text-center text-[10px] text-fog/70">{fxNote(country)}</p>
+                <p className="mt-1 text-center text-[10px] text-fog/70">Benchmarks reviewed {DATA_UPDATED_AT} · FX {FX_UPDATED_AT}</p>
               </div>
             </Reveal>
           </div>

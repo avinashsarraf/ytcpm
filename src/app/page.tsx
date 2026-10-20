@@ -1,25 +1,30 @@
 import Link from "next/link";
 import Image from "next/image";
 import {
-  ArrowRight, Play, CircleDot, Globe2, Layers, SearchCheck,
-  BarChart3, Sparkles, TrendingUp,
+  ArrowRight, CircleDot, Globe2, Layers, SearchCheck,
+  BarChart3, Sparkles, TrendingUp, ShieldCheck,
 } from "lucide-react";
 import Calculator from "@/components/calculator";
 import Faq from "@/components/faq";
 import { Reveal } from "@/components/motion";
 import { NicheRangeChart, CountryBarChart, CountryFlagCards, SeasonChart } from "@/components/charts";
-import { COUNTRIES_BY_CPM, NICHES_BY_CPM, SEASONS, DATA_YEAR, money, CREATOR_SHARE } from "@/lib/data";
+import { COUNTRIES_BY_CPM, NICHES_BY_CPM, SEASONS, CREATOR_SHARE, DATA_YEAR, DATA_UPDATED_AT, US_BLENDED_CPM, money } from "@/lib/data";
 import { flagUrl } from "@/lib/flags";
+
+const TOP6 = COUNTRIES_BY_CPM.slice(0, 6);
+const TOP_CPM = COUNTRIES_BY_CPM[0];
+const TOP_NICHE = NICHES_BY_CPM[0];
+const RPM_LONG = `${money(NICHES_BY_CPM.at(-1)!.cpmLow * CREATOR_SHARE, 2)}–${money(TOP_NICHE.cpmHigh * CREATOR_SHARE, 0)}`;
+const SAMPLE_EARNINGS = Math.round((US_BLENDED_CPM * CREATOR_SHARE * 100_000) / 100) * 100;
 
 const FAQS = [
   { q: "What is CPM and how is it calculated?", a: "CPM (Cost Per Mille) is what advertisers pay YouTube for every 1,000 ad impressions. CPM = (total ad spend ÷ impressions) × 1,000. You receive RPM ≈ CPM × 55% after YouTube's cut." },
   { q: "Why does my RPM differ from CPM?", a: "CPM counts only ad-served views. RPM counts ALL views (ad-blocked, non-monetized). RPM = (revenue ÷ total views) × 1,000 — always lower than CPM." },
-  { q: "Does YouTube pay differently for Shorts?", a: "Yes. Shorts use a pooled rev-share, not classic CPM. Expect $0.01–$0.06 RPM per 1K Shorts views — far below long-form ($2–$27 RPM)." },
+  { q: "Does YouTube pay differently for Shorts?", a: `Yes. Shorts use a pooled revenue share, not classic CPM. Expect roughly $0.02–$0.10 RPM per 1,000 Shorts views in Tier-1 markets — far below long-form, where ${RPM_LONG} per 1,000 views is common.` },
   { q: "How often does YouTube pay?", a: "Monthly via AdSense, typically 21st–26th. Minimum $100 balance required." },
   { q: "Can I increase my CPM?", a: "Yes: (1) target US/UK/AU audiences, (2) high-intent topics, (3) 8+ min videos for mid-rolls, (4) publish Q4 when ad spend peaks +160%." },
 ];
 
-const TOP6 = COUNTRIES_BY_CPM.slice(0, 6);
 
 export default function Home() {
   const webAppLd = { "@context": "https://schema.org", "@type": "WebApplication", name: "YouTube CPM Calculator — ytcpm.online", url: "https://ytcpm.online", applicationCategory: "FinanceApplication", operatingSystem: "Any", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" } };
@@ -37,8 +42,8 @@ export default function Home() {
             <div>
               <Reveal>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="tag"><CircleDot className="h-3 w-3 text-yt-red" /> Real Data</span>
-                  <span className="tag"><CircleDot className="h-3 w-3 text-yt-red" /> Accurate Insights</span>
+                  <span className="tag"><CircleDot className="h-3 w-3 text-yt-red" /> {DATA_YEAR} Benchmarks</span>
+                  <span className="tag"><CircleDot className="h-3 w-3 text-yt-red" /> Transparent method</span>
                   <span className="tag"><CircleDot className="h-3 w-3 text-yt-red" /> For YouTube Creators</span>
                 </div>
               </Reveal>
@@ -50,13 +55,13 @@ export default function Home() {
               </Reveal>
               <Reveal delay={0.14}>
                 <p className="mt-6 max-w-lg text-[15px] leading-relaxed text-fog sm:text-base">
-                  Estimate your YouTube earnings with <strong className="text-heading">real-time CPM data</strong>,
-                  compare niches, countries and get the most accurate insights for your channel.
+                  Estimate your YouTube earnings with <strong className="text-heading">{DATA_YEAR} CPM benchmarks</strong> for
+                  {" "}{COUNTRIES_BY_CPM.length} countries and {NICHES_BY_CPM.length} niches — in your local currency.
                 </p>
               </Reveal>
               <Reveal delay={0.2}>
                 <div className="mt-7 flex flex-wrap items-center gap-5 text-[13px] text-fog">
-                  <span className="flex items-center gap-2"><span className="grid h-6 w-6 place-items-center rounded-full bg-yt-red-bg"><BarChart3 className="h-3.5 w-3.5 text-yt-red" /></span> Real-time CPM Data</span>
+                  <span className="flex items-center gap-2"><span className="grid h-6 w-6 place-items-center rounded-full bg-yt-red-bg"><BarChart3 className="h-3.5 w-3.5 text-yt-red" /></span> Reviewed {DATA_UPDATED_AT}</span>
                   <span className="flex items-center gap-2"><span className="grid h-6 w-6 place-items-center rounded-full bg-yt-red-bg"><Globe2 className="h-3.5 w-3.5 text-yt-red" /></span> Country & Niche Insights</span>
                   <span className="flex items-center gap-2"><span className="grid h-6 w-6 place-items-center rounded-full bg-yt-red-bg"><Sparkles className="h-3.5 w-3.5 text-yt-red" /></span> Simple & Easy to Use</span>
                 </div>
@@ -73,25 +78,48 @@ export default function Home() {
               </Reveal>
             </div>
 
-            {/* Hero visual */}
+            {/* Hero visual — built from live dataset values (no missing asset) */}
             <Reveal delay={0.15}>
               <div className="relative mx-auto max-w-md lg:max-w-none">
-                <div className="animate-float">
-                  <Image src="/images/hero-illustration.png" alt="YouTube CPM Calculator illustration" width={560} height={420} className="w-full drop-shadow-2xl" priority />
+                <div className="animate-float panel !rounded-2xl p-6">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-fog">{DATA_YEAR} snapshot</p>
+                    <span className="flex items-center gap-1 rounded-full bg-mint-bg px-2 py-0.5 text-[10px] font-bold text-mint">
+                      <ShieldCheck className="h-3 w-3" /> {COUNTRIES_BY_CPM.length} markets
+                    </span>
+                  </div>
+                  <p className="mt-3 text-xs text-fog">Top blended CPM</p>
+                  <p className="num-mono font-display text-3xl font-bold text-heading">{TOP_CPM.code} · {money((TOP_CPM.cpmLow + TOP_CPM.cpmHigh) / 2)}</p>
+                  <div className="mt-4 space-y-2">
+                    {TOP6.slice(0, 4).map((c) => {
+                      const avg = (c.cpmLow + c.cpmHigh) / 2;
+                      const pct = Math.round((avg / ((TOP_CPM.cpmLow + TOP_CPM.cpmHigh) / 2)) * 100);
+                      return (
+                        <div key={c.slug} className="flex items-center gap-3">
+                          <span className="num-mono w-6 text-[11px] font-bold text-fog">{c.code}</span>
+                          <span className="relative h-2 flex-1 overflow-hidden rounded-full bg-yt-red-bg">
+                            <span className="absolute inset-y-0 left-0 rounded-full bg-yt-red" style={{ width: `${pct}%` }} />
+                          </span>
+                          <span className="num-mono w-10 text-right text-[11px] font-semibold text-heading">{money(avg)}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p className="mt-4 border-t border-border pt-3 text-[10px] text-fog">Highest-paying niche: <strong className="text-heading">{TOP_NICHE.name}</strong> · {money(TOP_NICHE.cpmLow, 0)}–{money(TOP_NICHE.cpmHigh, 0)} CPM</p>
                 </div>
                 {/* Floating earnings card */}
-                <div className="absolute -bottom-4 -left-4 rounded-xl bg-white p-4 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.15)] sm:p-5">
-                  <p className="text-[11px] font-medium text-fog">Estimated Monthly Earnings</p>
+                <div className="absolute -bottom-4 -left-4 rounded-xl bg-white p-4 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.18)] sm:p-5">
+                  <p className="text-[11px] font-medium text-fog">100K views · US blended</p>
                   <div className="mt-1 flex items-baseline gap-2">
-                    <span className="num-mono font-display text-3xl font-bold text-heading">$825</span>
+                    <span className="num-mono font-display text-3xl font-bold text-heading">{money(SAMPLE_EARNINGS)}</span>
                     <span className="flex items-center gap-0.5 rounded-full bg-mint-bg px-2 py-0.5 text-[10px] font-bold text-mint">
-                      <TrendingUp className="h-3 w-3" /> +12%
+                      <TrendingUp className="h-3 w-3" /> est/mo
                     </span>
                   </div>
                 </div>
                 {/* Floating tag */}
                 <div className="absolute -right-2 -top-2 rounded-lg bg-yt-red px-3 py-1.5 text-[10px] font-bold leading-tight text-white shadow-lg sm:px-4 sm:py-2">
-                  More Views<br />More Earnings
+                  Local<br />currency
                 </div>
               </div>
             </Reveal>
@@ -194,8 +222,8 @@ export default function Home() {
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             <Reveal delay={0.06}>
               <div className="panel p-7 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
-                <p className="text-xs font-bold uppercase tracking-wider text-fog">CPM</p>
-                <p className="num-mono mt-4 font-display text-5xl font-bold text-heading sm:text-6xl">{money(24)}</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-fog">CPM · US blended</p>
+                <p className="num-mono mt-4 font-display text-5xl font-bold text-heading sm:text-6xl">{money(US_BLENDED_CPM)}</p>
                 <p className="mt-2 text-sm text-fog">per 1,000 views</p>
                 <p className="mt-4 text-xs text-fog">What advertisers pay</p>
               </div>

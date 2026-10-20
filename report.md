@@ -6,6 +6,8 @@
 **Report date:** 2026-10-20
 **Scope:** every tracked file in `src/`, all configuration, the data and calculation model, rendering/SEO, API + database layer, security, accessibility, performance, and delivery tooling.
 
+> **Status update (same day).** Every P0 and P1 finding below has since been fixed in code: self-hosted fonts, dynamic OG image, no missing `public/` assets, lazy DB pool (builds without `DATABASE_URL`), Next 16.4.2 (0 production advisories), fixed slider labels, unified Shorts model, corrected seasonality baseline, rate limiting, committed migrations + container migration runner, security headers, trust pages, sitemap/monitor alignment, de-duplicated logging, and a 33-test Vitest suite. See [`deployment.md`](./deployment.md) for the Coolify/Docker setup and [`README.md`](./README.md) for current behavior. Items marked "verified" below describe the state at audit time and are kept as a historical record.
+
 > **Method.** This is a source-level audit combined with executed verification (type-check, lint, production build, `next start`, HTTP probing, dependency audit, and a programmatic data-invariant audit). No production analytics, Search Console data, or Lighthouse measurements were available, so performance notes are structural rather than measured. Code was **not** modified by this audit; recommendations are listed in [§12](#12-findings-register) and [§13](#13-prioritized-roadmap). Three non-code files were added alongside this report: `.gitignore`, `.env.example`, and the generated `package-lock.json`.
 
 ---

@@ -14,6 +14,8 @@ export const calculations = pgTable(
     countrySlug: text("country_slug").notNull(),
     countryName: text("country_name").notNull(),
     contentType: text("content_type").notNull().default("long"),
+    season: text("season").notNull().default("annual"),
+    monetizedShare: numeric("monetized_share", { precision: 4, scale: 3 }).notNull().default("1.000"),
     rpmLow: numeric("rpm_low", { precision: 10, scale: 4 }).notNull(),
     rpmHigh: numeric("rpm_high", { precision: 10, scale: 4 }).notNull(),
     estLow: numeric("est_low", { precision: 12, scale: 2 }).notNull(),
@@ -24,6 +26,7 @@ export const calculations = pgTable(
     index("calculations_created_idx").on(t.createdAt),
     index("calculations_niche_idx").on(t.nicheSlug),
     index("calculations_country_idx").on(t.countrySlug),
+    index("calculations_type_idx").on(t.contentType),
   ]
 );
 

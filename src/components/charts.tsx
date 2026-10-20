@@ -1,11 +1,11 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { TrendingUp, ArrowRight } from "lucide-react";
 import type { Country, Niche } from "@/lib/data";
-import { money, CREATOR_SHARE } from "@/lib/data";
+import { CREATOR_SHARE, US_BLENDED_CPM } from "@/lib/data";
 import { NICHE_ICONS } from "@/lib/niche-icons";
 import { flagUrl } from "@/lib/flags";
 
@@ -18,6 +18,7 @@ const TIER_LABELS: Record<number, { label: string; color: string }> = {
 
 /** ── Niche bar chart with animated bars ── */
 export function NicheRangeChart({ niches, max = 50 }: { niches: Niche[]; max?: number }) {
+  const reduced = useReducedMotion();
   return (
     <div className="overflow-hidden rounded-xl border border-border">
       <div className="hidden grid-cols-[1.8fr_2fr_0.8fr_0.8fr] gap-2 border-b border-border bg-surface px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-fog sm:grid">
@@ -28,7 +29,7 @@ export function NicheRangeChart({ niches, max = 50 }: { niches: Niche[]; max?: n
           const Icon = NICHE_ICONS[n.icon] ?? TrendingUp;
           const avgCpm = (n.cpmLow + n.cpmHigh) / 2;
           const avgRpm = avgCpm * CREATOR_SHARE;
-          const pct = (avgCpm / max) * 100;
+          const pct = Math.max((avgCpm / max) * 100, 4);
           return (
             <Link key={n.slug} href={`/cpm-by-niche/${n.slug}`}
               className="group grid grid-cols-[1fr_auto] gap-2 px-4 py-3.5 transition-all duration-200 hover:bg-yt-red-light sm:grid-cols-[1.8fr_2fr_0.8fr_0.8fr] sm:items-center"
@@ -41,8 +42,12 @@ export function NicheRangeChart({ niches, max = 50 }: { niches: Niche[]; max?: n
               </span>
               <span className="hidden sm:block">
                 <span className="relative block h-5 w-full overflow-hidden rounded-full bg-yt-red-bg">
-                  <motion.span initial={{ width: 0 }} whileInView={{ width: `${Math.max(pct, 4)}%` }} viewport={{ once: true, margin: "-40px" }} transition={{ duration: 0.8, delay: i * 0.04, ease: [0.22, 1, 0.36, 1] }}
-                    className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-yt-red to-red-400 shadow-[0_0_12px_rgba(255,0,0,0.2)]"
+                  <motion.span
+                    initial={reduced ? false : { width: 0 }}
+                    whileInView={{ width: `${pct}%` }}
+                    viewport={{ once: true, margin: "-40px" }}
+                    transition={reduced ? { duration: 0 } : { duration: 0.8, delay: i * 0.04, ease: [0.22, 1, 0.36, 1] }}
+                    className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-yt-red to-red-400 shadow-[0_0_12px_rgba(0,0,0,0.08)]"
                   />
                 </span>
               </span>
@@ -58,23 +63,31 @@ export function NicheRangeChart({ niches, max = 50 }: { niches: Niche[]; max?: n
 
 /** ── Country bar chart ── */
 export function CountryBarChart({ countries }: { countries: Country[] }) {
-  const max = Math.max(...countries.map((c) => (c.cpmLow + c.cpmHigh) / 2));
+  const reduced = useReducedMotion();
+  const peak = Math.max(...countries.map((c) => (c.cpmLow + c.cpmHigh) / 2));
+  const axisMax = Math.max(5, Math.ceil(peak / 5) * 5);
+  const ticks = Array.from({ length: axisMax / 5 + 1 }, (_, i) => i * 5);
+
   return (
     <div>
       <p className="mb-5 text-xs font-bold uppercase tracking-wider text-fog">Average CPM by Country (USD)</p>
       <div className="relative flex h-52 items-end gap-2 border-b border-l border-border pl-7 sm:gap-3">
-        {[0, 5, 10, 15, 20].map((v) => (
-          <span key={v} className="num-mono absolute left-0 -translate-y-1/2 text-[10px] text-fog" style={{ bottom: `${(v / 20) * 100}%` }}>{v}</span>
+        {ticks.map((v) => (
+          <span key={v} className="num-mono absolute left-0 -translate-y-1/2 text-[10px] text-fog" style={{ bottom: `${(v / axisMax) * 100}%` }}>{v}</span>
         ))}
         {countries.map((c, i) => {
           const avg = (c.cpmLow + c.cpmHigh) / 2;
           return (
             <Link key={c.slug} href={`/cpm-by-country/${c.slug}`} className="group relative flex h-full flex-1 flex-col items-center justify-end">
               <span className="num-mono absolute -top-5 text-[10px] font-bold text-yt-red opacity-0 transition-opacity group-hover:opacity-100">${avg.toFixed(1)}</span>
-              <motion.span initial={{ height: 0 }} whileInView={{ height: `${(avg / 20) * 100}%` }} viewport={{ once: true, margin: "-40px" }} transition={{ duration: 0.7, delay: i * 0.04, ease: [0.22, 1, 0.36, 1] }}
-                className="block w-full max-w-9 rounded-t-md bg-gradient-to-t from-yt-red/60 to-yt-red transition-all duration-300 group-hover:from-yt-red group-hover:to-red-400 group-hover:shadow-[0_-4px_16px_rgba(255,0,0,0.3)]"
+              <motion.span
+                initial={reduced ? false : { height: 0 }}
+                whileInView={{ height: `${(avg / axisMax) * 100}%` }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={reduced ? { duration: 0 } : { duration: 0.7, delay: i * 0.04, ease: [0.22, 1, 0.36, 1] }}
+                className="block w-full max-w-9 rounded-t-md bg-gradient-to-t from-yt-red/60 to-yt-red transition-all duration-300 group-hover:from-yt-red group-hover:to-red-400 group-hover:shadow-[0_0_16px_rgba(0,0,0,0.12)]"
               />
-              <span className="mt-2"><Image src={flagUrl(c.code, "w40")} alt={c.name} width={24} height={16} className="flag-img !w-6 !h-4" unoptimized /></span>
+              <span className="mt-2"><Image src={flagUrl(c.code, "w40")} alt={`${c.name} flag`} width={24} height={16} className="flag-img !w-6 !h-4" unoptimized /></span>
             </Link>
           );
         })}
@@ -115,17 +128,24 @@ export function CountryFlagCards({ countries }: { countries: Country[] }) {
 
 /** ── Seasonality cards ── */
 export function SeasonChart({ seasons }: { seasons: { q: string; label: string; mult: number; note: string }[] }) {
+  const reduced = useReducedMotion();
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {seasons.map((s, i) => {
-        const avg = (s.mult * 12).toFixed(2);
+        // Previously `mult × 12` (an unexplained magic number). Anchor to the
+        // published US blended CPM instead so the card matches the dataset.
+        const avg = (s.mult * US_BLENDED_CPM).toFixed(2);
         return (
-          <motion.div key={s.q} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-40px" }} transition={{ duration: 0.5, delay: i * 0.08 }}
-            className={`panel p-5 transition-all duration-300 hover:scale-[1.02] ${s.q === "Q4" ? "!border-yt-red/30 bg-yt-red-light shadow-[0_8px_24px_-8px_rgba(255,0,0,0.15)]" : ""}`}
+          <motion.div key={s.q}
+            initial={reduced ? false : { opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={reduced ? { duration: 0 } : { duration: 0.5, delay: i * 0.08 }}
+            className={`panel p-5 transition-all duration-300 hover:scale-[1.02] ${s.q === "Q4" ? "!border-yt-red/30 bg-yt-red-light shadow-[0_8px_24px_-8px_rgba(0,0,0,0.12)]" : ""}`}
           >
             <p className="text-xs font-semibold text-fog">{s.label}</p>
             <p className={`num-mono mt-2 font-display text-2xl font-bold ${s.q === "Q4" ? "text-yt-red" : "text-heading"}`}>${avg}</p>
-            <p className="mt-0.5 text-[11px] text-fog">Avg. CPM</p>
+            <p className="mt-0.5 text-[11px] text-fog">Avg. US CPM · {s.mult.toFixed(2)}×</p>
             <p className="mt-2 text-xs leading-relaxed text-fog">{s.note}</p>
           </motion.div>
         );
@@ -136,11 +156,17 @@ export function SeasonChart({ seasons }: { seasons: { q: string; label: string; 
 
 /** ── Stat bar (monitor) ── */
 export function StatBar({ label, value, max, right, href, delay = 0 }: { label: string; value: number; max: number; right?: string; href?: string; delay?: number; }) {
+  const reduced = useReducedMotion();
   const inner = (<>
     <span className="w-36 truncate text-sm text-heading">{label}</span>
     <span className="relative h-5 flex-1 overflow-hidden rounded-full bg-yt-red-bg">
-      <motion.span initial={{ width: 0 }} whileInView={{ width: `${max ? (value / max) * 100 : 0}%` }} viewport={{ once: true }} transition={{ duration: 0.7, delay }}
-        className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-yt-red/70 to-yt-red" />
+      <motion.span
+        initial={reduced ? false : { width: 0 }}
+        whileInView={{ width: `${max ? (value / max) * 100 : 0}%` }}
+        viewport={{ once: true }}
+        transition={reduced ? { duration: 0 } : { duration: 0.7, delay }}
+        className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-yt-red/70 to-yt-red"
+      />
     </span>
     <span className="num-mono w-12 text-right text-xs font-bold text-heading">{right ?? value}</span>
   </>);
