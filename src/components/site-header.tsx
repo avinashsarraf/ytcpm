@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Menu, X, Play } from "lucide-react";
 
 /**
@@ -23,16 +23,17 @@ const LINKS = [
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const menuButton = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpen(false); menuButton.current?.focus(); } };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
   const isActive = (href: string, exact?: boolean) =>
-    href.startsWith("/#") ? false : exact ? pathname === href : pathname.startsWith(href);
+    href === "/tools" && pathname.startsWith("/youtube-") && !["/youtube-cpm-calculator", "/youtube-rpm-calculator"].includes(pathname) ? true : href.startsWith("/#") ? false : exact ? pathname === href : pathname.startsWith(href);
 
   return (
     <header className="sticky top-0 inset-x-0 z-40 border-b border-border/70 bg-white/95 backdrop-blur-xl">
@@ -69,6 +70,7 @@ export default function SiteHeader() {
 
         <div className="flex items-center gap-2 lg:hidden">
           <button
+            ref={menuButton}
             className="grid h-11 w-11 place-items-center rounded-lg border border-border text-heading lg:hidden"
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? "Close menu" : "Open menu"}
@@ -87,6 +89,7 @@ export default function SiteHeader() {
               key={l.href}
               href={l.href}
               onClick={() => setOpen(false)}
+              aria-current={isActive(l.href, l.exact) ? "page" : undefined}
               className={`block rounded-xl px-4 py-3.5 text-sm font-semibold transition-colors ${
                 isActive(l.href, l.exact) ? "bg-yt-red-light text-yt-red" : "text-fog hover:bg-surface"
               }`}

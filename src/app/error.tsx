@@ -19,7 +19,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
           Something went wrong
         </h1>
         <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-fog">
-          The page failed to render. The calculator itself usually keeps working — try again, or head back to the home page.
+          This page could not load. Try again, or return to the home page to choose another tool.
         </p>
         {error.digest && <p className="num-mono mt-3 text-[11px] text-fog/70">Reference: {error.digest}</p>}
 

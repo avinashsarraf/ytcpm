@@ -12,13 +12,13 @@ export const metadata: Metadata = pageMetadata(`YouTube CPM by Country ${DATA_YE
 
 export default function CountryIndex() {
   return (
-    <section className="w-full pt-20 sm:pt-24">
+    <section className="w-full">
       <div className="w-full border-b border-border bg-gradient-to-b from-yt-red-light to-white py-12">
         <div className="shell">
           <Reveal>
             <div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-full bg-yt-red-bg"><Globe2 className="h-5 w-5 text-yt-red" /></span><span className="tag-red text-[11px]">{DATA_YEAR} Benchmarks</span></div>
             <h1 className="mt-5 display-2">YouTube CPM Rates <span className="text-yt-gradient">by Country</span></h1>
-            <p className="lede mt-4">Where your viewers live decides what advertisers pay. Compare all {COUNTRIES_BY_CPM.length} markets, ranked within our model by blended CPM and converted to local currency.</p>
+            <p className="lede mt-4">Where your viewers live helps shape advertiser demand. Compare all {COUNTRIES_BY_CPM.length} markets, ranked within our model by blended CPM and converted to local currency.</p>
           </Reveal>
         </div>
       </div>

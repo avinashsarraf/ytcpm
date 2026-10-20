@@ -14,7 +14,7 @@
   --color-navy: #0b1626;
 
   /* Brand accent; primary button stops use darker colors for white labels. */
-  --color-yt-red: #ee1249;
+  --color-yt-red: #c91043;
   --color-yt-red-hover: #d30b3e;
   --color-yt-red-deep: #a8062f;
   --color-yt-red-light: #fef0f3;
@@ -117,7 +117,7 @@ p, li, figcaption { text-wrap: pretty; }
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 .text-gradient-green {
-  background-image: linear-gradient(135deg, #0e9f6e, #0b8f7a);
+  background-image: linear-gradient(135deg, #087d61, #076c5e);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 
@@ -389,11 +389,10 @@ input[type="range"].slider::-moz-range-thumb { width: 18px; height: 18px; border
 /* Reference-inspired editorial accents, light footer and country-rate band. */
 .footer-watermark {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 14.5vw, 12rem);
   font-weight: 800;
   letter-spacing: -0.075em;
   line-height: 0.9;
-  color: #ededf0;
+  fill: #ededf0;
   white-space: nowrap;
 }
 .marquee-mask {

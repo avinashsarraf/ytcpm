@@ -1,3 +1,4 @@
+import { serializeJsonLd } from "@/lib/seo";
 import Calculator from "@/components/calculator";
 import type { Metadata } from "next";
 import { BenchmarkNotice } from "@/components/source-notice";
@@ -15,11 +16,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const c = getCountry(slug);
   if (!c) return {};
   return {
-    title: `YouTube CPM in ${c.name} ${DATA_YEAR}: Rates, RPM & Pay per 1,000 Views`,
+    title: `YouTube CPM in ${c.name} — ${DATA_YEAR} Model`,
     description: `YouTube CPM in ${c.name} model range is $${c.cpmLow}–$${c.cpmHigh} (≈ ${localMoney(c.cpmLow, c, 0)}–${localMoney(c.cpmHigh, c, 0)}) in ${DATA_YEAR}.`,
     alternates: { canonical: `/cpm-by-country/${c.slug}` },
     openGraph: {
-      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "YTCPM: YouTube country and niche earnings scenarios" }],
+      images: [{ url: `/cpm-by-country/${c.slug}/opengraph-image`, width: 1200, height: 630, alt: `${c.name} YouTube CPM model scenarios` }],
       type: "article",
       title: `YouTube CPM in ${c.name} ${DATA_YEAR}: $${c.cpmLow}–$${c.cpmHigh}`,
       description: `CPM and RPM benchmarks for ${c.name} with local-currency conversions (${c.currency}).`,
@@ -27,7 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       siteName: "ytcpm.online",
     },
     twitter: {
-      images: ["/opengraph-image"],
+      images: [`/cpm-by-country/${c.slug}/opengraph-image`],
       card: "summary_large_image",
       title: `YouTube CPM in ${c.name} ${DATA_YEAR}`,
       description: `CPM $${c.cpmLow}–$${c.cpmHigh} · RPM benchmarks in ${c.currency}.`,
@@ -64,9 +65,9 @@ export default async function CountryPage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
-      <article className="relative overflow-hidden pt-28 sm:pt-36">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }} />
+      <article className="relative overflow-hidden pt-10 sm:pt-14 lg:pt-16">
         <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 blob-pink" aria-hidden />
         <div className="relative shell">
           <Reveal>
@@ -92,7 +93,7 @@ export default async function CountryPage({ params }: { params: Promise<{ slug: 
           </div>
 
           <BenchmarkNotice />
-          <section id="calculator" className="mt-10 scroll-mt-24"><h2 className="display-sub mb-4">{country.name} earnings calculator</h2><p className="mb-5 text-sm leading-7 text-fog">Adjust views, audience country and niche to compare directional scenarios. Defaults are model assumptions, not verified payouts. <Link href="/tools" className="font-semibold text-yt-red underline">Explore more creator tools</Link>.</p><Calculator initialCountrySlug={ country.slug } /></section>
+          <section id="calculator" className="mt-10 scroll-mt-24"><h2 className="display-sub mb-4">{country.name} earnings calculator</h2><p className="mb-5 text-sm leading-7 text-fog">Adjust views, audience country and niche to compare directional scenarios. Defaults are model assumptions, not verified payouts. <Link href="/tools" className="font-semibold text-yt-red underline">Explore more creator tools</Link>.</p><Calculator key={slug} initialCountrySlug={ country.slug } /></section>
 
           <Reveal delay={0.08}><h2 className="mt-12 display-sub sm:mt-14">Full-fill Ad Earnings Scenarios</h2>
             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:gap-4">

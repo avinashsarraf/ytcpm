@@ -35,7 +35,7 @@ export default function SiteFooter() {
       </div>
       <nav aria-label="Legal and company" className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-border py-3"><Link href="/legal" className="inline-flex min-h-11 items-center font-mono text-[10px] font-semibold uppercase tracking-widest text-yt-red">Legal center</Link>{[...LEGAL_POLICIES, { path: "/about", title: "About" }, { path: "/contact", title: "Contact" }].map(p => <Link key={p.path} href={p.path} className="inline-flex min-h-11 items-center py-2 text-xs text-fog hover:text-yt-red">{p.title}</Link>)}</nav>
       <div className="flex flex-col justify-between gap-3 border-t border-border py-6 text-[11px] leading-relaxed text-fog lg:flex-row lg:gap-8"><p>© {DATA_YEAR} ytcpm.online — YouTube CPM, RPM &amp; earnings tools. Model assumptions, not payout promises.</p><p className="shrink-0 font-mono text-[10px] tracking-wide">CPM = cost per mille · RPM = revenue per mille</p></div>
-      <div aria-hidden="true" className="footer-watermark select-none pt-6 text-center sm:pt-9">ytcpm.online</div>
+      <svg aria-hidden="true" focusable="false" viewBox="0 0 1200 180" className="footer-watermark mt-6 w-full select-none sm:mt-9"><text x="600" y="150" textAnchor="middle" fontSize="190" textLength="1160" lengthAdjust="spacingAndGlyphs">ytcpm.online</text></svg>
     </div>
   </footer>;
 }

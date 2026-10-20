@@ -283,7 +283,7 @@ export default function Home() {
                 <h2 className="text-[15px] font-extrabold text-yt-red">Important Note</h2>
               </div>
               <p className="mt-3 text-[14px] leading-relaxed text-fog">
-                This tool provides estimated earnings based on average CPM rates. Actual YouTube earnings
+                This tool provides estimated earnings using directional CPM model assumptions, not verified average rates. Actual YouTube earnings
                 may vary depending on factors like audience location, content type, ad formats, and seasonal demand.
               </p>
               <div className="mt-4 flex items-center gap-2 rounded-xl bg-white px-3 py-2.5">

@@ -12,7 +12,7 @@ export const metadata: Metadata = pageMetadata(`YouTube CPM by Niche ${DATA_YEAR
 
 export default function NicheIndex() {
   return (
-    <section className="relative overflow-hidden pt-24 sm:pt-28 lg:pt-32">
+    <section className="relative overflow-hidden pt-10 sm:pt-14 lg:pt-16">
       <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 blob-pink" aria-hidden />
       <div className="relative shell">
         <BenchmarkNotice />

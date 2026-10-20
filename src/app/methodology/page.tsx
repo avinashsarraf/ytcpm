@@ -44,7 +44,7 @@ export default function MethodologyPage() {
         </Section>
 
         <Section icon={Percent} title="Simplified long-form ad forecast (not Studio RPM)">
-          <pre className="overflow-x-auto rounded-lg bg-surface p-4 text-[12px] leading-relaxed text-heading"><code>{`countryMultiplier = (countryLow + countryHigh) / (USLow + USHigh)
+          <pre tabIndex={0} role="region" aria-label="Long-form earnings formula" className="overflow-x-auto rounded-lg bg-surface p-4 text-[12px] leading-relaxed text-heading"><code>{`countryMultiplier = (countryLow + countryHigh) / (USLow + USHigh)
 
 cpmLow  = nicheCpmLow  × countryMultiplier × seasonMultiplier
 cpmHigh = nicheCpmHigh × countryMultiplier × seasonMultiplier

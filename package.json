@@ -18,7 +18,10 @@
     "test:country-selector": "node scripts/smoke-country-selector.mjs",
     "test:animation": "node scripts/smoke-animation.mjs",
     "test:creator-tools": "node scripts/smoke-creator-tools.mjs",
-    "images:tools": "node scripts/generate-tool-images.mjs"
+    "images:tools": "node scripts/generate-tool-images.mjs",
+    "test:accessibility": "node scripts/audit-accessibility.mjs",
+    "test:project": "node scripts/audit-project.mjs",
+    "test:migrations": "node --test scripts/db-connection.test.mjs"
   },
   "dependencies": {
     "dotenv": "17.3.1",
@@ -31,6 +34,7 @@
     "react-dom": "19.2.6"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@tailwindcss/postcss": "4.1.17",
     "@types/node": "22.19.15",
     "@types/pg": "8.18.0",

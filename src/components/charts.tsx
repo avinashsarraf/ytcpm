@@ -22,7 +22,7 @@ export function NicheRangeChart({ niches, max = 50 }: { niches: Niche[]; max?: n
   return (
     <div className="overflow-hidden rounded-xl border border-border">
       <div className="hidden grid-cols-[1.8fr_2fr_0.8fr_0.8fr] gap-2 border-b border-border bg-surface px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-heading sm:grid">
-        <span>Niche</span><span /><span className="text-right">Avg. CPM</span><span className="text-right">Est. RPM</span>
+        <span>Niche</span><span /><span className="text-right">Model CPM</span><span className="text-right">Est. RPM</span>
       </div>
       <div className="divide-y divide-border">
         {niches.map((n, i) => {
@@ -71,7 +71,7 @@ export function CountryBarChart({ countries }: { countries: Country[] }) {
   return (
     <div>
       <div className="mb-5 flex items-baseline justify-between gap-3">
-        <p className="meta">Average CPM by country</p>
+        <p className="meta">Model CPM midpoints by country</p>
         <p className="num-mono text-[11px] text-fog">USD · per 1,000 ad impressions</p>
       </div>
       <div className="relative flex h-52 items-end gap-2 border-b border-l border-border pl-7 sm:gap-3">

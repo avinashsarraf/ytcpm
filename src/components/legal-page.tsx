@@ -6,7 +6,7 @@ import { SITE_URL } from "@/lib/editorial";
 import { breadcrumbs, serializeJsonLd } from "@/lib/seo";
 
 function Contents({ policy }: { policy: LegalPolicy }) {
-  return <ul className="mt-3 space-y-1">{policy.sections.map((s, i) => <li key={s.id}><a href={`#${s.id}`} className="flex gap-2 rounded-lg px-2 py-3 text-sm leading-snug text-fog transition-colors hover:bg-surface hover:text-yt-red"><span className="shrink-0 text-fog/60">{String(i + 1).padStart(2, "0")}</span>{s.title}</a></li>)}<li><a href="#policy-faqs" className="block rounded-lg px-2 py-3 text-sm font-semibold hover:text-yt-red">Common questions</a></li></ul>;
+  return <ul className="mt-3 space-y-1">{policy.sections.map((s, i) => <li key={s.id}><a href={`#${s.id}`} className="flex gap-2 rounded-lg px-2 py-3 text-sm leading-snug text-fog transition-colors hover:bg-surface hover:text-yt-red"><span className="shrink-0 text-fog">{String(i + 1).padStart(2, "0")}</span>{s.title}</a></li>)}<li><a href="#policy-faqs" className="block rounded-lg px-2 py-3 text-sm font-semibold hover:text-yt-red">Common questions</a></li></ul>;
 }
 
 export default function LegalPage({ policy }: { policy: LegalPolicy }) {

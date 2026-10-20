@@ -1,3 +1,4 @@
+import { serializeJsonLd } from "@/lib/seo";
 import Calculator from "@/components/calculator";
 import type { Metadata } from "next";
 import { BenchmarkNotice } from "@/components/source-notice";
@@ -16,11 +17,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const n = getNiche(slug);
   if (!n) return {};
   return {
-    title: `${n.name} YouTube CPM ${DATA_YEAR}: $${n.cpmLow}–$${n.cpmHigh} Rates`,
+    title: `${n.name} YouTube CPM Model`,
     description: `Explore a directional ${n.name} CPM model of $${n.cpmLow}–$${n.cpmHigh} for US audiences, with full-fill ad RPM assumptions and limitations.`,
     alternates: { canonical: `/cpm-by-niche/${n.slug}` },
     openGraph: {
-      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "YTCPM: YouTube country and niche earnings scenarios" }],
+      images: [{ url: `/cpm-by-niche/${n.slug}/opengraph-image`, width: 1200, height: 630, alt: `${n.name} YouTube CPM model scenarios` }],
       type: "article",
       title: `${n.name} CPM ${DATA_YEAR}: $${n.cpmLow}–$${n.cpmHigh}`,
       description: `${n.name} niche benchmarks: CPM, RPM and per-1M-view earnings.`,
@@ -28,7 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       siteName: "ytcpm.online",
     },
     twitter: {
-      images: ["/opengraph-image"],
+      images: [`/cpm-by-niche/${n.slug}/opengraph-image`],
       card: "summary_large_image",
       title: `${n.name} CPM ${DATA_YEAR}`,
       description: `CPM $${n.cpmLow}–$${n.cpmHigh} · RPM $${(n.cpmLow * CREATOR_SHARE).toFixed(2)}–$${(n.cpmHigh * CREATOR_SHARE).toFixed(2)}.`,
@@ -36,7 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-const TD: Record<string, string> = { S: "S-tier — highest-paying", A: "A-tier — above average", B: "B-tier — mid-market", C: "C-tier — volume plays" };
+const TD: Record<string, string> = { S: "S-tier — highest model CPM", A: "A-tier — higher model CPM", B: "B-tier — mid-range model CPM", C: "C-tier — lower model CPM" };
 
 export default async function NichePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -67,9 +68,9 @@ export default async function NichePage({ params }: { params: Promise<{ slug: st
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
-      <article className="relative overflow-hidden pt-28 sm:pt-36">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }} />
+      <article className="relative overflow-hidden pt-10 sm:pt-14 lg:pt-16">
         <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 blob-pink" aria-hidden />
         <div className="relative shell">
           <Reveal><nav className="flex items-center gap-2 text-xs text-fog"><Link href="/" className="hover:text-heading"><ArrowLeft className="inline h-3 w-3" /> Calculator</Link><span className="text-border">/</span><Link href="/cpm-by-niche" className="hover:text-heading">Niches</Link><span className="text-border">/</span><span className="text-heading font-medium">{niche.name}</span></nav></Reveal>
@@ -93,7 +94,7 @@ export default async function NichePage({ params }: { params: Promise<{ slug: st
           </div>
 
           <BenchmarkNotice />
-          <section id="calculator" className="mt-10 scroll-mt-24"><h2 className="display-sub mb-4">{niche.name} earnings calculator</h2><p className="mb-5 text-sm leading-7 text-fog">Adjust views, audience country and niche to compare directional scenarios. Defaults are model assumptions, not verified payouts. <Link href="/tools" className="font-semibold text-yt-red underline">Explore more creator tools</Link>.</p><Calculator initialNicheSlug={ niche.slug } /></section>
+          <section id="calculator" className="mt-10 scroll-mt-24"><h2 className="display-sub mb-4">{niche.name} earnings calculator</h2><p className="mb-5 text-sm leading-7 text-fog">Adjust views, audience country and niche to compare directional scenarios. Defaults are model assumptions, not verified payouts. <Link href="/tools" className="font-semibold text-yt-red underline">Explore more creator tools</Link>.</p><Calculator key={slug} initialNicheSlug={ niche.slug } /></section>
 
           <Reveal delay={0.08}><h2 className="mt-14 display-sub">Full-fill Ad Earnings Scenarios</h2>
             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:gap-4">

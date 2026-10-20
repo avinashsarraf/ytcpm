@@ -44,9 +44,9 @@ Production deployment guide for [Coolify](https://coolify.io) using Docker, plus
    Use the database's **internal** URL (Coolify shows it on the DB page), not a public one.
 5. **Set the domain** (e.g. `ytcpm.online`), enable HTTPS, and deploy.
 6. Open `/api/health` — expect `{"ok":true,"database":"up"}`.
-7. Open `/monitor`, run the calculator once, and confirm the row appears.
+7. Open `/monitor`, send a valid `POST /api/calculate` request, and confirm the API activity appears after the cache expires. Browser-only calculator edits are not logged.
 
-> The app builds and boots **without** a database — pages and the calculator work, while `/monitor` and calculation logging return a graceful 503. That makes a missing `DATABASE_URL` a soft failure, not an outage.
+> The app builds and boots **without** a database — pages and the calculator work, while `/monitor` shows a fallback, calculation requests still return an unlogged estimate, and `/api/health` returns a readiness 503. That makes a missing `DATABASE_URL` a soft failure, not an outage.
 
 ---
 
