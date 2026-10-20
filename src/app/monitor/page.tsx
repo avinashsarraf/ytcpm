@@ -9,15 +9,36 @@ import { StatBar } from "@/components/charts";
 import { viewsLabel, money } from "@/lib/data";
 import { logOnce } from "@/lib/log";
 
-export const metadata: Metadata = { title: "Live Usage Monitor", description: "Real-time analytics of the ytcpm.online YouTube CPM calculator.", robots: { index: false, follow: true }, alternates: { canonical: "/monitor" } };
-// Cached for 60s: the aggregate queries are expensive and the data is an
-// anonymous usage summary, not per-user state. See deployment.md#performance.
-export const revalidate = 60;
+export const metadata: Metadata = { title: "Live Usage Monitor", description: "Usage analytics for the ytcpm.online YouTube CPM calculator.", robots: { index: false, follow: true }, alternates: { canonical: "/monitor" } };
+
+/**
+ * Rendered on demand, never prerendered: a build-time query against the
+ * placeholder DATABASE_URL produced noise in CI/Docker builds and cached a
+ * "database not connected" page for the first minute after a deploy.
+ * Results are memoised in-process instead (cheap, per-instance, 60s).
+ */
+export const dynamic = "force-dynamic";
+
+const CACHE_TTL_MS = 60_000;
+const FAILURE_TTL_MS = 15_000;
 
 interface DayRow { day: string; dv: string; c: number }
 interface GroupRow { name: string; c: number }
 
-async function getStats() {
+type Stats = Awaited<ReturnType<typeof loadStats>>;
+
+let cache: { at: number; value: Stats } | null = null;
+
+async function getStats(): Promise<Stats> {
+  if (cache && Date.now() - cache.at < (cache.value.ok ? CACHE_TTL_MS : FAILURE_TTL_MS)) {
+    return cache.value;
+  }
+  const value = await loadStats();
+  cache = { at: Date.now(), value };
+  return value;
+}
+
+async function loadStats() {
   if (!isDatabaseConfigured()) return { ok: false as const };
   try {
     const [totalRow] = await db.select({ c: count() }).from(calculations);
