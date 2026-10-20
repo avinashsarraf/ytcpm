@@ -1,31 +1,17 @@
 # ytcpm.online — YouTube CPM Calculator
 
-A free, data-driven **YouTube CPM & RPM calculator** built with the Next.js App Router. Estimate what a channel earns per 1,000 views for **23 countries** and **18 niches**, in **local currency**, with separate long-form and Shorts models — plus 41 statically generated country/niche reference pages and a live usage dashboard.
+A free, data-driven **YouTube CPM & RPM calculator** built with the Next.js App Router. Estimate what a channel earns per 1,000 views for **23 countries** and **18 niches**, in **local currency**, with separate long-form and Shorts models, seasonality and ad-impression controls — plus 41 statically generated country/niche reference pages and a live usage dashboard.
 
-> **Production domain (configured):** `https://ytcpm.online`
-> **Deep technical audit:** see [`report.md`](./report.md) for the full architecture, methodology critique, security review, and prioritized roadmap.
+[![CI](https://github.com/avinashsarraf/ytcpm/actions/workflows/ci.yml/badge.svg)](https://github.com/avinashsarraf/ytcpm/actions/workflows/ci.yml)
 
----
-
-## Project status
-
-| Check | Result (2026-10-20) |
-|---|---|
-| `npm run typecheck` | ✅ 0 errors |
-| `npm run lint` | ✅ 0 errors / 0 warnings |
-| `npm run build` | ✅ 50 route entries (41 SSG country/niche pages) — requires `DATABASE_URL` |
-| Production server (`next start`) | ✅ Home, hubs, all 41 detail pages, sitemap, robots serve 200 |
-| `npm audit --omit=dev` | ⚠️ 3 vulnerabilities (1 critical, 2 high) in `next@16.2.6` |
-| Tests / CI | ❌ None yet |
-| Overall audit grade | **C+** — strong front-end and SEO foundation; production hardening, data credibility, and testing are the gaps |
-
-This is an early-stage v1. Read [Known limitations](#known-limitations) before deploying, and consult the [findings register](./report.md#12-findings-register) for the full prioritized issue list.
+> **Production domain:** `https://ytcpm.online`
+> **Deployment:** see [`deployment.md`](./deployment.md) — Coolify + Docker guide
+> **Deep technical audit:** see [`report.md`](./report.md)
 
 ---
 
 ## Table of contents
 
-- [Project status](#project-status)
 - [Features](#features)
 - [Tech stack](#tech-stack)
 - [Architecture](#architecture)
@@ -36,9 +22,10 @@ This is an early-stage v1. Read [Known limitations](#known-limitations) before d
 - [Routes](#routes)
 - [How the estimate is calculated](#how-the-estimate-is-calculated)
 - [API reference](#api-reference)
+- [Docker & Coolify](#docker--coolify)
 - [Project structure](#project-structure)
 - [Data coverage](#data-coverage)
-- [Deployment](#deployment)
+- [Testing](#testing)
 - [Known limitations](#known-limitations)
 - [Contributing](#contributing)
 - [License](#license)
@@ -47,51 +34,53 @@ This is an early-stage v1. Read [Known limitations](#known-limitations) before d
 
 ## Features
 
-- **Interactive calculator** — monthly views (1K–10M, logarithmic slider), channel niche (S/A/B/C tiers), audience country (Tier 1–4), and long-form vs Shorts.
+- **Interactive calculator** — monthly views (1K–10M stops), channel niche (S/A/B/C tiers), audience country (Tier 1–4), long-form vs Shorts, **seasonality** (Q1–Q4) and **ad-impression rate**.
 - **Local-currency output** — 23 ISO currencies/locales via `Intl.NumberFormat`, with a USD cross-check and an FX note.
 - **CPM / RPM breakdown** — CPM range, RPM range, average CPM/RPM, yearly projection, and total estimated earnings.
-- **Programmatic SEO pages** — 23 country pages + 18 niche pages, statically generated, each with unique notes, rankings, earnings tables, FAQs, and related links.
-- **Seasonality guide** — Q1–Q4 ad-spend multipliers with commentary.
-- **Usage monitor** — `/monitor` aggregates anonymous calculator runs from PostgreSQL (top niches/countries, 14-day volume, recent calculations).
-- **SEO plumbing** — per-page canonicals, generated sitemap, `robots.txt`, `FAQPage` + `WebApplication` JSON-LD, Open Graph/Twitter metadata.
-- **Graceful degradation** — the calculator keeps working if PostgreSQL is unavailable; the monitor shows a fallback state.
+- **Programmatic SEO pages** — 23 country pages + 18 niche pages, statically generated, each with unique notes, rankings, earnings tables, breadcrumb JSON-LD, FAQs and related links.
+- **Trust pages** — methodology (with the full formula), about, contact, privacy, terms.
+- **Usage monitor** — `/monitor` aggregates anonymous calculator runs from PostgreSQL (top niches/countries, 14-day volume, recent calculations), cached for 60 s.
+- **SEO plumbing** — per-page canonicals + Open Graph, generated sitemap, `robots.txt`, `FAQPage`/`WebApplication`/`BreadcrumbList` JSON-LD, dynamic OG image.
+- **Graceful degradation** — the calculator keeps working if PostgreSQL is unavailable; the monitor shows a fallback state and the API reports `logged: false`.
+- **Production hardening** — CSP + security headers, rate limiting, request-size caps, lazy DB pool, self-hosted fonts, Docker/Coolify image with migrations on boot.
 
 ## Tech stack
 
 | Layer | Technology |
 |---|---|
-| Framework | [Next.js 16](https://nextjs.org) (App Router, Turbopack, RSC) |
+| Framework | [Next.js 16.4](https://nextjs.org) (App Router, Turbopack, RSC, standalone output) |
 | UI | React 19, Tailwind CSS v4 (CSS-first `@theme`), Lucide icons, Framer Motion |
 | Language | TypeScript 5.9 (`strict`) |
-| Database | PostgreSQL + [Drizzle ORM](https://orm.drizzle.team) (`node-postgres` driver) |
-| Tooling | ESLint 9 (flat config), Drizzle Kit |
-| Fonts | Inter, Space Grotesk, JetBrains Mono (Instrument Serif is imported but unused), via `next/font/google` |
+| Database | PostgreSQL 16 + [Drizzle ORM](https://orm.drizzle.team) (`node-postgres`) |
+| Testing | Vitest |
+| Tooling | ESLint 9 (flat config), Drizzle Kit, GitHub Actions |
+| Fonts | Plus Jakarta Sans (UI + display), JetBrains Mono (data) — **self-hosted** via `next/font/local` |
 
 ## Architecture
 
 ```mermaid
 flowchart LR
   U[Browser] --> N[Next.js App Router]
-  N --> P[Server Components<br/>home · hubs · 41 SSG pages]
+  N --> P[Server Components<br/>home · hubs · 5 static pages · 41 SSG pages]
   P --> D[(lib/data.ts<br/>dataset + formulas)]
   N --> C[Client Components<br/>calculator · charts · motion]
-  C -->|POST /api/calculate| A[Route Handler]
-  A --> O[Drizzle ORM]
+  C -->|POST /api/calculate| A[Route Handler<br/>rate limit · validate]
+  A --> O[Drizzle ORM<br/>lazy pool]
   O --> PG[(PostgreSQL)]
-  N --> M[/monitor]
+  N --> M[/monitor · revalidate 60s/]
   M --> O
 ```
 
-- **Static-first:** only `/monitor` and the two API routes are dynamic.
+- **Static-first:** only `/monitor` and the two API routes touch the server at request time.
 - **One source of truth:** `src/lib/data.ts` is shared by the browser calculator and the server route, so results cannot drift.
-- **Analytics is non-blocking:** a failed database write never breaks an estimate (`logged: false`).
+- **Logging never breaks the product:** a failed insert still returns the estimate (`logged: false`).
 
 ## Getting started
 
 ### Prerequisites
 
-- **Node.js 22+** (tested with 22.22.3) and npm 10+
-- **PostgreSQL 14+** (only needed for `/monitor` and calculation logging)
+- **Node.js 20.9+** (CI uses 22) and npm 10+
+- **PostgreSQL 14+** — optional for the calculator, required for `/monitor` and logging
 
 ### 1. Clone and install
 
@@ -105,49 +94,49 @@ npm install
 
 ```bash
 cp .env.example .env
-# edit .env if your PostgreSQL connection string differs
+# edit DATABASE_URL if your PostgreSQL differs
 ```
 
 ### 3. Create the database
 
 ```bash
-createdb app_db        # or use your existing database
-npx drizzle-kit push   # creates the `calculations` table from src/db/schema.ts
+createdb app_db
+npm run db:push        # or: node scripts/migrate.mjs  (applies drizzle/*.sql)
 ```
-
-> The repository does not yet include generated migrations. Until it does, `drizzle-kit push` is the way to create the schema. `drizzle.config.json` currently hard-codes `postgresql://postgres:postgres@127.0.0.1:5432/app_db`; update it if your local database differs.
 
 ### 4. Run
 
 ```bash
-npm run dev
-# http://localhost:3000
+npm run dev            # http://localhost:3000
 ```
 
 ### 5. Production build
 
 ```bash
-npm run build
-npm start
+npm run build          # no DATABASE_URL needed
+npm start              # note: with output:"standalone", prefer `node .next/standalone/server.js`
 ```
 
-> **Build requires `DATABASE_URL`.** `src/db/index.ts` throws at import time when the variable is missing, and Next.js evaluates API route modules during page-data collection. Set the variable for any build environment (a dummy local URL is enough for a purely static build). This is tracked in [report.md](./report.md) as **P0-2**.
-
-> **Fonts need network access at build time.** `next/font/google` downloads the four families during `next build`. Offline/locked-down CI will fail until the fonts are self-hosted or cached.
+> **Fonts are self-hosted**, so builds work offline and behind firewalls — no request to `fonts.googleapis.com`.
 
 ## Environment variables
 
-| Variable | Required | Example | Used by |
+| Variable | Required | Default | Purpose |
 |---|---|---|---|
-| `DATABASE_URL` | Yes (for build, monitor, APIs) | `postgresql://postgres:postgres@127.0.0.1:5432/app_db` | `src/db/index.ts`, `/api/*`, `/monitor` |
-| `NODE_ENV` | Auto | `production` | Next.js / pool caching |
-| `NEXT_TELEMETRY_DISABLED` | Optional | `1` | Disables Next.js telemetry in CI |
+| `DATABASE_URL` | for DB features | — | PostgreSQL connection string |
+| `DATABASE_SSL` | No | `false` | Enable TLS (`true` for Neon/Supabase/RDS) |
+| `DATABASE_SSL_STRICT` | No | `false` | Verify the server certificate |
+| `DATABASE_POOL_MAX` | No | `10` | Pool size per container |
+| `DATABASE_STATEMENT_TIMEOUT_MS` | No | `10000` | Per-statement timeout |
+| `RUN_MIGRATIONS` | No | `true` | Apply `drizzle/*.sql` on container start |
+| `NEXT_TELEMETRY_DISABLED` | No | `1` | Disable Next.js telemetry |
+| `PORT` | No | `3000` | Server port |
 
-`.env.example` contains the local-development values. `.env` is git-ignored.
+Templates and the full matrix: [`.env.example`](./.env.example) and [`deployment.md`](./deployment.md#environment-variables).
 
 ## Database setup
 
-Schema: one table, `calculations`, defined in [`src/db/schema.ts`](./src/db/schema.ts).
+One table, `calculations`, in [`src/db/schema.ts`](./src/db/schema.ts).
 
 | Column | Type | Notes |
 |---|---|---|
@@ -156,23 +145,37 @@ Schema: one table, `calculations`, defined in [`src/db/schema.ts`](./src/db/sche
 | `niche_slug` / `niche_name` | `text` | Selected niche |
 | `country_slug` / `country_name` | `text` | Selected country |
 | `content_type` | `text` | `long` or `shorts` |
+| `season` | `text` | `annual`, `Q1`–`Q4` |
+| `monetized_share` | `numeric(4,3)` | Ad-impression rate used |
 | `rpm_low` / `rpm_high` | `numeric(10,4)` | Per-1,000-view range |
 | `est_low` / `est_high` | `numeric(12,2)` | Monthly estimate range |
 | `created_at` | `timestamptz` | Defaults to `now()` |
 
-Indexes exist on `created_at`, `niche_slug`, and `country_slug`.
+Indexes: `created_at`, `niche_slug`, `country_slug`, `content_type`.
+
+Schema changes:
+
+```bash
+# edit src/db/schema.ts
+npm run db:generate    # writes drizzle/000N_*.sql — commit it
+```
+
+The Docker entrypoint applies those SQL files exactly once (tracked in `_migrations`).
 
 ## Available scripts
 
-| Script | Command | Purpose |
-|---|---|---|
-| `npm run dev` | `next dev` | Local development server |
-| `npm run build` | `next build` | Production build (50 entries) |
-| `npm start` | `next start` | Serve the production build |
-| `npm run lint` | `eslint .` | Lint |
-| `npm run typecheck` | `tsc --noEmit` | Type check |
-
-There is currently **no test script** — see [report.md §11.2](./report.md#112-test-plan-currently-0-tests) for the proposed suite.
+| Script | Purpose |
+|---|---|
+| `npm run dev` | Local development server |
+| `npm run build` | Production build (standalone output) |
+| `npm start` | Serve the production build |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm test` | Vitest unit suite (33 tests) |
+| `npm run test:watch` | Vitest in watch mode |
+| `npm run db:generate` | Generate a SQL migration from the schema |
+| `npm run db:push` | Push the schema directly (dev only) |
+| `npm run db:studio` | Drizzle Studio |
 
 ## Routes
 
@@ -183,31 +186,35 @@ There is currently **no test script** — see [report.md §11.2](./report.md#112
 | `/cpm-by-country/[slug]` | SSG ×23 | Country detail: rank, earnings presets, top niches, FAQs |
 | `/cpm-by-niche` | Static | 18 niches ranked by CPM |
 | `/cpm-by-niche/[slug]` | SSG ×18 | Niche detail: CPM/RPM, country table, FAQs |
-| `/monitor` | Dynamic (`noindex`) | Anonymous usage analytics from PostgreSQL |
-| `/api/calculate` | Dynamic | `POST` estimate (and optional logging) |
-| `/api/health` | Dynamic | Database liveness check |
-| `/sitemap.xml`, `/robots.txt`, `/icon.svg` | Static | Crawl and icon assets |
+| `/methodology` | Static | Sources, formulas, limitations |
+| `/about` · `/contact` · `/privacy` · `/terms` | Static | Trust & legal pages |
+| `/monitor` | Server, 60 s cache | Anonymous usage analytics (`noindex`) |
+| `/api/calculate` | Dynamic | `POST` estimate (+ optional logging) |
+| `/api/health` | Dynamic | DB readiness probe (200/503) |
+| `/sitemap.xml` · `/robots.txt` · `/opengraph-image` · `/icon.svg` | Generated | Crawl + social assets |
 
 ## How the estimate is calculated
 
 All benchmarks live in [`src/lib/data.ts`](./src/lib/data.ts) and are quoted in USD.
 
 ```ts
-countryMultiplier = (country.cpmLow + country.cpmHigh) / (US.cpmLow + US.cpmHigh);
+countryMultiplier = (countryLow + countryHigh) / (USLow + USHigh);
 
 // Long-form
-cpmLow   = niche.cpmLow  * countryMultiplier;
-cpmHigh  = niche.cpmHigh * countryMultiplier;
-rpmLow   = cpmLow  * 0.55;   // CREATOR_SHARE
-rpmHigh  = cpmHigh * 0.55;
-monthly  = (views / 1000) * rpm;
+cpmLow   = niche.cpmLow  × countryMultiplier × seasonMultiplier;
+cpmHigh  = niche.cpmHigh × countryMultiplier × seasonMultiplier;
+rpmLow   = cpmLow  × 0.55 × adImpressionRate;   // 0.55 = creator share
+rpmHigh  = cpmHigh × 0.55 × adImpressionRate;
+monthly  = (views / 1000) × rpm;
 
-// Shorts
-rpmLow  = 0.05 * max(countryMultiplier, 0.15);
-rpmHigh = min(0.16 * max(countryMultiplier, 0.15), 1.4);
+// Shorts (pooled revenue, no classic CPM)
+rpmLow  = 0.02 × countryFactor × nicheTierFactor × seasonMultiplier;
+rpmHigh = 0.08 × countryFactor × nicheTierFactor × seasonMultiplier;
+// countryFactor = clamp(countryMultiplier, 0.25, 1)
+// nicheTierFactor: S 1.25 · A 1.15 · B 1.00 · C 0.85
 ```
 
-Worked example — **India · Tech & Software · 1,000,000 views/month**:
+Worked example — **India · Tech & Software · 1,000,000 views/month, full year, 100% ad fill**:
 
 | Metric | Value |
 |---|---|
@@ -216,14 +223,13 @@ Worked example — **India · Tech & Software · 1,000,000 views/month**:
 | RPM | $0.38–$1.04 |
 | Monthly estimate | **$378.89–$1,041.94** |
 
-**Important assumptions and limitations** (full analysis in [report.md §5.5](./report.md#55-methodology-critique-the-most-important-section)):
+**Assumptions** (full detail on [`/methodology`](./src/app/methodology/page.tsx)):
 
 - Estimates assume a **single-country audience**; real audiences are mixed.
-- RPM is derived as `CPM × 55%` and does **not** model the monetized-playback ratio, so results are optimistic for channels with low ad-impression rates.
+- RPM includes a creator-share (55%) and an **ad-impression rate** you control; the default (100%) is an optimistic upper bound.
 - Country scaling is **linear and uniform across niches**.
-- Seasonality multipliers are shown in the UI but **not applied** to estimates.
-- FX rates are hard-coded and **undated**.
-- Shorts uses a pooled-revenue heuristic and currently ignores the niche selector.
+- Seasonality is opt-in (full year by default); FX rates are indicative and dated.
+- Sponsorships, affiliates and memberships are **not** included.
 
 ## API reference
 
@@ -232,7 +238,7 @@ Worked example — **India · Tech & Software · 1,000,000 views/month**:
 ```bash
 curl -X POST http://localhost:3000/api/calculate \
   -H 'Content-Type: application/json' \
-  -d '{"views":100000,"niche":"technology-software","country":"india","type":"long"}'
+  -d '{"views":100000,"niche":"technology-software","country":"india","type":"long","season":"Q4","monetizedShare":0.7}'
 ```
 
 ```json
@@ -240,29 +246,59 @@ curl -X POST http://localhost:3000/api/calculate \
   "ok": true,
   "logged": true,
   "estimate": {
-    "cpmLow": 0.6889,
-    "cpmHigh": 1.8944,
-    "rpmLow": 0.3789,
-    "rpmHigh": 1.0419,
-    "monthlyLow": 37.8889,
-    "monthlyHigh": 104.1944,
-    "multiplier": 0.0861
+    "cpmLow": 0.7716,
+    "cpmHigh": 2.1218,
+    "rpmLow": 0.2971,
+    "rpmHigh": 0.8169,
+    "monthlyLow": 29.71,
+    "monthlyHigh": 81.69,
+    "multiplier": 0.0861,
+    "season": 1.6,
+    "monetizedShare": 0.7
   }
 }
 ```
 
 | Case | Status | Body |
 |---|---|---|
-| Success, row inserted | `200` | `{ ok: true, logged: true, estimate }` |
-| Success, database unavailable | `200` | `{ ok: true, logged: false, estimate }` |
+| Success, row inserted | `200` | `{ ok, logged: true, estimate }` |
+| Success, database unavailable | `200` | `{ ok, logged: false, estimate }` |
 | Malformed JSON | `400` | `{ ok: false, error: "Invalid JSON" }` |
-| Unknown niche/country or views outside 1,000–1,000,000,000 | `422` | `{ ok: false, error: "Invalid input" }` |
+| Body > 4 KB | `413` | `{ ok: false, error: "Payload too large" }` |
+| Unknown niche/country/season, or views outside 1,000–1,000,000,000 | `422` | `{ ok: false, error: "Invalid input" / "Unknown season" }` |
+| Over 60 requests/min (per IP) | `429` | `{ ok: false, error: "Too many requests" }` + `Retry-After` |
 
 ### `GET /api/health`
 
-Runs `select 1`. Returns `200 { "ok": true }` or `500 { "ok": false }`.
+```json
+{ "ok": true,  "database": "up" }
+{ "ok": false, "database": "down" }
+{ "ok": false, "database": "not_configured" }
+```
 
-**Note:** there is no authentication or rate limiting on these endpoints yet.
+`200` when the database answers, `503` otherwise. Never cached.
+
+## Docker & Coolify
+
+**Full walkthrough:** [`deployment.md`](./deployment.md).
+
+```bash
+# Local stack (app + PostgreSQL)
+docker compose up -d --build
+curl -s localhost:3000/api/health
+
+# Image only
+docker build -t ytcpm .
+docker run -p 3000:3000 -e DATABASE_URL=postgresql://... ytcpm
+```
+
+| Aspect | Implementation |
+|---|---|
+| Image | Multi-stage, `node:22-alpine`, `output: "standalone"`, non-root `nextjs` (uid 1001) |
+| Migrations | `docker-entrypoint.sh` → `scripts/migrate.mjs` (idempotent, `_migrations` table) |
+| Healthcheck | `/` (liveness) — use `/api/health` for readiness monitoring |
+| Secrets | Never baked into the image (build uses a throwaway URL) |
+| Compose | `docker-compose.yml` with `db` (Postgres 16) + `web`, named volume, health-gated startup |
 
 ## Project structure
 
@@ -270,24 +306,25 @@ Runs `select 1`. Returns `200 { "ok": true }` or `500 { "ok": false }`.
 .
 ├── src/
 │   ├── app/
-│   │   ├── api/calculate/route.ts     # POST estimate + logging
-│   │   ├── api/health/route.ts        # DB health check
-│   │   ├── cpm-by-country/             # index + [slug] SSG pages
-│   │   ├── cpm-by-niche/               # index + [slug] SSG pages
-│   │   ├── monitor/page.tsx            # dynamic usage dashboard
-│   │   ├── globals.css                 # Tailwind v4 theme + utilities
-│   │   ├── layout.tsx                  # fonts, metadata, shell
-│   │   ├── page.tsx                    # home
-│   │   ├── robots.ts
-│   │   └── sitemap.ts
-│   ├── components/                     # calculator, charts, faq, motion, header, footer
-│   ├── db/                             # Drizzle pool + schema
-│   └── lib/
-│       ├── data.ts                     # 23 countries, 18 niches, formulas
-│       ├── flags.ts                    # flag CDN URLs
-│       └── niche-icons.ts              # Lucide icon map
-├── drizzle.config.json
-├── report.md                           # deep technical audit
+│   │   ├── api/calculate/route.ts     # POST estimate + logging, rate limited
+│   │   ├── api/health/route.ts        # DB readiness
+│   │   ├── about/ contact/ privacy/ terms/ methodology/
+│   │   ├── cpm-by-country/            # index + [slug] SSG pages
+│   │   ├── cpm-by-niche/              # index + [slug] SSG pages
+│   │   ├── monitor/page.tsx           # cached usage dashboard
+│   │   ├── fonts/                     # self-hosted woff2 + OFL licences
+│   │   ├── error.tsx · loading.tsx · not-found.tsx
+│   │   ├── opengraph-image.tsx        # dynamic social card
+│   │   ├── globals.css · layout.tsx · page.tsx · robots.ts · sitemap.ts
+│   ├── components/                    # calculator, charts, faq, motion, header, footer
+│   ├── db/                            # lazy pool + schema
+│   └── lib/                           # data.ts, flags.ts, log.ts, rate-limit.ts, icons
+├── drizzle/                           # generated SQL migrations (+ meta)
+├── scripts/migrate.mjs                # container migration runner
+├── public/site.webmanifest
+├── Dockerfile · docker-compose.yml · docker-entrypoint.sh · .dockerignore
+├── .github/workflows/ci.yml
+├── deployment.md · report.md
 └── package.json
 ```
 
@@ -298,56 +335,46 @@ Runs `select 1`. Returns `200 { "ok": true }` or `500 { "ok": false }`.
 | Countries | **23** — Tier 1 (11), Tier 2 (7), Tier 3 (3), Tier 4 (2) |
 | Niches | **18** — S (3), A (5), B (5), C (5) |
 | Content types | Long-form, Shorts |
-| Seasonality | Q1 0.85×, Q2 0.95×, Q3 1.00×, Q4 1.60× |
-| Benchmarks year | 2026 (`DATA_YEAR`) |
-| Sitemap URLs | 45 (41 country/niche detail pages) |
+| Seasonality | Q1 0.85×, Q2 0.95×, Q3 1.00×, Q4 1.60× (opt-in) |
+| Benchmarks year | 2026 (`DATA_YEAR`), reviewed `DATA_UPDATED_AT` |
+| Sitemap URLs | 45 indexable (4 static + 4 trust + 23 countries + 18 niches − overlap) |
 
-## Deployment
+## Testing
 
-1. Provision PostgreSQL and set `DATABASE_URL` in the hosting provider's environment.
-2. Run `npx drizzle-kit push` (or a committed migration once available) against the production database.
-3. Build with the environment variable present: `npm run build`. Most pages are static; `/monitor` and `/api/*` are server-rendered.
-4. Use a Node.js runtime — the database driver (`pg`) is not Edge-compatible.
-5. Configure the production domain in `metadataBase` (`src/app/layout.tsx`) and the sitemap/robots constants if it changes.
+```bash
+npm test          # 33 unit tests
+```
 
-### Before going live
+Coverage focuses on what can silently break money math:
 
-- [ ] Add the missing assets: `public/og.png` and `public/images/hero-illustration.png` (both currently 404).
-- [ ] Add `about`, `contact`, `privacy`, `terms`, and `methodology` pages.
-- [ ] Upgrade `next` to a patched release (`npm audit --omit=dev` currently reports 3 vulnerabilities, including 1 critical).
-- [ ] Add rate limiting to `POST /api/calculate`.
-- [ ] Add security headers (`CSP`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`) and set `poweredByHeader: false`.
-- [ ] Decide whether `/monitor` should be public, and make the sitemap agree with its `noindex` status.
+- dataset invariants (unique slugs, ordered ranges, US anchor, FX sanity)
+- `estimateEarnings` for all 23 × 18 combinations (ordering, monotonicity, regression pins)
+- seasonality and ad-impression clamping
+- Shorts band and niche/country sensitivity
+- formatters (`money`, `localMoney`, `viewsLabel`, `fxNote`) across locales
+- rate-limiter windows, key isolation and proxy IP parsing
+
+CI (`.github/workflows/ci.yml`) runs lint → typecheck → tests → migrations → build, plus `npm audit` and a Docker image build.
 
 ## Known limitations
 
-This is an early v1 with a strong front-end/SEO foundation but several production gaps. The short list:
-
-- No tests, CI, or committed migrations (the lockfile is now committed).
-- No data sources/citations or "last updated" date for the benchmarks; the UI's "real-time" claims are inaccurate.
-- The views slider's tick labels do not match the underlying logarithmic scale.
-- The Shorts model conflicts with the FAQ and ignores niche/country below a 15% multiplier floor.
-- No rate limiting, observability, or analytics.
-- `npm audit`: 3 production vulnerabilities (1 critical, 2 high).
-
-See [`report.md`](./report.md) for evidence, severity ratings, and a prioritized roadmap.
+- Benchmarks are a **manually reviewed 2026 snapshot**, not a live feed. Every range is directional; see [`/methodology`](./src/app/methodology/page.tsx).
+- Single-country audiences only; no audience-mix modelling yet.
+- Rate limiting is **in-memory** (per container). Use Redis for multi-replica deployments.
+- `POST /api/calculate` is unauthenticated by design (public calculator) — protected only by rate limits.
+- Contact/privacy pages reference `hello@ytcpm.online`; wire up a real inbox before launch.
 
 ## Contributing
 
-1. Fork the repository and create a feature branch.
-2. Run `npm install` (commit `package-lock.json` if dependencies change).
-3. Make your change and run:
+1. Fork, branch, `npm install`.
+2. Make your change, then run:
 
    ```bash
-   npm run typecheck
-   npm run lint
-   npm run build
+   npm run typecheck && npm run lint && npm test && npm run build
    ```
 
-4. Open a pull request describing the change and any data-source updates.
-
-Because the site publishes financial estimates, changes to `src/lib/data.ts` or the formulas in `estimateEarnings()` should include the source, sample period, and a note in the PR. Do not add country/niche combinations without unique content.
+3. Open a pull request. Changes to `src/lib/data.ts` or `estimateEarnings()` must include the source, sample period, and a note — the site publishes financial estimates. Do not add country/niche combinations without unique content.
 
 ## License
 
-No license file is present. Until a license is added, the source is **all rights reserved** and may not be redistributed. Add a `LICENSE` file (e.g., MIT) if you intend to open-source the project.
+No license file is present. Until one is added, the source is **all rights reserved** and may not be redistributed. Add a `LICENSE` file (e.g. MIT) if you intend to open-source the project.

@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { motion, useInView, animate } from "framer-motion";
+import { motion, useInView, useReducedMotion, animate } from "framer-motion";
 
 export function Reveal({
   children,
@@ -14,13 +14,33 @@ export function Reveal({
   y?: number;
   className?: string;
 }) {
+  const reduced = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.05, margin: "0px 0px -8% 0px" });
+  const [forced, setForced] = useState(false);
+
+  /* Safety net: if the observer never fires (print, full-page capture, an
+     embedded webview), reveal after 1.8s rather than leaving the block at
+     opacity 0. Keeps the same element mounted so inputs never reset. */
+  useEffect(() => {
+    const t = setTimeout(() => setForced(true), 1800);
+    return () => clearTimeout(t);
+  }, []);
+
+  const show = reduced || forced || inView;
+
   return (
     <motion.div
+      ref={ref}
       className={className}
+      data-reveal=""
       initial={{ opacity: 0, y }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
+      animate={show ? { opacity: 1, y: 0 } : { opacity: 0, y }}
+      transition={
+        reduced
+          ? { duration: 0 }
+          : { duration: 0.45, delay: Math.min(delay, 0.24), ease: [0.22, 1, 0.36, 1] }
+      }
     >
       {children}
     </motion.div>
@@ -42,22 +62,24 @@ export function CountUp({
 }) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "-40px" });
+  const reduced = useReducedMotion();
   const [display, setDisplay] = useState(0);
+  const shown = reduced ? value : display;
 
   useEffect(() => {
-    if (!inView) return;
+    if (reduced || !inView) return;
     const controls = animate(0, value, {
       duration: 1.4,
       ease: [0.22, 1, 0.36, 1],
       onUpdate: (v) => setDisplay(v),
     });
     return () => controls.stop();
-  }, [inView, value]);
+  }, [inView, value, reduced]);
 
   return (
     <span ref={ref} className={className}>
       {prefix}
-      {display.toLocaleString("en-US", {
+      {shown.toLocaleString("en-US", {
         minimumFractionDigits: digits,
         maximumFractionDigits: digits,
       })}
@@ -80,27 +102,26 @@ export function AnimatedMoney({
   format?: (v: number) => string;
 }) {
   const d = digits ?? (value < 10 ? 2 : 0);
+  const reduced = useReducedMotion();
   const [display, setDisplay] = useState(value);
   const prev = useRef(value);
+  const shown = reduced ? value : display;
 
   useEffect(() => {
     const from = prev.current;
     prev.current = value;
-    if (Math.abs(from - value) < 0.005) {
-      setDisplay(value);
-      return;
-    }
+    if (Math.abs(from - value) < 0.005) return;
     const controls = animate(from, value, {
       duration: 0.55,
       ease: [0.22, 1, 0.36, 1],
       onUpdate: (v) => setDisplay(v),
     });
     return () => controls.stop();
-  }, [value]);
+  }, [value, reduced]);
 
   const text = format
-    ? format(display)
-    : display.toLocaleString("en-US", {
+    ? format(shown)
+    : shown.toLocaleString("en-US", {
         style: "currency",
         currency: "USD",
         minimumFractionDigits: value < 10 ? 2 : d,

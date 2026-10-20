@@ -1,0 +1,59 @@
+# ytcpm.online — self-hosting stack (app + PostgreSQL).
+#
+# Local:   docker compose up -d --build
+# Coolify: deploy this file as a "Docker Compose" resource, then add the domain
+#          to the `web` service. See deployment.md for the full walkthrough.
+#
+# IMPORTANT: variables in ${BRACES} are read from the shell/Coolify environment
+# (or a .env file next to this compose file). Never commit real secrets.
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ytcpm:latest
+    restart: unless-stopped
+    ports:
+      # Remove this mapping when Coolify/Traefik terminates traffic itself.
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      DATABASE_URL: ${DATABASE_URL:-postgresql://ytcpm:ytcpm@db:5432/ytcpm}
+      DATABASE_SSL: ${DATABASE_SSL:-false}
+      DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-10}
+      DATABASE_STATEMENT_TIMEOUT_MS: ${DATABASE_STATEMENT_TIMEOUT_MS:-10000}
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+      NEXT_TELEMETRY_DISABLED: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3000/ >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ytcpm}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ytcpm}
+      POSTGRES_DB: ${POSTGRES_DB:-ytcpm}
+      # Speeds up local init; safe to remove.
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  db_data:

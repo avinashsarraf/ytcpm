@@ -32,7 +32,11 @@ export interface Niche {
 }
 
 export const DATA_YEAR = 2026;
-export const CREATOR_SHARE = 0.55; // ≈ RPM = CPM × 0.55 (YouTube cut × monetized playbacks)
+/** Last time the benchmark table itself was reviewed (not the build date). */
+export const DATA_UPDATED_AT = "2026-10-20";
+export const CREATOR_SHARE = 0.55; // creator share of ad revenue (YouTube keeps ~45%)
+/** FX rates are indicative spot levels captured with DATA_UPDATED_AT. */
+export const FX_UPDATED_AT = DATA_UPDATED_AT;
 
 // ─── Countries (23) ──────────────────────────────────────────────────────────
 export const COUNTRIES: Country[] = [
@@ -62,6 +66,11 @@ export const COUNTRIES: Country[] = [
 ];
 
 export const US = COUNTRIES[0];
+
+/** US blended CPM (average of the US range) — the anchor for seasonality copy. */
+export const US_BLENDED_CPM = (US.cpmLow + US.cpmHigh) / 2;
+/** @deprecated alias kept for descriptive imports */
+export const SEASON_BASELINE = US_BLENDED_CPM;
 
 // ─── Niches (18) — US-audience baseline CPMs ─────────────────────────────────
 export const NICHES: Niche[] = [
@@ -99,6 +108,10 @@ export interface EstimateInput {
   niche: Niche;
   country: Country;
   type: ContentType;
+  /** Seasonality multiplier (Q1 0.85 … Q4 1.60). Defaults to 1 (full-year average). */
+  season?: number;
+  /** Share of views that actually serve an ad (0–1). Defaults to 1 (all views). */
+  monetizedShare?: number;
 }
 
 export interface Estimate {
@@ -109,26 +122,50 @@ export interface Estimate {
   monthlyLow: number;
   monthlyHigh: number;
   multiplier: number;
+  season: number;
+  monetizedShare: number;
 }
+
+/** Shorts pay from a pooled revenue share, not classic CPM. */
+const SHORTS_RPM_LOW = 0.02;
+const SHORTS_RPM_HIGH = 0.08;
+/** Country rates below this share of US CPM are treated as one blended tier. */
+const SHORTS_COUNTRY_FLOOR = 0.25;
+const SHORTS_NICHE_FACTOR: Record<Niche["tier"], number> = { S: 1.25, A: 1.15, B: 1, C: 0.85 };
+
+const clamp = (n: number, lo: number, hi: number) => Math.min(Math.max(n, lo), hi);
 
 export function countryMultiplier(c: Country): number {
   return (c.cpmLow + c.cpmHigh) / (US.cpmLow + US.cpmHigh);
 }
 
-export function estimateEarnings({ views, niche, country, type }: EstimateInput): Estimate {
+export function estimateEarnings({
+  views,
+  niche,
+  country,
+  type,
+  season = 1,
+  monetizedShare = 1,
+}: EstimateInput): Estimate {
   const m = countryMultiplier(country);
+  const s = clamp(season, 0.5, 2);
+  const adShare = clamp(monetizedShare, 0.05, 1);
   let rpmLow: number, rpmHigh: number, cpmLow: number, cpmHigh: number;
 
   if (type === "shorts") {
-    // Shorts fund: very low, niche-insensitive (blended rev-share pool)
-    rpmLow = 0.05 * Math.max(m, 0.15);
-    rpmHigh = Math.min(0.16 * Math.max(m, 0.15), 1.4);
-    cpmLow = 0; cpmHigh = 0;
+    // Pooled Shorts revenue: low per-view rates, mildly country/niche sensitive.
+    const cf = clamp(m, SHORTS_COUNTRY_FLOOR, 1);
+    const nf = SHORTS_NICHE_FACTOR[niche.tier];
+    rpmLow = SHORTS_RPM_LOW * cf * nf * s;
+    rpmHigh = SHORTS_RPM_HIGH * cf * nf * s;
+    cpmLow = 0;
+    cpmHigh = 0;
   } else {
-    cpmLow = niche.cpmLow * m;
-    cpmHigh = niche.cpmHigh * m;
-    rpmLow = cpmLow * CREATOR_SHARE;
-    rpmHigh = cpmHigh * CREATOR_SHARE;
+    cpmLow = niche.cpmLow * m * s;
+    cpmHigh = niche.cpmHigh * m * s;
+    // RPM = CPM × creator share × share of views that were monetized.
+    rpmLow = cpmLow * CREATOR_SHARE * adShare;
+    rpmHigh = cpmHigh * CREATOR_SHARE * adShare;
   }
 
   return {
@@ -136,6 +173,8 @@ export function estimateEarnings({ views, niche, country, type }: EstimateInput)
     monthlyLow: (views / 1000) * rpmLow,
     monthlyHigh: (views / 1000) * rpmHigh,
     multiplier: m,
+    season: s,
+    monetizedShare: adShare,
   };
 }
 
@@ -148,16 +187,6 @@ export function money(n: number, digits?: number): string {
     minimumFractionDigits: d,
     maximumFractionDigits: d,
   });
-}
-
-export function compactMoney(n: number): string {
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `$${(n / 1_000).toFixed(n >= 10_000 ? 0 : 1)}K`;
-  return money(n);
-}
-
-export function num(n: number, digits = 2): string {
-  return n.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
 }
 
 export function viewsLabel(v: number): string {
@@ -201,6 +230,8 @@ export function fxNote(c: Country): string {
   if (c.currency === "USD") return "Values in US Dollars";
   return `Converted at ≈ 1 USD = ${currencySymbol(c)}${c.fx >= 100 ? Math.round(c.fx) : c.fx}`;
 }
+
+export const getSeason = (q: string) => SEASONS.find((s) => s.q === q);
 
 // ─── Lookup helpers ──────────────────────────────────────────────────────────
 export const getCountry = (slug: string) => COUNTRIES.find((c) => c.slug === slug);

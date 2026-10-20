@@ -1,29 +1,38 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { Inter, Space_Grotesk, Instrument_Serif, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import SiteHeader from "@/components/site-header";
 import SiteFooter from "@/components/site-footer";
+import { DATA_UPDATED_AT, DATA_YEAR } from "@/lib/data";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const space = Space_Grotesk({ subsets: ["latin"], variable: "--font-space" });
-const instrument = Instrument_Serif({
-  subsets: ["latin"],
-  weight: "400",
-  style: ["normal", "italic"],
-  variable: "--font-instrument",
+/**
+ * Plus Jakarta Sans drives the whole interface (display + body), matching the
+ * reference design's geometric grotesque. JetBrains Mono is kept for tabular
+ * data on the reference pages. Both are self-hosted so `next build` never needs
+ * network access to fonts.googleapis.com — see src/app/fonts/LICENSE-*.txt.
+ */
+const jakarta = localFont({
+  src: "./fonts/plus-jakarta-sans-latin.woff2",
+  variable: "--font-jakarta",
+  weight: "200 800",
+  display: "swap",
 });
-const jbmono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jbmono" });
+const jbmono = localFont({
+  src: "./fonts/jetbrains-mono-latin.woff2",
+  variable: "--font-jbmono",
+  weight: "100 800",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://ytcpm.online"),
   title: {
-    default:
-      "YouTube CPM Calculator 2026 — Check CPM & Earnings by Country and Niche | ytcpm.online",
+    default: `YouTube CPM Calculator ${DATA_YEAR} — Earnings by Country & Niche`,
     template: "%s | ytcpm.online",
   },
   description:
-    "Free YouTube CPM calculator & money calculator. Check real 2026 CPM and RPM rates for 23 countries and 18 niches, and estimate how much YouTube pays per 1,000 views for your channel.",
+    `Free YouTube CPM calculator & money calculator. Check ${DATA_YEAR} CPM and RPM rates for 23 countries and 18 niches, and estimate how much YouTube pays per 1,000 views for your channel.`,
   keywords: [
     "youtube cpm calculator",
     "youtube money calculator",
@@ -34,24 +43,24 @@ export const metadata: Metadata = {
     "youtube cpm checker",
   ],
   applicationName: "ytcpm.online",
+  manifest: "/site.webmanifest",
   authors: [{ name: "ytcpm.online" }],
   creator: "ytcpm.online",
   alternates: { canonical: "/" },
+  other: { "data-last-reviewed": DATA_UPDATED_AT },
   openGraph: {
     type: "website",
     siteName: "ytcpm.online",
-    title: "YouTube CPM Calculator 2026 — Check Rates by Country & Niche",
+    title: `YouTube CPM Calculator ${DATA_YEAR} — Check Rates by Country & Niche`,
     description:
-      "How much does YouTube pay you? Check real CPM/RPM rates for your country and niche, then calculate your earnings per 1,000 views — free.",
+      "How much does YouTube pay you? Check CPM/RPM rates for your country and niche, then calculate your earnings per 1,000 views — free.",
     url: "https://ytcpm.online",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "YouTube CPM Calculator — ytcpm.online" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "YouTube CPM Calculator 2026 — ytcpm.online",
+    title: `YouTube CPM Calculator ${DATA_YEAR} — ytcpm.online`,
     description:
-      "Check real 2026 CPM & RPM rates for 23 countries and 18 niches. Free YouTube money calculator.",
-    images: ["/og.png"],
+      `Check ${DATA_YEAR} CPM & RPM rates for 23 countries and 18 niches. Free YouTube money calculator.`,
   },
   robots: {
     index: true,
@@ -61,7 +70,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#070709",
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
 };
@@ -70,12 +79,17 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${space.variable} ${instrument.variable} ${jbmono.variable}`}
+      className={`${jakarta.variable} ${jbmono.variable}`}
     >
       <body className="bg-ink antialiased">
+        <a href="#main" className="skip-link">Skip to content</a>
+        {/* Without JS the reveal wrappers would stay at opacity 0. */}
+        <noscript>
+          <style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style>
+        </noscript>
         <div className="bg-noise" aria-hidden />
         <SiteHeader />
-        <main>{children}</main>
+        <main id="main">{children}</main>
         <SiteFooter />
       </body>
     </html>

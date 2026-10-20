@@ -1,245 +1,328 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  ArrowRight, Play, CircleDot, Globe2, Layers, SearchCheck,
-  BarChart3, Sparkles, TrendingUp,
+  Zap, CheckCircle2, ShieldCheck, Calculator as CalcIcon, Database,
+  PieChart, ArrowRight, ArrowUpRight, Lightbulb, Sparkles,
 } from "lucide-react";
 import Calculator from "@/components/calculator";
+import ChannelCheck from "@/components/channel-check";
 import Faq from "@/components/faq";
+import WorldMap from "@/components/world-map";
 import { Reveal } from "@/components/motion";
-import { NicheRangeChart, CountryBarChart, CountryFlagCards, SeasonChart } from "@/components/charts";
-import { COUNTRIES_BY_CPM, NICHES_BY_CPM, SEASONS, DATA_YEAR, money, CREATOR_SHARE } from "@/lib/data";
+import {
+  COUNTRIES, NICHES, COUNTRIES_BY_CPM, NICHES_BY_CPM, CREATOR_SHARE,
+  DATA_YEAR, DATA_UPDATED_AT, money, countryMultiplier,
+} from "@/lib/data";
 import { flagUrl } from "@/lib/flags";
 
-const FAQS = [
-  { q: "What is CPM and how is it calculated?", a: "CPM (Cost Per Mille) is what advertisers pay YouTube for every 1,000 ad impressions. CPM = (total ad spend ÷ impressions) × 1,000. You receive RPM ≈ CPM × 55% after YouTube's cut." },
-  { q: "Why does my RPM differ from CPM?", a: "CPM counts only ad-served views. RPM counts ALL views (ad-blocked, non-monetized). RPM = (revenue ÷ total views) × 1,000 — always lower than CPM." },
-  { q: "Does YouTube pay differently for Shorts?", a: "Yes. Shorts use a pooled rev-share, not classic CPM. Expect $0.01–$0.06 RPM per 1K Shorts views — far below long-form ($2–$27 RPM)." },
-  { q: "How often does YouTube pay?", a: "Monthly via AdSense, typically 21st–26th. Minimum $100 balance required." },
-  { q: "Can I increase my CPM?", a: "Yes: (1) target US/UK/AU audiences, (2) high-intent topics, (3) 8+ min videos for mid-rolls, (4) publish Q4 when ad spend peaks +160%." },
+export const metadata: Metadata = {
+  title: `YouTube CPM Calculator ${DATA_YEAR} — Calculate Your YouTube Earnings`,
+  description:
+    "Calculate how much your YouTube videos earn. Enter views, CPM and country for an instant earnings estimate with the creator share already applied. Free, no signup.",
+  alternates: { canonical: "/" },
+};
+
+const mean = (n: number[]) => n.reduce((a, b) => a + b, 0) / n.length;
+const avgOf = (c: { cpmLow: number; cpmHigh: number }) => (c.cpmLow + c.cpmHigh) / 2;
+
+/** The same synthetic "worldwide" benchmark the calculator starts from. */
+const WORLDWIDE = {
+  cpmLow: mean(COUNTRIES.map((c) => c.cpmLow)),
+  cpmHigh: mean(COUNTRIES.map((c) => c.cpmHigh)),
+};
+const TECH = NICHES.find((n) => n.slug === "technology-software") ?? NICHES[0];
+const DEFAULT_CPM = Math.round(avgOf(TECH) * countryMultiplier(WORLDWIDE as never) * 100) / 100;
+
+/* The reference orders its tables for readability, not strictly by CPM. */
+const COUNTRY_ORDER = ["united-states", "canada", "united-kingdom", "australia", "germany", "india"]
+  .map((slug) => COUNTRIES_BY_CPM.find((c) => c.slug === slug))
+  .filter((c): c is (typeof COUNTRIES_BY_CPM)[number] => Boolean(c));
+
+const NICHE_ROWS = [
+  { slug: "finance-investing", icon: "🏦", tint: "bg-[#fdf1d8] text-[#c2810a]" },
+  { slug: "technology-software", icon: "💻", tint: "bg-[#eef2f7] text-[#475569]" },
+  { slug: "business-marketing", icon: "🏢", tint: "bg-[#fbe9f2] text-[#c026a3]" },
+  { slug: "health-fitness", icon: "❤️", tint: "bg-[#fde8ee] text-[#e11d48]" },
+  { slug: "education-science", icon: "🎓", tint: "bg-[#e8f6ec] text-[#15803d]" },
+  { slug: "entertainment-comedy", icon: "🎮", tint: "bg-[#f0eafd] text-[#7c3aed]" },
+]
+  .map((row) => ({ ...row, niche: NICHES.find((n) => n.slug === row.slug) }))
+  .filter((row) => row.niche);
+
+const WHY = [
+  { icon: CalcIcon, tint: "bg-[#fde4ea] text-yt-red", title: "Easy to Use", copy: "Simple and clean interface with instant results." },
+  { icon: Database, tint: "bg-[#e8f0fb] text-blue", title: "Real CPM Data", copy: "Updated with latest global CPM rates by country." },
+  { icon: PieChart, tint: "bg-[#f0eafd] text-[#7c3aed]", title: "Multiple Tools", copy: "CPM calculator, earnings estimator & channel checker." },
+  { icon: ShieldCheck, tint: "bg-[#e7f9ef] text-mint", title: "100% Free", copy: "No signup, no hidden charges, completely free to use." },
 ];
 
-const TOP6 = COUNTRIES_BY_CPM.slice(0, 6);
+const HERO_POINTS = [
+  { icon: CheckCircle2, tint: "bg-[#e7f9ef] text-mint", title: "100% Free", sub: "No Registration" },
+  { icon: Zap, tint: "bg-[#e8f0fb] text-blue", title: "Instant Results", sub: "Real-time Estimate" },
+  { icon: ShieldCheck, tint: "bg-[#f0eafd] text-[#7c3aed]", title: "Accurate Data", sub: "Based on Global CPM" },
+];
+
+const FAQS = [
+  {
+    q: "What is YouTube CPM?",
+    a: `CPM — cost per mille — is what advertisers pay for 1,000 ad impressions on your videos. It is set at auction and varies with audience country, topic and season. The ${DATA_YEAR} benchmark for US long-form content is ${money(18)} blended, while finance and insurance topics routinely clear ${money(30)}.`,
+  },
+  {
+    q: "How is YouTube earnings calculated?",
+    a: `Advertisers pay CPM; you receive RPM. Long-form revenue is shared ${Math.round(CREATOR_SHARE * 100)}% to the creator, so RPM ≈ CPM × ${Math.round(CREATOR_SHARE * 100)}% × the share of views that actually served an ad. At ${money(18)} CPM and full ad fill that is ${money(18 * CREATOR_SHARE, 2)} per 1,000 views.`,
+  },
+  {
+    q: "Why does CPM vary by country?",
+    a: `Advertisers bid more for audiences with higher purchasing power. The United States pays roughly 26× what Bangladesh pays for the same 1,000 views, and Tier-1 markets such as the UK, Canada and Australia sit 15–45% below the US. It is the single biggest lever on your revenue.`,
+  },
+  {
+    q: "Do I need to sign up to use this tool?",
+    a: "No. The calculator runs entirely in your browser, requires no account and stores nothing personal. We do log anonymous, aggregate usage counts so the Live Monitor page can show how many estimates have been run.",
+  },
+  {
+    q: "How much does YouTube pay for 1,000 views?",
+    a: `Long-form views in the US earn about ${money(18 * CREATOR_SHARE, 2)} at full ad fill and ${money(18 * CREATOR_SHARE * 0.7, 2)} at a realistic 70% fill rate. Shorts pay far less — roughly $0.02–$0.10 per 1,000 views — because they use a pooled revenue share rather than a per-view CPM.`,
+  },
+  {
+    q: "Which niche has the highest CPM?",
+    a: `Finance & Investing leads at ${money(NICHES_BY_CPM[0].cpmLow, 0)}–${money(NICHES_BY_CPM[0].cpmHigh, 0)} CPM, followed by Insurance & Legal and Business & Marketing. Kids & Family sits at the bottom (${money(NICHES_BY_CPM.at(-1)!.cpmLow, 0)}–${money(NICHES_BY_CPM.at(-1)!.cpmHigh, 0)}) because personalised ads are restricted on made-for-kids content.`,
+  },
+];
 
 export default function Home() {
-  const webAppLd = { "@context": "https://schema.org", "@type": "WebApplication", name: "YouTube CPM Calculator — ytcpm.online", url: "https://ytcpm.online", applicationCategory: "FinanceApplication", operatingSystem: "Any", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" } };
-  const faqLd = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: FAQS.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) };
+  const faqLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQS.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  };
+  const appLd = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "YouTube CPM Calculator — ytcpm.online",
+    url: "https://ytcpm.online",
+    applicationCategory: "FinanceApplication",
+    operatingSystem: "Any",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  };
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(appLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
 
-      {/* ══════ HERO — Full Width ══════ */}
-      <section className="w-full border-b border-border bg-gradient-to-b from-yt-red-light via-white to-white pt-20 sm:pt-24">
-        <div className="section-full mx-auto max-w-[1400px] py-12 sm:py-16">
-          <div className="grid items-center gap-10 lg:grid-cols-2">
-            <div>
+      {/* ══════ HERO ══════ */}
+      <section className="hero-shell relative overflow-hidden">
+        <div className="shell relative">
+          <div className="grid items-center gap-2 lg:grid-cols-[1.05fr_0.95fr] lg:gap-4 xl:gap-8">
+            <div className="relative z-10 pt-9 sm:pt-12 lg:pb-16 xl:pb-24 2xl:pb-28">
               <Reveal>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="tag"><CircleDot className="h-3 w-3 text-yt-red" /> Real Data</span>
-                  <span className="tag"><CircleDot className="h-3 w-3 text-yt-red" /> Accurate Insights</span>
-                  <span className="tag"><CircleDot className="h-3 w-3 text-yt-red" /> For YouTube Creators</span>
-                </div>
+                <span className="inline-flex items-center gap-2 rounded-full border border-white bg-white/70 py-1 pl-1 pr-4 text-[12.5px] font-semibold text-heading shadow-[0_2px_10px_-4px_rgba(11,22,38,0.18)] backdrop-blur">
+                  <span className="grid h-6 w-6 place-items-center rounded-full bg-[#fdf1d8]">
+                    <Zap className="h-3.5 w-3.5 fill-[#f59e0b] text-[#f59e0b]" />
+                  </span>
+                  Free YouTube CPM Calculator
+                </span>
               </Reveal>
-              <Reveal delay={0.08}>
-                <h1 className="mt-7 font-display text-[2.8rem] font-bold leading-[1.08] tracking-tight text-heading sm:text-6xl lg:text-[4.2rem]">
-                  YouTube CPM<br />
-                  <span className="text-yt-gradient">Calculator</span>
+
+              <Reveal delay={0.06}>
+                <h1 className="display-hero mt-4">
+                  Calculate Your<br />
+                  <span className="text-hot-gradient">YouTube</span> Earnings
                 </h1>
               </Reveal>
-              <Reveal delay={0.14}>
-                <p className="mt-6 max-w-lg text-[15px] leading-relaxed text-fog sm:text-base">
-                  Estimate your YouTube earnings with <strong className="text-heading">real-time CPM data</strong>,
-                  compare niches, countries and get the most accurate insights for your channel.
+
+              <Reveal delay={0.12}>
+                <p className="mt-4 max-w-[26rem] text-[15px] leading-relaxed text-[#5b6b80] sm:text-[16px]">
+                  Estimate how much you can earn from your YouTube videos based on views, CPM and country.
+                  Free, fast and accurate.
                 </p>
               </Reveal>
-              <Reveal delay={0.2}>
-                <div className="mt-7 flex flex-wrap items-center gap-5 text-[13px] text-fog">
-                  <span className="flex items-center gap-2"><span className="grid h-6 w-6 place-items-center rounded-full bg-yt-red-bg"><BarChart3 className="h-3.5 w-3.5 text-yt-red" /></span> Real-time CPM Data</span>
-                  <span className="flex items-center gap-2"><span className="grid h-6 w-6 place-items-center rounded-full bg-yt-red-bg"><Globe2 className="h-3.5 w-3.5 text-yt-red" /></span> Country & Niche Insights</span>
-                  <span className="flex items-center gap-2"><span className="grid h-6 w-6 place-items-center rounded-full bg-yt-red-bg"><Sparkles className="h-3.5 w-3.5 text-yt-red" /></span> Simple & Easy to Use</span>
-                </div>
+
+              <Reveal delay={0.18}>
+                <ul className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+                  {HERO_POINTS.map((p) => {
+                    const Icon = p.icon;
+                    return (
+                      <li key={p.title} className="flex items-center gap-2">
+                        <span className={`grid h-8 w-8 place-items-center rounded-full ${p.tint}`}>
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        <span>
+                          <span className="block text-[12.5px] font-bold leading-tight text-heading">{p.title}</span>
+                          <span className="block text-[11.5px] leading-tight text-[#7c8a9c]">{p.sub}</span>
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
               </Reveal>
-              <Reveal delay={0.26}>
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <a href="#calculator" className="group inline-flex items-center gap-2 rounded-full bg-yt-red px-7 py-3.5 text-sm font-bold text-white shadow-[0_4px_20px_rgba(255,0,0,0.35)] transition-all duration-300 hover:bg-yt-red-hover hover:shadow-[0_6px_28px_rgba(255,0,0,0.45)] hover:scale-105">
-                    Calculate my earnings <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </a>
-                  <Link href="/cpm-by-country" className="inline-flex items-center gap-2 rounded-full border-2 border-border bg-white px-6 py-3 text-sm font-semibold text-heading transition-all duration-300 hover:border-yt-red hover:text-yt-red hover:shadow-md">
-                    <Globe2 className="h-4 w-4" /> CPM by Country
+            </div>
+
+            <Reveal delay={0.1} className="relative">
+              {/* contain, never cover: cropping this render decapitates the
+                  character at some breakpoints. Letterboxing is invisible
+                  because the art is masked into the hero gradient. */}
+              <div className="relative mx-auto mb-2 h-[280px] w-full max-w-[400px] sm:h-[340px] sm:max-w-[480px] lg:mx-0 lg:mb-0 lg:h-[400px] lg:max-w-none xl:h-[470px] 2xl:h-[540px]">
+                <Image
+                  src="/hero-illustration.webp"
+                  alt="3D illustration of a creator beside a laptop showing estimated YouTube earnings and CPM"
+                  fill
+                  priority
+                  sizes="(max-width: 640px) 400px, (max-width: 1024px) 480px, 50vw"
+                  className="hero-art object-contain object-center"
+                />
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════ CALCULATOR ══════ */}
+      <section id="calculator" className="relative scroll-mt-24 bg-white pb-8 sm:pb-10">
+        <div className="shell">
+          <div className="relative -mt-4 sm:-mt-6">
+            <Calculator />
+          </div>
+        </div>
+      </section>
+
+      {/* ══════ WHY USE ══════ */}
+      <section className="section-y bg-white">
+        <div className="shell">
+          <Reveal>
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="display-2">
+                Why Use Our <span className="text-yt-red">YouTube CPM Calculator</span>?
+              </h2>
+              <p className="mt-3 text-[14px] leading-relaxed text-[#5b6b80]">
+                Get accurate YouTube earnings estimates and insights to plan your content strategy better.
+              </p>
+            </div>
+          </Reveal>
+
+          <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:gap-5">
+            {WHY.map((w, i) => {
+              const Icon = w.icon;
+              return (
+                <Reveal key={w.title} delay={i * 0.05}>
+                  <div className="card card-hover h-full p-5 xl:p-6">
+                    <span className={`grid h-11 w-11 place-items-center rounded-xl ${w.tint}`}>
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <h3 className="mt-4 text-[15px] font-extrabold text-heading">{w.title}</h3>
+                    <p className="mt-1.5 text-[12.5px] leading-relaxed text-[#5b6b80]">{w.copy}</p>
+                  </div>
+                </Reveal>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════ CPM BY COUNTRY + NICHE ══════ */}
+      <section className="bg-surface py-7 sm:py-9">
+        <div className="shell">
+          <div className="grid gap-4 lg:grid-cols-2 xl:gap-5 2xl:grid-cols-[1.08fr_0.92fr]">
+            {/* Country */}
+            <Reveal>
+              <div className="card h-full overflow-hidden">
+                <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-3.5">
+                  <h2 className="text-[15px] font-extrabold text-heading">YouTube CPM by Country</h2>
+                  <Link href="/cpm-by-country" className="inline-flex items-center gap-1 text-[12px] font-bold text-blue hover:gap-2 transition-all">
+                    View All Countries <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </div>
-              </Reveal>
-            </div>
-
-            {/* Hero visual */}
-            <Reveal delay={0.15}>
-              <div className="relative mx-auto max-w-md lg:max-w-none">
-                <div className="animate-float">
-                  <Image src="/images/hero-illustration.png" alt="YouTube CPM Calculator illustration" width={560} height={420} className="w-full drop-shadow-2xl" priority />
-                </div>
-                {/* Floating earnings card */}
-                <div className="absolute -bottom-4 -left-4 rounded-xl bg-white p-4 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.15)] sm:p-5">
-                  <p className="text-[11px] font-medium text-fog">Estimated Monthly Earnings</p>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="num-mono font-display text-3xl font-bold text-heading">$825</span>
-                    <span className="flex items-center gap-0.5 rounded-full bg-mint-bg px-2 py-0.5 text-[10px] font-bold text-mint">
-                      <TrendingUp className="h-3 w-3" /> +12%
-                    </span>
+                <div className="grid gap-2 sm:grid-cols-[1.05fr_0.95fr] xl:grid-cols-[1fr_1.05fr]">
+                  <ul className="divide-y divide-border/70 px-3 py-2">
+                    {COUNTRY_ORDER.map((c) => (
+                      <li key={c.slug}>
+                        <Link href={`/cpm-by-country/${c.slug}`} className="group flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-yt-red-light">
+                          <Image src={flagUrl(c.code, "w40")} alt={`${c.name} flag`} width={24} height={17} className="!h-[17px] !w-6 rounded-[3px] object-cover" unoptimized />
+                          <span className="flex-1 truncate text-[12.5px] font-semibold text-[#4a5a6e] group-hover:text-heading">{c.name}</span>
+                          <span className="num-mono text-[12.5px] font-extrabold text-heading">
+                            {money(c.cpmLow, 2)} - {money(c.cpmHigh, 2)}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="hidden items-center justify-center px-2 py-3 sm:flex">
+                    <WorldMap className="h-auto w-full opacity-95" />
                   </div>
                 </div>
-                {/* Floating tag */}
-                <div className="absolute -right-2 -top-2 rounded-lg bg-yt-red px-3 py-1.5 text-[10px] font-bold leading-tight text-white shadow-lg sm:px-4 sm:py-2">
-                  More Views<br />More Earnings
-                </div>
               </div>
             </Reveal>
-          </div>
-        </div>
-      </section>
 
-      {/* ══════ CALCULATOR — Full Width ══════ */}
-      <section className="w-full bg-surface py-10">
-        <div className="section-full mx-auto max-w-[1400px]">
-          <Reveal y={30}>
-            <div id="calculator" className="scroll-mt-20">
-              <Calculator />
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ══════ CPM STRIP with real flags ══════ */}
-      <section className="w-full border-y border-border bg-white py-5">
-        <div className="section-full mx-auto max-w-[1400px]">
-          <Reveal>
-            <div className="flex flex-wrap items-center justify-between gap-5">
-              <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-yt-red-bg transition-transform hover:scale-110"><Globe2 className="h-5 w-5 text-yt-red" /></span>
-                <div><p className="text-sm font-bold text-heading">Average CPM by Country</p></div>
-              </div>
-              <div className="flex flex-wrap items-center gap-6 sm:gap-8">
-                {TOP6.map((c) => {
-                  const avg = (c.cpmLow + c.cpmHigh) / 2;
-                  return (
-                    <Link key={c.slug} href={`/cpm-by-country/${c.slug}`} className="group flex items-center gap-2.5 transition-transform hover:scale-105">
-                      <Image src={flagUrl(c.code, "w40")} alt={c.name} width={28} height={20} className="flag-img !w-7 !h-5" unoptimized />
-                      <div className="text-center">
-                        <span className="block text-[10px] font-semibold text-fog">{c.code}</span>
-                        <span className="num-mono block text-sm font-bold text-yt-red">${avg.toFixed(2)}</span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-              <Link href="/cpm-by-country" className="flex items-center gap-1 text-xs font-bold text-yt-red transition-all hover:gap-2">View all <ArrowRight className="h-3 w-3" /></Link>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ══════ CPM BY NICHE — Full Width ══════ */}
-      <section className="w-full py-16">
-        <div className="section-full mx-auto max-w-[1400px]">
-          <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
-            <Reveal>
-              <div className="lg:sticky lg:top-20">
-                <div className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-full bg-yt-red-bg transition-transform hover:scale-110"><Layers className="h-5 w-5 text-yt-red" /></span>
-                  <div><p className="text-sm font-bold text-heading">CPM by Niche</p><span className="tag-red text-[10px]">Compare & Find Your Best Value</span></div>
-                </div>
-                <h2 className="mt-6 font-display text-3xl font-bold tracking-tight text-heading sm:text-4xl">CPM by Niche</h2>
-                <p className="mt-3 text-sm leading-relaxed text-fog">Different niches, different earnings. See how your niche performs compared to others.</p>
-                <Link href="/cpm-by-niche" className="group mt-7 inline-flex items-center gap-2 rounded-full border-2 border-yt-red bg-white px-6 py-3 text-sm font-bold text-yt-red transition-all duration-300 hover:bg-yt-red hover:text-white hover:shadow-[0_4px_20px_rgba(255,0,0,0.3)] hover:scale-105">
-                  View all niches <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </Link>
-              </div>
-            </Reveal>
-            <Reveal delay={0.08}>
-              <NicheRangeChart niches={NICHES_BY_CPM.slice(0, 6)} />
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════ GEOGRAPHY — Full Width ══════ */}
-      <section className="w-full border-y border-border bg-surface py-16">
-        <div className="section-full mx-auto max-w-[1400px]">
-          <Reveal>
-            <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-full bg-yt-red-bg"><Globe2 className="h-5 w-5 text-yt-red" /></span>
-              <div><p className="text-sm font-bold text-heading">Geography</p><span className="tag-red text-[10px]">Where Your Audience Pays More</span></div>
-            </div>
-            <h2 className="mt-6 font-display text-3xl font-bold tracking-tight text-heading sm:text-4xl">Geography</h2>
-            <p className="mt-3 max-w-lg text-sm leading-relaxed text-fog">CPM varies widely by country. Find out which regions offer the best rates for your content.</p>
-          </Reveal>
-          <div className="mt-10 grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-            <Reveal delay={0.05}><div className="panel p-6"><CountryBarChart countries={COUNTRIES_BY_CPM.slice(0, 8)} /></div></Reveal>
-            <Reveal delay={0.1}><CountryFlagCards countries={COUNTRIES_BY_CPM} /></Reveal>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════ CPM vs RPM — Full Width ══════ */}
-      <section className="w-full py-16">
-        <div className="section-full mx-auto max-w-[1400px]">
-          <Reveal>
-            <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-full bg-yt-red-bg"><BarChart3 className="h-5 w-5 text-yt-red" /></span>
-              <div><p className="text-sm font-bold text-heading">CPM vs RPM</p><span className="tag-red text-[10px]">Know the Difference</span></div>
-            </div>
-            <p className="mt-4 max-w-lg text-sm leading-relaxed text-fog">CPM is what advertisers pay. RPM is what you actually earn after YouTube&apos;s cut.</p>
-          </Reveal>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            {/* Niche */}
             <Reveal delay={0.06}>
-              <div className="panel p-7 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
-                <p className="text-xs font-bold uppercase tracking-wider text-fog">CPM</p>
-                <p className="num-mono mt-4 font-display text-5xl font-bold text-heading sm:text-6xl">{money(24)}</p>
-                <p className="mt-2 text-sm text-fog">per 1,000 views</p>
-                <p className="mt-4 text-xs text-fog">What advertisers pay</p>
-              </div>
-            </Reveal>
-            <Reveal delay={0.1}>
-              <div className="overflow-hidden rounded-xl bg-yt-red p-7 text-white shadow-[0_8px_32px_-8px_rgba(255,0,0,0.5)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_12px_40px_-8px_rgba(255,0,0,0.6)]">
-                <p className="text-xs font-bold uppercase tracking-wider text-white/60">YouTube Share</p>
-                <p className="num-mono mt-4 font-display text-5xl font-bold sm:text-6xl">−45%</p>
-                <p className="mt-2 text-sm text-white/80">of total revenue</p>
-                <p className="mt-4 text-xs text-white/50">You keep ~55%</p>
+              <div className="card h-full overflow-hidden">
+                <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-3.5">
+                  <h2 className="text-[15px] font-extrabold text-heading">YouTube CPM by Niche</h2>
+                  <Link href="/cpm-by-niche" className="inline-flex items-center gap-1 text-[12px] font-bold text-blue hover:gap-2 transition-all">
+                    View All Niches <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+                <ul className="divide-y divide-border/70 px-3 py-2">
+                  {NICHE_ROWS.map((row) => (
+                    <li key={row.slug}>
+                      <Link href={`/cpm-by-niche/${row.slug}`} className="group flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-yt-red-light">
+                        <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-md text-[13px] ${row.tint}`} aria-hidden>
+                          {row.icon}
+                        </span>
+                        <span className="flex-1 truncate text-[12.5px] font-semibold text-[#4a5a6e] group-hover:text-heading">{row.niche!.name}</span>
+                        <span className="num-mono text-[12.5px] font-extrabold text-heading">
+                          {money(row.niche!.cpmLow, 2)} - {money(row.niche!.cpmHigh, 2)}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </Reveal>
           </div>
         </div>
       </section>
 
-      {/* ══════ SEASONALITY — Full Width ══════ */}
-      <section className="w-full border-y border-border bg-surface py-16">
-        <div className="section-full mx-auto max-w-[1400px]">
-          <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
-            <Reveal>
-              <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-yt-red-bg"><BarChart3 className="h-5 w-5 text-yt-red" /></span>
-                <div><p className="text-sm font-bold text-heading">Seasonality</p><span className="tag-red text-[10px]">January Dip, December Gold Rush</span></div>
-              </div>
-              <p className="mt-5 max-w-md text-sm leading-relaxed text-fog">Your earnings can change throughout the year. Here&apos;s the seasonal trend based on historical data.</p>
-            </Reveal>
-            <Reveal delay={0.08}><SeasonChart seasons={SEASONS} /></Reveal>
-          </div>
-        </div>
-      </section>
+      {/* ══════ CHANNEL CHECK ══════ */}
+      <ChannelCheck cpm={DEFAULT_CPM} />
 
-      {/* ══════ FAQ — Full Width ══════ */}
-      <section className="w-full py-16">
-        <div className="section-full mx-auto max-w-[1400px]">
-          <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
-            <Reveal>
+      {/* ══════ FAQ ══════ */}
+      <section className="bg-white py-10 sm:py-12">
+        <div className="shell">
+          <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-start xl:gap-8 2xl:grid-cols-[1.3fr_0.7fr]">
+            <div>
+              <h2 className="display-sub mb-4">
+                Frequently Asked <span className="text-yt-red">Questions</span>
+              </h2>
+              <Faq items={FAQS} />
+            </div>
+
+            <aside className="rounded-2xl bg-[#fdf0f3] p-5 sm:p-6">
               <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-yt-red-bg"><SearchCheck className="h-5 w-5 text-yt-red" /></span>
-                <div><p className="text-sm font-bold text-heading">FAQ</p><span className="tag-red text-[10px]">Quick Answers</span></div>
+                <span className="grid h-11 w-11 place-items-center rounded-full bg-[#fde3c7]">
+                  <Lightbulb className="h-5 w-5 fill-[#f59e0b] text-[#f59e0b]" />
+                </span>
+                <h2 className="text-[15px] font-extrabold text-yt-red">Important Note</h2>
               </div>
-              <p className="mt-5 max-w-sm text-sm leading-relaxed text-fog">Get answers to the most common questions about YouTube CPM and earnings.</p>
-            </Reveal>
-            <Reveal delay={0.08}><Faq items={FAQS} /></Reveal>
+              <p className="mt-3 text-[12.5px] leading-relaxed text-[#5b6b80]">
+                This tool provides an estimated earnings based on average CPM rates. Actual YouTube earnings
+                may vary depending on factors like audience location, content type, ad formats, and seasonal demand.
+              </p>
+              <div className="mt-4 flex items-center gap-2 rounded-xl bg-white px-3 py-2.5">
+                <Sparkles className="h-4 w-4 shrink-0 text-yt-red" />
+                <p className="text-[11.5px] leading-snug text-[#5b6b80]">
+                  Benchmarks reviewed <strong className="font-bold text-heading">{DATA_UPDATED_AT}</strong> · {COUNTRIES.length} countries · {NICHES.length} niches
+                </p>
+              </div>
+              <Link href="/methodology" className="mt-3 inline-flex items-center gap-1 text-[12px] font-bold text-yt-red hover:gap-2 transition-all">
+                Read the methodology <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
+            </aside>
           </div>
         </div>
       </section>

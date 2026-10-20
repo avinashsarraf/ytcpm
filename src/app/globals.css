@@ -1,100 +1,295 @@
 @import "tailwindcss";
 
+/* ───────────────────────────────────────────────────────────────────────────
+   Design system — matched to the reference template:
+   navy headings, slate body copy, hot-pink/red gradient primary, soft pastel
+   metric tiles, 14–20px radii and diffuse shadows.
+   ─────────────────────────────────────────────────────────────────────────── */
 @theme {
   --color-ink: #ffffff;
   --color-panel: #ffffff;
-  --color-surface: #f9f9f9;
-  --color-surface-2: #f1f1f1;
-  --color-heading: #0f0f0f;
-  --color-yt-red: #ff0000;
-  --color-yt-red-hover: #cc0000;
-  --color-yt-red-light: #fff0f0;
-  --color-yt-red-bg: #fee2e2;
-  --color-yt-dark: #282828;
-  --color-mint: #0f766e;
-  --color-mint-bg: #f0fdfa;
-  --color-gold: #a16207;
-  --color-fog: #606060;
-  --color-border: #e5e5e5;
+  --color-surface: #f7f9fc;
+  --color-surface-2: #eef2f7;
+  --color-heading: #0b1626;
+  --color-navy: #0b1626;
 
-  --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-space), var(--font-inter), sans-serif;
-  --font-serif: var(--font-instrument), Georgia, serif;
+  /* #ee1249 keeps white-on-red at 4.6:1 (WCAG AA). */
+  --color-yt-red: #ee1249;
+  --color-yt-red-hover: #d30b3e;
+  --color-yt-red-deep: #a8062f;
+  --color-yt-red-light: #fef0f3;
+  --color-yt-red-bg: #fde4ea;
+  --color-flame: #fa4128;
+  --color-magenta: #e1318c;
+  --color-yt-dark: #0b1626;
+
+  --color-mint: #0e9f6e;
+  --color-mint-bg: #e7f9ef;
+  --color-gold: #b45309;
+  --color-amber: #f59e0b;
+  --color-amber-bg: #fef5dc;
+  --color-blue: #3b82f6;
+  --color-blue-bg: #e8f0fb;
+  --color-pink: #ef4a6e;
+  --color-pink-bg: #fde9ef;
+
+  --color-fog: #64748b;
+  --color-border: #e8eef5;
+
+  --font-body: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-jakarta), var(--font-body), sans-serif;
+  --font-serif: Georgia, "Times New Roman", serif;
   --font-mono: var(--font-jbmono), ui-monospace, monospace;
+
+  --shadow-card: 0 1px 2px rgba(11, 22, 38, 0.04), 0 8px 24px -12px rgba(11, 22, 38, 0.12);
+  --shadow-float: 0 2px 6px rgba(11, 22, 38, 0.05), 0 24px 60px -24px rgba(11, 22, 38, 0.22);
 }
 
-html { scroll-behavior: smooth; }
-body { background: var(--color-ink); color: #333; font-family: var(--font-body); overflow-x: hidden; }
+html {
+  scroll-behavior: smooth;
+  /* Stop iOS landscape from inflating text unpredictably. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+img, svg, video { max-width: 100%; }
+:focus-visible { outline: 2px solid var(--color-yt-red); outline-offset: 2px; }
+
+/* ─── Skip link ─── */
+.skip-link {
+  position: fixed; top: -100px; left: 1rem; z-index: 100;
+  padding: 0.65rem 1rem; border-radius: 0.5rem;
+  background: var(--color-navy); color: #fff;
+  font-size: 0.875rem; font-weight: 600;
+  transition: top 0.15s ease;
+}
+.skip-link:focus { top: 0.75rem; }
+
+body {
+  background: var(--color-ink); color: var(--color-fog);
+  font-family: var(--font-body); overflow-x: hidden;
+  min-width: 320px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4 { text-wrap: balance; }
+p, li, figcaption { text-wrap: pretty; }
+
 ::selection { background: var(--color-yt-red); color: #fff; }
 ::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: #f1f1f1; }
-::-webkit-scrollbar-thumb { background: #ccc; border-radius: 8px; }
-::-webkit-scrollbar-thumb:hover { background: #999; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-/* ─── Panels ─── */
+/* ─── Cards ─── */
+.card {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-card);
+}
+.card-hover { transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease; }
+.card-hover:hover {
+  transform: translateY(-3px);
+  border-color: #dbe4ee;
+  box-shadow: 0 2px 6px rgba(11, 22, 38, 0.05), 0 20px 44px -20px rgba(11, 22, 38, 0.2);
+}
+
+/* Legacy alias — older pages still use .panel. */
 .panel {
   background: var(--color-panel); border: 1px solid var(--color-border);
   border-radius: 1rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 6px 20px -6px rgba(0,0,0,0.06);
+  box-shadow: var(--shadow-card);
   transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
 }
-.panel:hover {
-  box-shadow: 0 2px 6px rgba(0,0,0,0.06), 0 12px 32px -8px rgba(0,0,0,0.1);
-}
+.panel:hover { box-shadow: 0 2px 6px rgba(11, 22, 38, 0.05), 0 16px 36px -18px rgba(11, 22, 38, 0.18); }
 .panel-lift:hover {
   transform: translateY(-4px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.06), 0 16px 40px -8px rgba(0,0,0,0.12);
-  border-color: rgba(255,0,0,0.2);
+  border-color: rgba(238, 18, 73, 0.25);
+  box-shadow: 0 4px 8px rgba(11, 22, 38, 0.05), 0 20px 44px -18px rgba(11, 22, 38, 0.2);
 }
-
 .hairline { border-color: var(--color-border); }
 
-/* ─── Text gradients ─── */
+/* ─── Gradients ─── */
+.hot-gradient {
+  background-image: linear-gradient(90deg, #fa4128 0%, #ee1249 58%, #e20d63 100%);
+}
+.hot-gradient:hover {
+  background-image: linear-gradient(90deg, #ee3a22 0%, #d90b3f 58%, #cc0a58 100%);
+}
+.text-hot-gradient {
+  background-image: linear-gradient(90deg, #f8382c 0%, #ee1249 55%, #ea2f86 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+/* Legacy aliases */
 .text-yt-gradient {
-  background: linear-gradient(135deg, #0f0f0f 30%, #ff0000 100%);
+  background-image: linear-gradient(90deg, #f8382c 0%, #ee1249 55%, #ea2f86 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 .text-gradient-green {
-  background: linear-gradient(135deg, #047857, #0f766e);
+  background-image: linear-gradient(135deg, #0e9f6e, #0b8f7a);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 
-/* ─── Tags ─── */
+/* ─── Pills / tags ─── */
 .tag {
   display: inline-flex; align-items: center; gap: 0.375rem;
   padding: 0.3rem 0.75rem; border-radius: 9999px;
-  font-size: 0.75rem; font-weight: 500;
-  border: 1px solid var(--color-border); background: var(--color-panel); color: var(--color-fog);
+  font-size: 0.75rem; font-weight: 600;
+  border: 1px solid var(--color-border); background: #fff; color: #475569;
   transition: all 0.2s;
 }
 .tag:hover { border-color: var(--color-yt-red); color: var(--color-yt-red); }
 .tag-red {
-  border-color: rgba(255,0,0,0.2); background: var(--color-yt-red-light);
-  color: var(--color-yt-red); font-weight: 600;
+  border-color: rgba(238, 18, 73, 0.18); background: var(--color-yt-red-light);
+  color: var(--color-yt-red); font-weight: 700;
 }
 
 .eyebrow {
-  font-family: var(--font-mono); font-size: 0.7rem;
-  letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--color-yt-red); font-weight: 600;
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-size: 0.75rem; letter-spacing: 0.02em;
+  color: var(--color-yt-red); font-weight: 700;
 }
-.num-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* ─── Type scale ─── */
+.display-hero {
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 3.5vw, 4.15rem);
+  line-height: 1.06; letter-spacing: -0.035em; font-weight: 800;
+  color: var(--color-heading);
+}
+.display-1 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3vw, 3.5rem);
+  line-height: 1.08; letter-spacing: -0.033em; font-weight: 800;
+  color: var(--color-heading);
+}
+.display-2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.55rem, 2.1vw, 2.35rem);
+  line-height: 1.14; letter-spacing: -0.028em; font-weight: 800;
+  color: var(--color-heading);
+}
+.display-sub {
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 1.5vw, 1.65rem);
+  line-height: 1.2; letter-spacing: -0.022em; font-weight: 800;
+  color: var(--color-heading);
+}
+.display-3 {
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  line-height: 1.35; letter-spacing: -0.012em; font-weight: 700;
+  color: var(--color-heading);
+}
+.accent-serif { font-family: var(--font-display); font-style: normal; font-weight: 800; }
+
+.lede {
+  font-size: clamp(0.98rem, 0.95vw, 1.1875rem);
+  line-height: 1.65; color: #5b6b80; max-width: 60ch;
+}
+.body-copy { font-size: 0.9375rem; line-height: 1.7; color: #5b6b80; }
+.measure { max-width: 62ch; }
+.measure-tight { max-width: 48ch; }
+.meta {
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: #7c8a9c;
+}
+.num-mono { font-variant-numeric: tabular-nums; }
+
+/* ─── Layout shell ───
+   Full-bleed by design: the page uses the whole viewport, gutters grow with it,
+   and the 1760px stop only exists so 4K monitors do not stretch a table to
+   unreadable widths. Everything inside is grid-based, so each breakpoint
+   reflows rather than simply scaling. */
+.shell {
+  width: 100%;
+  margin-inline: auto;
+  /* Edge-to-edge on a 1920 display; the cap only stops a 4K/5K monitor from
+     stretching a four-column table into unreadable strips. */
+  max-width: 1920px;
+  padding-inline: clamp(1rem, 2.4vw, 3.5rem);
+}
+.shell-narrow {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 92ch;
+  padding-inline: clamp(1rem, 2.4vw, 3.5rem);
+}
+
+/* ─── Section rhythm ─── */
+.section-y {
+  padding-top: clamp(2.75rem, 5vw, 5rem);
+  padding-bottom: clamp(2.75rem, 5vw, 5rem);
+}
+.section-head { display: flex; flex-direction: column; gap: 0.75rem; }
+
+/* Long-form copy keeps a readable measure even on a 2560px display. */
+.prose { max-width: 74ch; }
+.prose h2 { margin-top: 2.25rem; }
+.prose p, .prose li { line-height: 1.75; }
+
+/* ─── Hero ─── */
+.hero-shell {
+  background:
+    radial-gradient(52rem 34rem at 88% 18%, rgba(255, 138, 116, 0.55), transparent 62%),
+    radial-gradient(40rem 30rem at 72% 88%, rgba(255, 178, 205, 0.6), transparent 65%),
+    radial-gradient(36rem 26rem at 98% 96%, rgba(224, 176, 246, 0.55), transparent 68%),
+    linear-gradient(102deg, #fafbff 0%, #faf7fe 26%, #fceef8 48%, #fde3ee 66%, #fdd0d3 84%, #ffbba8 100%);
+}
+/* The render's own pastel backdrop melts into the hero gradient. */
+.hero-art {
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.4) 7%, #000 17%),
+    linear-gradient(to bottom, #000 90%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.4) 7%, #000 17%),
+    linear-gradient(to bottom, #000 90%, transparent 100%);
+  mask-composite: intersect;
+}
+
+/* ─── Tiles ─── */
+.tile {
+  border-radius: 0.9rem; padding: 1rem 1.1rem;
+  display: flex; align-items: center; gap: 0.9rem;
+  border: 1px solid transparent;
+}
+.tile-mint { background: #eafaf1; border-color: rgba(14, 159, 110, 0.12); }
+.tile-blue { background: #eaf1fb; border-color: rgba(59, 130, 246, 0.12); }
+.tile-amber { background: #fdf5e1; border-color: rgba(245, 158, 11, 0.14); }
+.tile-pink { background: #fdeaf0; border-color: rgba(239, 74, 110, 0.14); }
 
 /* ─── Flag images ─── */
 .flag-img {
   width: 32px; height: 22px; border-radius: 3px; object-fit: cover;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  box-shadow: 0 1px 3px rgba(11, 22, 38, 0.18);
   transition: transform 0.25s ease;
 }
-.flag-img:hover, .group:hover .flag-img { transform: scale(1.15); }
+.flag-img:hover, .group:hover .flag-img { transform: scale(1.08); }
 
-/* ─── Full-width sections ─── */
+/* ─── Full-width sections (legacy alias of .shell gutters) ─── */
 .section-full {
-  width: 100%; padding-left: 1rem; padding-right: 1rem;
+  width: 100%;
+  padding-left: clamp(1rem, 2.4vw, 3.5rem);
+  padding-right: clamp(1rem, 2.4vw, 3.5rem);
 }
-@media (min-width: 640px) { .section-full { padding-left: 1.5rem; padding-right: 1.5rem; } }
-@media (min-width: 1024px) { .section-full { padding-left: 2.5rem; padding-right: 2.5rem; } }
-@media (min-width: 1280px) { .section-full { padding-left: 4rem; padding-right: 4rem; } }
+
+/* ─── Touch targets ───
+   Anything tappable keeps a 44px hit area on coarse pointers. */
+@media (pointer: coarse) {
+  .tap { min-height: 44px; min-width: 44px; }
+  .tap-row > * { min-height: 44px; }
+}
+
+/* ─── Horizontal data tables ───
+   Below their breakpoint, tables scroll instead of squeezing columns into
+   unreadable slivers. */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.table-scroll > table { min-width: 640px; }
 
 /* ─── Slider ─── */
 input[type="range"].slider {
@@ -103,41 +298,57 @@ input[type="range"].slider {
 }
 input[type="range"].slider::-webkit-slider-runnable-track {
   height: 6px; border-radius: 99px;
-  background: linear-gradient(90deg, #ff0000 var(--fill, 30%), #e5e5e5 var(--fill, 30%));
+  background: linear-gradient(90deg, #ee1249 var(--fill, 30%), #e8eef5 var(--fill, 30%));
 }
 input[type="range"].slider::-webkit-slider-thumb {
   -webkit-appearance: none; margin-top: -9px;
   width: 24px; height: 24px; border-radius: 50%;
-  background: #fff; border: 3px solid #ff0000;
-  box-shadow: 0 0 0 5px rgba(255,0,0,0.1), 0 2px 8px rgba(0,0,0,0.15);
+  background: #fff; border: 3px solid #ee1249;
+  box-shadow: 0 0 0 5px rgba(238, 18, 73, 0.1), 0 2px 8px rgba(11, 22, 38, 0.18);
   transition: box-shadow 0.2s, transform 0.2s;
 }
 input[type="range"].slider::-webkit-slider-thumb:hover {
   transform: scale(1.15);
-  box-shadow: 0 0 0 8px rgba(255,0,0,0.15), 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 0 0 8px rgba(238, 18, 73, 0.14), 0 2px 8px rgba(11, 22, 38, 0.18);
 }
-input[type="range"].slider::-moz-range-track { height: 6px; border-radius: 99px; background: #e5e5e5; }
-input[type="range"].slider::-moz-range-progress { height: 6px; border-radius: 99px; background: #ff0000; }
-input[type="range"].slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 3px solid #ff0000; }
+input[type="range"].slider::-moz-range-track { height: 6px; border-radius: 99px; background: #e8eef5; }
+input[type="range"].slider::-moz-range-progress { height: 6px; border-radius: 99px; background: #ee1249; }
+input[type="range"].slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 3px solid #ee1249; }
 
-/* ─── Select ─── */
+/* ─── Select / input ─── */
 .select-field {
   width: 100%; appearance: none;
   background: #fff; border: 1px solid var(--color-border);
-  border-radius: 0.625rem; padding: 0.65rem 2.4rem 0.65rem 0.875rem;
-  font-size: 0.875rem; color: var(--color-heading);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23606060' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 0.75rem center;
+  border-radius: 0.7rem; padding: 0.7rem 2.4rem 0.7rem 0.875rem;
+  font-size: 0.875rem; font-weight: 600; color: var(--color-heading);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 0.8rem center;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-.select-field:hover { border-color: #bbb; }
-.select-field:focus { outline: none; border-color: #ff0000; box-shadow: 0 0 0 3px rgba(255,0,0,0.08); }
+.select-field:hover { border-color: #cbd5e1; }
+.select-field:focus { outline: none; border-color: #ee1249; box-shadow: 0 0 0 3px rgba(238, 18, 73, 0.1); }
 .select-field option { background: #fff; color: var(--color-heading); }
 
-/* ─── Hover link underline ─── */
-.link-hover {
-  position: relative; transition: color 0.2s;
+.field {
+  width: 100%; border: 1px solid var(--color-border); border-radius: 0.7rem;
+  background: #fff; padding: 0.7rem 0.875rem; font-size: 0.875rem; font-weight: 600;
+  color: var(--color-heading); transition: border-color 0.2s, box-shadow 0.2s;
 }
+.field::placeholder { color: #94a3b8; font-weight: 500; }
+.field:focus { outline: none; border-color: #ee1249; box-shadow: 0 0 0 3px rgba(238, 18, 73, 0.1); }
+
+/* iOS zooms the page when a focused control is under 16px. Keep controls at
+   16px on small screens so the calculator never jumps mid-entry. */
+@media (max-width: 640px) {
+  .field, .select-field, select, input[type="text"], input[type="number"] { font-size: 16px; }
+}
+
+/* Long numbers must never push a tile wider than its column. */
+.tile { min-width: 0; }
+.tile > span { min-width: 0; }
+
+/* ─── Links ─── */
+.link-hover { position: relative; transition: color 0.2s; }
 .link-hover::after {
   content: ''; position: absolute; left: 0; bottom: -2px;
   width: 0; height: 2px; background: var(--color-yt-red);
@@ -146,12 +357,10 @@ input[type="range"].slider::-moz-range-thumb { width: 18px; height: 18px; border
 .link-hover:hover::after { width: 100%; }
 .link-hover:hover { color: var(--color-yt-red); }
 
-/* ─── Decorative blobs ─── */
-.blob-pink { background: radial-gradient(closest-side, rgba(254,202,202,0.5), transparent); }
-
-/* ─── Noise ─── */
+/* ─── Decorative ─── */
+.blob-pink { background: radial-gradient(closest-side, rgba(253, 196, 214, 0.55), transparent); }
 .bg-noise {
-  position: fixed; inset: 0; z-index: 50; pointer-events: none; opacity: 0.015;
+  position: fixed; inset: 0; z-index: 50; pointer-events: none; opacity: 0.012;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -166,4 +375,13 @@ input[type="range"].slider::-moz-range-thumb { width: 18px; height: 18px; border
 .animate-shimmer {
   background: linear-gradient(90deg, transparent 30%, rgba(255,255,255,0.6) 50%, transparent 70%);
   background-size: 200% 100%; animation: shimmer 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
