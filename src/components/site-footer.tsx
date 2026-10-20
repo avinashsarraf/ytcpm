@@ -4,6 +4,7 @@ import { COUNTRIES, NICHES, DATA_YEAR } from "@/lib/data";
 import { LEGAL_POLICIES } from "@/lib/legal";
 
 const TOOLS = [
+  { label: "All Creator Tools", href: "/tools", icon: Calculator },
   { label: "YouTube CPM Calculator", href: "/youtube-cpm-calculator", icon: Calculator },
   { label: "YouTube RPM Calculator", href: "/youtube-rpm-calculator", icon: Calculator },
   { label: `CPM by Country (${COUNTRIES.length})`, href: "/cpm-by-country", icon: Globe2 },

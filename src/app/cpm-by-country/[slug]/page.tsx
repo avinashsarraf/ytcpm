@@ -1,3 +1,4 @@
+import Calculator from "@/components/calculator";
 import type { Metadata } from "next";
 import { BenchmarkNotice } from "@/components/source-notice";
 import Link from "next/link";
@@ -18,6 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     description: `YouTube CPM in ${c.name} model range is $${c.cpmLow}–$${c.cpmHigh} (≈ ${localMoney(c.cpmLow, c, 0)}–${localMoney(c.cpmHigh, c, 0)}) in ${DATA_YEAR}.`,
     alternates: { canonical: `/cpm-by-country/${c.slug}` },
     openGraph: {
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "YTCPM: YouTube country and niche earnings scenarios" }],
       type: "article",
       title: `YouTube CPM in ${c.name} ${DATA_YEAR}: $${c.cpmLow}–$${c.cpmHigh}`,
       description: `CPM and RPM benchmarks for ${c.name} with local-currency conversions (${c.currency}).`,
@@ -25,6 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       siteName: "ytcpm.online",
     },
     twitter: {
+      images: ["/opengraph-image"],
       card: "summary_large_image",
       title: `YouTube CPM in ${c.name} ${DATA_YEAR}`,
       description: `CPM $${c.cpmLow}–$${c.cpmHigh} · RPM benchmarks in ${c.currency}.`,
@@ -89,6 +92,7 @@ export default async function CountryPage({ params }: { params: Promise<{ slug: 
           </div>
 
           <BenchmarkNotice />
+          <section id="calculator" className="mt-10 scroll-mt-24"><h2 className="display-sub mb-4">{country.name} earnings calculator</h2><p className="mb-5 text-sm leading-7 text-fog">Adjust views, audience country and niche to compare directional scenarios. Defaults are model assumptions, not verified payouts. <Link href="/tools" className="font-semibold text-yt-red underline">Explore more creator tools</Link>.</p><Calculator initialCountrySlug={ country.slug } /></section>
 
           <Reveal delay={0.08}><h2 className="mt-12 display-sub sm:mt-14">Full-fill Ad Earnings Scenarios</h2>
             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:gap-4">
@@ -109,7 +113,7 @@ export default async function CountryPage({ params }: { params: Promise<{ slug: 
 
           <section className="mt-14 grid gap-8 pb-4 lg:grid-cols-2">
             <div><h2 className="display-3">Similar Markets</h2><div className="mt-4 flex flex-wrap gap-2">{related.map((c) => (<Link key={c.slug} href={`/cpm-by-country/${c.slug}`} className="group rounded-full border border-border bg-white px-4 py-1.5 text-xs font-medium text-fog hover:border-yt-red/40 hover:text-heading">{c.code} {c.name}</Link>))}</div></div>
-            <div className="panel relative overflow-hidden p-6"><h2 className="display-3">Calculate in {country.currency}</h2><p className="mt-2 text-sm text-fog">Get your exact number with the calculator.</p><Link href="/#calculator" className="group mt-4 inline-flex items-center gap-2 rounded-full bg-yt-red px-5 py-2.5 text-sm font-semibold text-white hover:bg-yt-red-hover">Open Calculator<ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" /></Link></div>
+            <div className="panel relative overflow-hidden p-6"><h2 className="display-3">Calculate in {country.currency}</h2><p className="mt-2 text-sm text-fog">Explore a local-currency scenario with editable assumptions.</p><Link href="#calculator" className="group mt-4 inline-flex items-center gap-2 rounded-full bg-yt-red px-5 py-2.5 text-sm font-semibold text-white hover:bg-yt-red-hover">Open Calculator<ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" /></Link></div>
           </section>
         </div>
       </article>

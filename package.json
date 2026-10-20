@@ -16,7 +16,9 @@
     "test:seo": "node scripts/smoke-seo.mjs",
     "test:branding": "node scripts/smoke-branding.mjs",
     "test:country-selector": "node scripts/smoke-country-selector.mjs",
-    "test:animation": "node scripts/smoke-animation.mjs"
+    "test:animation": "node scripts/smoke-animation.mjs",
+    "test:creator-tools": "node scripts/smoke-creator-tools.mjs",
+    "images:tools": "node scripts/generate-tool-images.mjs"
   },
   "dependencies": {
     "dotenv": "17.3.1",

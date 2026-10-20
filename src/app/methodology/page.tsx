@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import { SourceLinks } from "@/components/source-notice";
 import ProsePage from "@/components/prose-page";
@@ -8,12 +9,7 @@ import {
   US_BLENDED_CPM, SEASONS, money,
 } from "@/lib/data";
 
-export const metadata: Metadata = {
-  title: `Methodology — How we estimate ${DATA_YEAR} CPM & RPM`,
-  description:
-    `How ytcpm.online builds its ${DATA_YEAR} YouTube CPM/RPM benchmarks: sources, formulas, seasonality, FX handling and limitations.`,
-  alternates: { canonical: "/methodology" },
-};
+export const metadata: Metadata = pageMetadata(`Methodology — How we estimate ${DATA_YEAR} CPM & RPM`, `How ytcpm.online builds its ${DATA_YEAR} YouTube CPM/RPM benchmarks: sources, formulas, seasonality, FX handling and limitations.`, "/methodology");
 
 const Section = ({ icon: Icon, title, children }: { icon: typeof Globe2; title: string; children: React.ReactNode }) => (
   <section className="mt-10">

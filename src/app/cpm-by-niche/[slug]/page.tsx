@@ -1,3 +1,4 @@
+import Calculator from "@/components/calculator";
 import type { Metadata } from "next";
 import { BenchmarkNotice } from "@/components/source-notice";
 import Link from "next/link";
@@ -19,6 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     description: `Explore a directional ${n.name} CPM model of $${n.cpmLow}–$${n.cpmHigh} for US audiences, with full-fill ad RPM assumptions and limitations.`,
     alternates: { canonical: `/cpm-by-niche/${n.slug}` },
     openGraph: {
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "YTCPM: YouTube country and niche earnings scenarios" }],
       type: "article",
       title: `${n.name} CPM ${DATA_YEAR}: $${n.cpmLow}–$${n.cpmHigh}`,
       description: `${n.name} niche benchmarks: CPM, RPM and per-1M-view earnings.`,
@@ -26,6 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       siteName: "ytcpm.online",
     },
     twitter: {
+      images: ["/opengraph-image"],
       card: "summary_large_image",
       title: `${n.name} CPM ${DATA_YEAR}`,
       description: `CPM $${n.cpmLow}–$${n.cpmHigh} · RPM $${(n.cpmLow * CREATOR_SHARE).toFixed(2)}–$${(n.cpmHigh * CREATOR_SHARE).toFixed(2)}.`,
@@ -90,6 +93,7 @@ export default async function NichePage({ params }: { params: Promise<{ slug: st
           </div>
 
           <BenchmarkNotice />
+          <section id="calculator" className="mt-10 scroll-mt-24"><h2 className="display-sub mb-4">{niche.name} earnings calculator</h2><p className="mb-5 text-sm leading-7 text-fog">Adjust views, audience country and niche to compare directional scenarios. Defaults are model assumptions, not verified payouts. <Link href="/tools" className="font-semibold text-yt-red underline">Explore more creator tools</Link>.</p><Calculator initialNicheSlug={ niche.slug } /></section>
 
           <Reveal delay={0.08}><h2 className="mt-14 display-sub">Full-fill Ad Earnings Scenarios</h2>
             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:gap-4">
@@ -110,7 +114,7 @@ export default async function NichePage({ params }: { params: Promise<{ slug: st
 
           <section className="mt-14 grid gap-8 pb-4 lg:grid-cols-2">
             <div><h2 className="display-3">Related Niches</h2><div className="mt-4 flex flex-wrap gap-2">{related.map((n) => { const RIcon = NICHE_ICONS[n.icon]; return (<Link key={n.slug} href={`/cpm-by-niche/${n.slug}`} className="group flex items-center gap-1.5 rounded-full border border-border bg-white px-3.5 py-1.5 text-xs font-medium text-fog hover:border-yt-red/40 hover:text-heading"><RIcon className="h-3 w-3 group-hover:text-yt-red" />{n.name}</Link>); })}</div></div>
-            <div className="panel p-6"><h2 className="display-3">Run your numbers</h2><p className="mt-2 text-sm text-fog">Your views × {niche.name.toLowerCase()} rates — modeled with explicit assumptions.</p><Link href="/#calculator" className="group mt-4 inline-flex items-center gap-2 rounded-full bg-yt-red px-5 py-2.5 text-sm font-semibold text-white hover:bg-yt-red-hover">Open Calculator<ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" /></Link></div>
+            <div className="panel p-6"><h2 className="display-3">Run your numbers</h2><p className="mt-2 text-sm text-fog">Your views × {niche.name.toLowerCase()} rates — modeled with explicit assumptions.</p><Link href="#calculator" className="group mt-4 inline-flex items-center gap-2 rounded-full bg-yt-red px-5 py-2.5 text-sm font-semibold text-white hover:bg-yt-red-hover">Open Calculator<ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" /></Link></div>
           </section>
         </div>
       </article>

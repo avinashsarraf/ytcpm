@@ -42,6 +42,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
   other: { "data-snapshot-date": DATA_UPDATED_AT },
   openGraph: {
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "YTCPM: YouTube country and niche earnings scenarios" }],
     type: "website",
     siteName: "ytcpm.online",
     title: `YouTube CPM Calculator ${DATA_YEAR} — Check Rates by Country & Niche`,
@@ -50,6 +51,7 @@ export const metadata: Metadata = {
     url: "https://ytcpm.online",
   },
   twitter: {
+      images: ["/opengraph-image"],
     card: "summary_large_image",
     title: `YouTube CPM Calculator ${DATA_YEAR} — ytcpm.online`,
     description:

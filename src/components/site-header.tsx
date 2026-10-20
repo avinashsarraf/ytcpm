@@ -17,7 +17,7 @@ const LINKS = [
   { href: "/cpm-by-country", label: "Country CPM" },
   { href: "/cpm-by-niche", label: "Niche CPM" },
   { href: "/guides", label: "Guides" },
-  { href: "/about", label: "About" },
+  { href: "/tools", label: "Creator Tools" },
 ];
 
 export default function SiteHeader() {

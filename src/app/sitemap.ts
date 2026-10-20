@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { CREATOR_TOOLS, CREATOR_TOOLS_UPDATED } from "@/lib/creator-tools";
 import { LEGAL_POLICIES, LEGAL_UPDATED } from "@/lib/legal";
 import { CONTENT_UPDATED, GUIDES } from "@/lib/editorial";
 import { COUNTRIES, NICHES, DATA_UPDATED_AT } from "@/lib/data";
@@ -32,5 +33,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const editorialRoutes: MetadataRoute.Sitemap = ["/youtube-cpm-calculator", "/youtube-rpm-calculator", "/guides", "/sources", "/contact", ...GUIDES.map(g => `/guides/${g.slug}`)].map(path => ({ url: BASE + path, lastModified: new Date(`${CONTENT_UPDATED}T00:00:00Z`) }));
   const legalRoutes: MetadataRoute.Sitemap = ["/legal", ...LEGAL_POLICIES.map(p => p.path)].map(path => ({ url: BASE + path, lastModified: new Date(`${LEGAL_UPDATED}T00:00:00Z`), changeFrequency: "yearly", priority: 0.3 }));
-  return [...legalRoutes, ...staticRoutes, ...countryRoutes, ...nicheRoutes, ...editorialRoutes];
+  const toolRoutes: MetadataRoute.Sitemap = ["/tools", ...CREATOR_TOOLS.map(t => "/" + t.slug)].map(path => ({ url: BASE + path, lastModified: new Date(`${CREATOR_TOOLS_UPDATED}T00:00:00Z`) }));
+  return [...toolRoutes, ...legalRoutes, ...staticRoutes, ...countryRoutes, ...nicheRoutes, ...editorialRoutes];
 }

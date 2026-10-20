@@ -8,7 +8,7 @@ export const contentType = "image/png";
 const STATS = [
   { label: "Countries", value: String(COUNTRIES.length) },
   { label: "Niches", value: String(NICHES.length) },
-  { label: "US blended CPM", value: `$${US_BLENDED_CPM}` },
+  { label: "US model CPM", value: `$${US_BLENDED_CPM}` },
   { label: "Currencies", value: String(COUNTRIES.length) },
 ];
 
@@ -45,7 +45,7 @@ export default function OpengraphImage() {
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", fontSize: 30, fontWeight: 700, color: "#0f0f0f" }}>ytcpm.online</div>
-            <div style={{ display: "flex", fontSize: 20, color: "#606060" }}>{DATA_YEAR} benchmark data</div>
+            <div style={{ display: "flex", fontSize: 20, color: "#606060" }}>{DATA_YEAR} planning model</div>
           </div>
         </div>
 

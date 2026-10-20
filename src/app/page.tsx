@@ -8,6 +8,7 @@ import {
 import CpmRateTicker from "@/components/cpm-rate-ticker";
 import LearningSection from "@/components/learning-section";
 import { pageMetadata } from "@/lib/seo";
+import CreatorToolCards from "@/components/creator-tool-cards";
 import Calculator from "@/components/calculator";
 import Faq from "@/components/faq";
 import { Reveal } from "@/components/motion";
@@ -260,6 +261,7 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="bg-white py-10 sm:py-14"><div className="shell"><div className="mb-6 flex flex-wrap items-end justify-between gap-4"><div><p className="tag-red w-fit text-[11px]">The creator toolkit</p><h2 className="mt-3 display-sub">Plan your next milestone</h2><p className="mt-3 text-sm leading-7 text-fog">Shorts earnings, revenue targets and audience planning—with formulas you can check.</p></div><Link href="/tools" className="min-h-11 py-3 text-sm font-bold text-yt-red">Explore all creator tools →</Link></div><CreatorToolCards slugs={["youtube-shorts-earnings-calculator", "youtube-views-to-money-calculator", "youtube-revenue-goal-calculator"]} /></div></section>
       <LearningSection />
 
       {/* ══════ FAQ ══════ */}

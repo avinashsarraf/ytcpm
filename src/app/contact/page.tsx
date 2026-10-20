@@ -1,13 +1,10 @@
+import { pageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import ProsePage from "@/components/prose-page";
 import { Mail, MessageSquare, Database } from "lucide-react";
 import { DATA_UPDATED_AT } from "@/lib/data";
 
-export const metadata: Metadata = {
-  title: "Contact",
-  description: "Contact ytcpm.online — data corrections, feedback, partnerships and privacy requests.",
-  alternates: { canonical: "/contact" },
-};
+export const metadata: Metadata = pageMetadata("Contact", "Contact ytcpm.online — data corrections, feedback, partnerships and privacy requests.", "/contact");
 
 const CHANNELS = [
   {

@@ -14,11 +14,11 @@ const LOG_MAX = Math.log10(MAX_VIEWS + 1);
 const eyebrow = "flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] sm:text-[11px]";
 
 /** Local-only scenario planner. Neither the rate assumptions nor FX are live feeds. */
-export default function Calculator() {
+export default function Calculator({ initialCountrySlug = "united-states", initialNicheSlug = DEFAULT_NICHE.slug }: { initialCountrySlug?: string; initialNicheSlug?: string } = {}) {
   const [views, setViews] = useState(100_000);
   const [viewsText, setViewsText] = useState("100,000");
-  const [nicheSlug, setNicheSlug] = useState(DEFAULT_NICHE.slug);
-  const [countrySlug, setCountrySlug] = useState("united-states");
+  const [nicheSlug, setNicheSlug] = useState(initialNicheSlug);
+  const [countrySlug, setCountrySlug] = useState(initialCountrySlug);
   const [type, setType] = useState<"long" | "shorts">("long");
   const [seasonKey, setSeasonKey] = useState("annual");
   const [advanced, setAdvanced] = useState(false);

@@ -1,15 +1,11 @@
+import { pageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import ProsePage from "@/components/prose-page";
 import Link from "next/link";
 import { ArrowRight, Database, Globe2, Layers, ShieldCheck, Sparkles } from "lucide-react";
 import { COUNTRIES, NICHES, DATA_YEAR, DATA_UPDATED_AT, VIEW_PRESETS, viewsLabel } from "@/lib/data";
 
-export const metadata: Metadata = {
-  title: "About ytcpm.online — free YouTube CPM & RPM calculator",
-  description:
-    "Why ytcpm.online exists, what it covers, and how it stays free. An independent YouTube CPM calculator with 2026 benchmarks for 23 countries and 18 niches.",
-  alternates: { canonical: "/about" },
-};
+export const metadata: Metadata = pageMetadata("About ytcpm.online — free YouTube CPM & RPM calculator", "Why ytcpm.online exists, what it covers, and how it stays free. An independent YouTube CPM calculator with 2026 benchmarks for 23 countries and 18 niches.", "/about");
 
 export default function AboutPage() {
   return (
