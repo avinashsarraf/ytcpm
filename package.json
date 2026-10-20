@@ -15,7 +15,8 @@
     "test:ui": "node scripts/smoke-ui.mjs",
     "test:seo": "node scripts/smoke-seo.mjs",
     "test:branding": "node scripts/smoke-branding.mjs",
-    "test:country-selector": "node scripts/smoke-country-selector.mjs"
+    "test:country-selector": "node scripts/smoke-country-selector.mjs",
+    "test:animation": "node scripts/smoke-animation.mjs"
   },
   "dependencies": {
     "dotenv": "17.3.1",

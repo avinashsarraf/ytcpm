@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useId, useRef, useState } from "react";
+import { Fragment, useEffect, useId, useRef, useState } from "react";
 import { Check, ChevronDown, Globe, Search, X } from "lucide-react";
 import { currencySymbol, type Country } from "@/lib/data";
 import { flagUrl } from "@/lib/flags";
@@ -20,6 +20,8 @@ export default function CountrySelector({ countries, value, onChange }: { countr
   const list = useRef<HTMLUListElement>(null);
   const id = useId();
   const matches = countries.filter(c => `${c.name} ${c.code} ${c.currency} ${currencySymbol(c)}`.toLowerCase().includes(query.trim().toLowerCase()));
+  const groupName = (c: Country) => c.code === "WW" ? "Worldwide" : ["", "Tier 1 — Premium rates", "Tier 2 — Strong", "Tier 3 — Emerging", "Tier 4 — Volume"][c.tier];
+  const groupId = (c: Country) => `${id}-tier-${c.code === "WW" ? "worldwide" : c.tier}`;
   const close = (restoreFocus = false) => { setOpen(false); if (restoreFocus) trigger.current?.focus(); };
   const select = (country: Country) => { onChange(country.slug); close(true); };
   useEffect(() => {
@@ -45,7 +47,7 @@ export default function CountrySelector({ countries, value, onChange }: { countr
         if (event.key === "Enter") { event.preventDefault(); if (matches[active]) select(matches[active]); }
       }} className="min-h-12 w-full min-w-0 bg-transparent text-sm text-heading outline-none" /><button type="button" aria-label="Close country search" onClick={() => close(true)} className="grid h-11 w-8 shrink-0 place-items-center rounded-md text-fog hover:text-yt-red"><X aria-hidden="true" className="h-4 w-4" /></button></div>
       <p role="status" className="px-2 py-2 text-xs text-fog">{matches.length ? `${matches.length} ${matches.length === 1 ? "country" : "countries"} · Results use the selected currency` : "No countries found. Try another name or currency code."}</p>
-      <ul ref={list} role="listbox" id={`${id}-list`} aria-label="Countries" className="max-h-60 overflow-y-auto overscroll-contain">{matches.map((c, i) => <li role="option" tabIndex={-1} aria-selected={c.slug === value.slug} id={`${id}-${c.slug}`} key={c.slug} data-index={i} onMouseMove={() => setActive(i)} onClick={() => select(c)} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-lg px-3 py-3 text-sm ${i === active ? "bg-yt-red-light text-heading" : "text-fog hover:bg-surface"}`}><Flag country={c} /><span className="min-w-0 flex-1 break-words">{c.name}</span><span className="shrink-0 font-mono text-xs">{c.currency} · {currencySymbol(c)}</span>{c.slug === value.slug ? <Check aria-hidden="true" className="h-4 w-4 shrink-0 text-mint" /> : <span aria-hidden="true" className="w-4 shrink-0" />}</li>)}</ul>
+      <ul ref={list} role="listbox" id={`${id}-list`} aria-label="Countries" className="max-h-60 overflow-y-auto overscroll-contain">{matches.map((c, i) => <Fragment key={c.slug}>{(i === 0 || groupId(matches[i - 1]) !== groupId(c)) && <li role="presentation" id={groupId(c)} className="sticky top-0 z-10 border-y border-border bg-surface px-3 py-2.5 text-xs font-bold text-heading">{groupName(c)}</li>}<li aria-describedby={groupId(c)} role="option" tabIndex={-1} aria-selected={c.slug === value.slug} id={`${id}-${c.slug}`} key={c.slug} data-index={i} onMouseMove={() => setActive(i)} onClick={() => select(c)} className={`scroll-mt-10 flex min-h-12 cursor-pointer items-center gap-3 rounded-lg px-3 py-3 text-sm ${i === active ? "bg-yt-red-light text-heading" : "text-fog hover:bg-surface"}`}><Flag country={c} /><span className="min-w-0 flex-1 break-words">{c.name}</span><span className="shrink-0 font-mono text-xs">{c.currency} · {currencySymbol(c)}</span>{c.slug === value.slug ? <Check aria-hidden="true" className="h-4 w-4 shrink-0 text-mint" /> : <span aria-hidden="true" className="w-4 shrink-0" />}</li></Fragment>)}</ul>
     </div>}
   </div>;
 }
