@@ -67,10 +67,10 @@ monthly = (views / 1000) × rpm`}</code></pre>
 
         <Section icon={TrendingUp} title="Shorts formula">
           <p>
-            The public homepage models long-form only. The API has a separate, unverified Shorts scenario with a base range of{" "}
+            The homepage and API offer a separate, unverified Shorts scenario with a base range of{" "}
             <strong className="text-heading">$0.02–$0.08 RPM per 1,000 views</strong> for the configured view-count input (not a guaranteed payout),
             scaled by a country factor (floored at 25% of US rates) and a modest niche tier factor
-            (S 1.25×, A 1.15×, B 1.00×, C 0.85×). These parameters are model assumptions, not official benchmarks. YouTube describes Studio Shorts RPM using engaged views; use matching engaged views and creator revenue in the dedicated RPM tool for a report-based calculation.
+            (S 1.25×, A 1.15×, B 1.00×, C 0.85×). These parameters are model assumptions, not official benchmarks. The homepage Shorts input is labeled engaged views; no extra long-form 55% deduction or ad-fill factor is applied. YouTube describes Studio Shorts RPM using engaged views; use matching engaged views and creator revenue in the dedicated RPM tool for a report-based calculation.
           </p>
         </Section>
 

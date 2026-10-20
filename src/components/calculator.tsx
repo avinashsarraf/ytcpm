@@ -1,382 +1,91 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import {
-  Calculator as CalcIcon, Eye, DollarSign, Globe, BarChart3, Users,
-  ArrowRight, SlidersHorizontal,
-} from "lucide-react";
-import {
-  COUNTRIES, NICHES, SEASONS, CREATOR_SHARE, money, viewsLabel,
-} from "@/lib/data";
-
-import { WORLDWIDE, DEFAULT_NICHE, MAX_CPM, MAX_VIEWS, benchmarkCpm as getBenchmarkCpm, revenueFromCpm, parseViews } from "@/lib/calculator";
-
-/**
- * Reference-style calculator: views + CPM + country on one row, quick-view
- * chips, and four pastel metric tiles. The CPM field is pre-filled from the
- * reference benchmark for the chosen niche/country but stays editable, so visitors
- * who already know their CPM can type it and the ones who don't get a value.
- */
+import { useState, type CSSProperties } from "react";
+import { ArrowRight, BarChart3, CalendarDays, Clock3, Eye, Gauge, Globe, Layers, SlidersHorizontal, TrendingUp, Zap } from "lucide-react";
+import { COUNTRIES, NICHES, SEASONS, CREATOR_SHARE, DATA_YEAR, countryMultiplier, estimateEarnings, localMoney, money, viewsLabel, fxNote } from "@/lib/data";
+import { WORLDWIDE, DEFAULT_NICHE, MAX_CPM, MAX_VIEWS, benchmarkCpm, parseViews } from "@/lib/calculator";
 
 const QUICK = [1_000, 10_000, 100_000, 1_000_000, 10_000_000, 50_000_000];
-const DEFAULT_VIEWS = 1_000_000;
+const MARKETS = [WORLDWIDE, ...COUNTRIES];
+const num = (value: number) => value.toLocaleString("en-US");
+const LOG_MAX = Math.log10(MAX_VIEWS + 1);
+const eyebrow = "flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] sm:text-[11px]";
 
-
-const COUNTRIES_WITH_WORLD = [WORLDWIDE, ...COUNTRIES];
-const num = (n: number) => n.toLocaleString("en-US");
-const TABS = [
-  { id: "cpm", label: "Earnings Estimate", icon: CalcIcon },
-  { id: "views", label: "Earnings by Views", icon: BarChart3 },
-  { id: "channel", label: "Channel Estimator", icon: Users },
-] as const;
-type TabId = (typeof TABS)[number]["id"];
-
+/** Local-only scenario planner. Neither the rate assumptions nor FX are live feeds. */
 export default function Calculator() {
-  const [tab, setTab] = useState<TabId>("cpm");
-  const [views, setViews] = useState(DEFAULT_VIEWS);
-  const [viewsText, setViewsText] = useState(num(DEFAULT_VIEWS));
+  const [views, setViews] = useState(100_000);
+  const [viewsText, setViewsText] = useState("100,000");
   const [nicheSlug, setNicheSlug] = useState(DEFAULT_NICHE.slug);
-  const [countrySlug, setCountrySlug] = useState("worldwide");
+  const [countrySlug, setCountrySlug] = useState("united-states");
+  const [type, setType] = useState<"long" | "shorts">("long");
   const [seasonKey, setSeasonKey] = useState("annual");
   const [advanced, setAdvanced] = useState(false);
-
-  const niche = NICHES.find((n) => n.slug === nicheSlug) ?? NICHES[0];
-  const country = COUNTRIES_WITH_WORLD.find((c) => c.slug === countrySlug) ?? WORLDWIDE;
-  const season = SEASONS.find((s) => s.q === seasonKey);
-  const seasonMult = season?.mult ?? 1;
-
-  const benchmarkCpm = useMemo(
-    () => getBenchmarkCpm(niche, country, seasonMult),
-    [niche, country, seasonMult]
-  );
-
-  /* Derived, not synced: the benchmark is the value until the visitor types
-     their own CPM, and clearing the override snaps it back to the benchmark. */
-  const [cpmOverride, setCpmOverride] = useState<string | null>(null);
   const [adShare, setAdShare] = useState(1);
-  const cpm = cpmOverride === null || cpmOverride === "" ? benchmarkCpm : Number(cpmOverride);
-  const { gross, creator: afterShare } = revenueFromCpm(views, cpm, adShare);
-  const fill70 = revenueFromCpm(views, cpm, 0.7).creator;
+  const [cpmOverride, setCpmOverride] = useState<string | null>(null);
+  const [local, setLocal] = useState(false);
+  const [mode, setMode] = useState("cpm");
+  const niche = NICHES.find(n => n.slug === nicheSlug) ?? DEFAULT_NICHE;
+  const country = MARKETS.find(c => c.slug === countrySlug) ?? WORLDWIDE;
+  const season = SEASONS.find(s => s.q === seasonKey)?.mult ?? 1;
+  const benchmark = benchmarkCpm(niche, country, season);
+  const custom = cpmOverride !== null && cpmOverride !== "";
+  const cpm = custom ? Number(cpmOverride) : benchmark;
+  const range = estimateEarnings({ views, niche, country, type, season, monetizedShare: adShare });
+  const cpmLow = custom ? cpm : range.cpmLow;
+  const cpmHigh = custom ? cpm : range.cpmHigh;
+  const rpmLow = type === "shorts" ? range.rpmLow : cpmLow * CREATOR_SHARE * adShare;
+  const rpmHigh = type === "shorts" ? range.rpmHigh : cpmHigh * CREATOR_SHARE * adShare;
+  const rpm = (rpmLow + rpmHigh) / 2;
+  const monthly = views / 1000 * rpm;
+  const format = (usd: number, digits?: number) => local ? localMoney(usd, country, digits) : money(usd, digits);
+  const currency = local ? country.currency : "USD";
+  const updateViews = (value: number) => { setViews(value); setViewsText(num(value)); };
+  const changeViewsText = (raw: string) => { const value = parseViews(raw); setViews(value); setViewsText(raw.replace(/[^\d]/g, "") ? num(value) : ""); };
+  const resetBenchmark = () => setCpmOverride(null);
 
-  const setViewsFromInput = (raw: string) => {
-    const value = parseViews(raw);
-    setViews(value);
-    setViewsText(raw.replace(/[^\d]/g, "") ? num(value) : "");
-  };
-
-  return (
-    <>
-      <noscript><p className="mb-4 rounded-xl border border-border bg-surface p-4 text-sm text-heading">Enable JavaScript to use the interactive calculator. You can still browse the country and niche benchmark pages.</p></noscript>
-      <div className="card overflow-hidden !rounded-[20px] !shadow-[0_2px_6px_rgba(11,22,38,0.05),0_24px_60px_-24px_rgba(11,22,38,0.22)]">
-        <div className="p-4 sm:p-6 xl:p-8">
-        <p className="mb-3 text-sm leading-relaxed">This tool estimates earnings from a CPM you enter or a model benchmark. To find your rate from report inputs, use the <a href="/youtube-cpm-calculator" className="font-semibold text-yt-red underline">CPM calculator</a> or <a href="/youtube-rpm-calculator" className="font-semibold text-yt-red underline">RPM calculator</a>.</p>
-        {/* ── Tabs ── */}
-        <div className="grid grid-cols-3 gap-1 rounded-xl border border-border bg-white p-1 sm:gap-1.5 sm:p-1.5" role="group" aria-label="Calculator mode">
-          {TABS.map((t) => {
-            const active = tab === t.id;
-            const Icon = t.icon;
-            return (
-              <button
-                key={t.id}
-                aria-pressed={active}
-                onClick={() => setTab(t.id)}
-                className={`flex min-h-[76px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-lg px-1.5 py-2 text-[12px] leading-snug font-bold transition-all duration-200 sm:text-[14px] md:min-h-12 md:flex-row md:gap-2 md:px-3 ${
-                  active
-                    ? "hot-gradient text-white shadow-[0_6px_18px_-6px_rgba(238,18,73,0.6)]"
-                    : "text-[#4a5a6e] hover:bg-surface"
-                }`}
-              >
-                <Icon className="h-4 w-4 shrink-0" />
-                <span className="min-w-0 whitespace-normal text-center [overflow-wrap:anywhere]">{t.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="mt-4 rounded-xl border border-border bg-surface px-3 py-3 sm:px-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm font-semibold text-heading">Results update instantly as you type</p>
-            <button type="button" onClick={() => setAdvanced((v) => !v)} aria-expanded={advanced} aria-controls="calculator-assumptions" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border bg-white px-3 text-sm font-bold text-yt-red hover:bg-yt-red-light">
-              <SlidersHorizontal className="h-4 w-4" />{advanced ? "Hide assumptions" : "Edit assumptions"}
-            </button>
+  return <>
+    <noscript><p className="mb-4 rounded-xl border border-border p-4">Enable JavaScript for interactive estimates. Country, niche and methodology pages remain readable without it.</p></noscript>
+    <div data-home-calculator className="overflow-hidden rounded-[24px] border border-border bg-white shadow-[0_18px_55px_-24px_rgba(11,22,38,0.22)]">
+      <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="min-w-0 p-4 sm:p-7 xl:p-8">
+          <div className="flex flex-wrap items-center justify-between gap-3"><h2 className={`${eyebrow} text-yt-red`}><Gauge aria-hidden="true" className="h-4 w-4" />Build your earnings estimate</h2><span className="rounded-full border border-mint/30 bg-mint/5 px-3 py-1.5 font-mono text-[10px] font-semibold text-mint">{DATA_YEAR} MODEL · NOT LIVE</span></div>
+          <div className="mt-7 flex items-center justify-between gap-4"><label htmlFor="monthly-views" className="flex items-center gap-2 text-sm font-semibold text-fog"><Eye aria-hidden="true" className="h-4 w-4 text-yt-red" />{type === "shorts" ? "Monthly engaged views" : "Monthly views"}</label><input id="monthly-views" aria-label={mode === "channel" ? "Channel monthly views" : "Total views"} inputMode="numeric" value={viewsText} onChange={e => changeViewsText(e.target.value)} onBlur={() => setViewsText(num(views))} className="w-[52%] min-w-0 rounded-lg border border-transparent bg-transparent p-2 text-right font-mono text-xl font-bold tracking-tight text-heading hover:border-border focus:border-yt-red sm:text-2xl" /></div>
+          <input aria-label="Monthly views slider" aria-valuetext={`${num(views)} ${type === "shorts" ? "engaged " : ""}views per month`} type="range" min="0" max="100" step="0.01" value={Math.log10(views + 1) / LOG_MAX * 100} onChange={e => updateViews(Math.min(MAX_VIEWS, Math.round(10 ** (Number(e.target.value) / 100 * LOG_MAX) - 1)))} style={{ "--fill": `${Math.log10(views + 1) / LOG_MAX * 100}%` } as CSSProperties} className="slider mt-3" />
+          <div role="group" aria-label="Quick view presets" className="mt-1 grid grid-cols-3 gap-1 sm:grid-cols-6">{QUICK.map(v => <button key={v} type="button" aria-pressed={views === v} onClick={() => updateViews(v)} className={`min-h-11 rounded-lg px-1 text-xs font-semibold transition-colors ${views === v ? "bg-yt-red-light text-yt-red" : "text-fog hover:bg-surface"}`}>{viewsLabel(v)}</button>)}</div>
+          <div className="mt-5 space-y-5">
+            <label className="block"><span className="mb-2 flex items-center gap-2 text-sm font-semibold text-fog"><Layers aria-hidden="true" className="h-4 w-4 text-yt-red" />Channel niche</span><select aria-label="Channel niche" className="select-field min-h-12" value={nicheSlug} onChange={e => { setNicheSlug(e.target.value); resetBenchmark(); }}>{NICHES.map(n => <option key={n.slug} value={n.slug}>{n.name}{type === "long" ? ` — $${n.cpmLow}–$${n.cpmHigh} US CPM` : ""}</option>)}</select></label>
+            <label className="block"><span className="mb-2 flex items-center justify-between gap-2 text-sm font-semibold text-fog"><span className="flex items-center gap-2"><Globe aria-hidden="true" className="h-4 w-4 text-yt-red" />Audience country</span><span className="rounded border border-mint/25 px-2 py-0.5 font-mono text-[10px] text-mint">{country.currency}</span></span><select aria-label="Audience country" className="select-field min-h-12" value={countrySlug} onChange={e => { setCountrySlug(e.target.value); resetBenchmark(); }}>{MARKETS.map(c => <option key={c.slug} value={c.slug}>{c.name} ({c.currency})</option>)}</select></label>
+            <fieldset><legend className="mb-2 flex items-center gap-2 text-sm font-semibold text-fog"><Clock3 aria-hidden="true" className="h-4 w-4 text-yt-red" />Content type</legend><div className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-surface p-1">{([['long', 'Long-form', 'Watch-page ad scenario'], ['shorts', 'Shorts', 'Engaged-view RPM scenario']] as const).map(([id, label, detail]) => <button key={id} type="button" aria-pressed={type === id} onClick={() => setType(id)} className={`min-h-[64px] min-w-0 rounded-lg p-3 text-left transition-colors ${type === id ? "hot-gradient text-white shadow-md" : "text-fog hover:bg-white"}`}><span className="block text-sm font-bold">{label}</span><span className={`mt-1 block text-[10px] leading-relaxed ${type === id ? "text-white/90" : "text-fog"}`}>{detail}</span></button>)}</div></fieldset>
           </div>
-          <p className="mt-1 text-sm leading-relaxed text-[#4a5a6e]" data-assumptions-summary="">
-            {niche.name} · {countrySlug === "worldwide" ? "Worldwide (unweighted)" : country.name} · {seasonKey === "annual" ? "Annual baseline" : seasonKey} · {money(cpm, 2)} {cpmOverride === null || cpmOverride === "" ? "benchmark" : "custom"} CPM · {Math.round(adShare * 100)}% ad fill
-          </p>
-          {adShare === 1 && <p className="mt-2 inline-flex rounded-md bg-amber-bg px-2.5 py-1 text-sm font-semibold text-gold">100% ad fill — optimistic scenario, not a guaranteed payout</p>}
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-2"><button type="button" onClick={() => setAdvanced(!advanced)} aria-expanded={advanced} aria-controls="calculator-assumptions" className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold text-yt-red hover:bg-yt-red-light"><SlidersHorizontal aria-hidden="true" className="h-4 w-4" />{advanced ? "Hide assumptions" : "Edit assumptions"}</button><a href="#results" className="inline-flex min-h-11 items-center gap-2 px-2 text-sm font-semibold text-fog hover:text-yt-red">View Results<ArrowRight aria-hidden="true" className="h-4 w-4" /></a></div>
+          {advanced && <div id="calculator-assumptions" className="mt-3 space-y-4 rounded-xl border border-border bg-surface p-4">
+            <label className="block text-sm font-semibold text-heading">Season<select className="select-field mt-2" value={seasonKey} onChange={e => { setSeasonKey(e.target.value); resetBenchmark(); }}><option value="annual">Annual baseline (1.00×)</option>{SEASONS.map(s => <option key={s.q} value={s.q}>{s.q} · {s.label} ({s.mult.toFixed(2)}×)</option>)}</select></label>
+            {type === "long" ? <><label className="block text-sm font-semibold text-heading">Custom CPM (USD)<input aria-label="CPM in US dollars" inputMode="decimal" value={cpmOverride ?? String(benchmark)} onChange={e => { const raw = e.target.value === "." ? "0." : e.target.value; if (/^\d*(\.\d{0,4})?$/.test(raw) && Number(raw) <= MAX_CPM) setCpmOverride(raw); }} onBlur={() => { if (cpmOverride === "") resetBenchmark(); }} className="field mt-2" /></label><label className="block text-sm font-semibold text-heading">Views serving ads: {Math.round(adShare * 100)}%<input aria-label="Views serving ads" aria-valuetext={`${Math.round(adShare * 100)} percent`} type="range" min="0" max="100" step="5" value={Math.round(adShare * 100)} onChange={e => setAdShare(Number(e.target.value) / 100)} style={{ "--fill": `${adShare * 100}%` } as CSSProperties} className="slider mt-3" /></label><button type="button" onClick={resetBenchmark} className="min-h-11 text-sm font-semibold text-yt-red underline">Reset to model CPM</button></> : <p className="text-sm leading-relaxed text-fog">Shorts uses a separate, unverified RPM scenario. Long-form CPM, ad fill and the 55% watch-page share are not applied to Shorts.</p>}
+            <p className="text-xs leading-relaxed text-fog">Changing niche, country or season resets custom CPM. Worldwide is unweighted. Maximum {num(MAX_VIEWS)} views and {money(MAX_CPM)} CPM. All calculations stay in this browser.</p>
+          </div>}
         </div>
-            {advanced && (
-              <div id="calculator-assumptions" className="mt-3 grid gap-3 rounded-xl border border-border bg-surface p-3.5 sm:grid-cols-2 lg:grid-cols-4">
-                <label className="block">
-                  <span className="mb-1 block text-[12px] font-bold uppercase tracking-wide text-[#5b6b80]">Channel niche</span>
-                  <select value={nicheSlug} onChange={(e) => { setNicheSlug(e.target.value); setCpmOverride(null); }} className="select-field !py-2 !text-[13px]">
-                    {NICHES.map((n) => <option key={n.slug} value={n.slug}>{n.name}</option>)}
-                  </select>
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-[12px] font-bold uppercase tracking-wide text-[#5b6b80]">Season</span>
-                  <select value={seasonKey} onChange={(e) => { setSeasonKey(e.target.value); setCpmOverride(null); }} className="select-field !py-2 !text-[13px]">
-                    <option value="annual">Full year (1.00×)</option>
-                    {SEASONS.map((s) => <option key={s.q} value={s.q}>{s.q} · {s.label} ({s.mult.toFixed(2)}×)</option>)}
-                  </select>
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-[12px] font-bold uppercase tracking-wide text-[#5b6b80]">Audience location</span>
-                  <select value={countrySlug} onChange={(e) => { setCountrySlug(e.target.value); setCpmOverride(null); }} className="select-field">
-                    {COUNTRIES_WITH_WORLD.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
-                  </select>
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-[12px] font-bold uppercase tracking-wide text-[#64748b]">Views serving ads: {Math.round(adShare * 100)}%</span>
-                  <input aria-valuetext={`${Math.round(adShare * 100)} percent of views serving ads`} aria-label="Views serving ads" type="range" min="0" max="100" step="5" value={Math.round(adShare * 100)} onChange={(e) => setAdShare(Number(e.target.value) / 100)} className="slider" />
-                </label>
-                <p className="text-xs leading-relaxed sm:col-span-2 lg:col-span-4">
-                  Long-form model: one ad impression per monetized view. Country, niche or season changes reset a custom CPM to the benchmark. Worldwide is an unweighted market average. Maximum {num(MAX_VIEWS)} views and {money(MAX_CPM)} CPM.
-                </p>
-              </div>
-            )}
-
-        {/* ── Mode: CPM calculator ── */}
-        {tab === "cpm" && (
-          <>
-            <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-[1.1fr_0.85fr_1fr_auto] lg:items-end xl:gap-5">
-              <label className="block">
-                <span className="mb-1.5 block text-[13px] font-bold text-heading">Total Views</span>
-                <span className="relative block">
-                  <Eye className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />
-                  <input
-                    inputMode="numeric"
-                    value={viewsText}
-                    onChange={(e) => setViewsFromInput(e.target.value)}
-                    placeholder="e.g. 1,000,000"
-                    className="field field-with-icon"
-                    aria-label="Total views"
-                  />
-                </span>
-              </label>
-
-              <label className="block">
-                <span className="mb-1.5 block text-[13px] font-bold text-heading">CPM (USD)</span>
-                <span className="relative block">
-                  <DollarSign className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />
-                  <input
-                    inputMode="decimal"
-                    value={cpmOverride ?? String(benchmarkCpm)}
-                    onChange={(e) => {
-                      const next = e.target.value === "." ? "0." : e.target.value;
-                      if (/^\d*(\.\d{0,4})?$/.test(next) && Number(next) <= MAX_CPM) setCpmOverride(next);
-                    }}
-                    onBlur={() => { if (cpmOverride === "") setCpmOverride(null); }}
-                    placeholder={String(benchmarkCpm)}
-                    className="field field-with-icon"
-                    aria-label="CPM in US dollars"
-                  />
-                </span>
-              </label>
-
-              <label className="block">
-                <span className="mb-1.5 block text-[13px] font-bold text-heading">
-                  Country <span className="font-medium text-[#94a3b8]">(Optional)</span>
-                </span>
-                <span className="relative block">
-                  <Globe className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />
-                  <select
-                    value={countrySlug}
-                    onChange={(e) => { setCountrySlug(e.target.value); setCpmOverride(null); }}
-                    aria-label="Audience country"
-                    className="select-field field-with-icon"
-                  >
-                    <option value="worldwide">Worldwide (Average)</option>
-                    {([1, 2, 3, 4] as const).map((tier) => (
-                      <optgroup
-                        key={tier}
-                        label={["Tier 1 — Premium", "Tier 2 — Strong", "Tier 3 — Emerging", "Tier 4 — Volume"][tier - 1]}
-                      >
-                        {COUNTRIES.filter((c) => c.tier === tier).map((c) => (
-                          <option key={c.slug} value={c.slug}>{c.name} ({c.currency})</option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
-                </span>
-              </label>
-
-              <a
-                href="#results"
-                className="hot-gradient inline-flex h-[46px] w-full items-center justify-center gap-2 rounded-lg px-6 text-[13.5px] font-bold text-white shadow-[0_8px_20px_-8px_rgba(238,18,73,0.7)] transition-transform hover:scale-[1.02] lg:h-[42px] lg:w-auto"
-              >
-                <CalcIcon className="h-4 w-4" /> View Results <ArrowRight className="h-4 w-4" />
-              </a>
-            </div>
-
-            {/* Quick views */}
-            <div className="mt-4">
-              <p className="mb-2 text-[14px] font-semibold text-[#4a5a6e]">Quick Views</p>
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-6" role="group" aria-label="Quick view presets">
-              {QUICK.map((v) => {
-                const active = views === v;
-                return (
-                  <button
-                    key={v}
-                    type="button"
-                    onClick={() => { setViews(v); setViewsText(num(v)); }}
-                    aria-pressed={active}
-                    className={`min-h-11 min-w-0 rounded-lg border px-2 py-2 text-[14px] font-bold transition-all ${
-                      active
-                        ? "border-yt-red bg-yt-red-light text-yt-red"
-                        : "border-border text-[#4a5a6e] hover:border-yt-red/40 hover:text-yt-red"
-                    }`}
-                  >
-                    {viewsLabel(v)}
-                  </button>
-                );
-              })}
-              </div>
-            </div>
-
-
-          </>
-        )}
-
-        {/* ── Mode: earnings by views ── */}
-        {tab === "views" && (
-          <div className="mt-5">
-            <p className="text-[13px] text-[#64748b]">
-              Earnings for <strong className="text-heading">{niche.name}</strong> at a {money(cpm, 2)} CPM
-              ({countrySlug === "worldwide" ? "worldwide average" : country.name}).
-            </p>
-            <div className="mt-3 overflow-hidden rounded-xl border border-border">
-              <div className="grid grid-cols-3 gap-2 border-b border-border bg-surface px-4 py-2.5 text-[12px] font-bold uppercase tracking-wide text-[#5b6b80]">
-                <span>Views</span>
-                <span className="text-right">Gross ad revenue</span>
-                <span className="text-right">Creator earnings</span>
-              </div>
-              <div className="divide-y divide-border">
-                {QUICK.map((v) => {
-                  const g = revenueFromCpm(v, cpm, adShare).gross;
-                  return (
-                    <button
-                      key={v}
-                      type="button"
-                      onClick={() => { setViews(v); setViewsText(num(v)); setTab("cpm"); }}
-                      className="grid w-full grid-cols-3 gap-2 px-4 py-2.5 text-left transition-colors hover:bg-yt-red-light"
-                    >
-                      <span className="text-sm font-semibold text-heading">{viewsLabel(v)}</span>
-                      <span className="num-mono text-right text-sm text-[#4a5a6e]">{money(g)}</span>
-                      <span className="num-mono text-right text-sm font-bold text-mint">{money(g * CREATOR_SHARE)}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            <p className="mt-3 text-[12px] text-[#64748b]">
-              Tap a row to load it into the calculator. Creator estimates assume the selected ad fill and a{" "}
-              {Math.round(CREATOR_SHARE * 100)}% creator share.
-            </p>
-          </div>
-        )}
-
-        {/* ── Mode: channel estimator ── */}
-        {tab === "channel" && (
-          <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_1.15fr]">
-            <div className="space-y-3">
-              <label className="block">
-                <span className="mb-1.5 block text-[13px] font-bold text-heading">Monthly views</span>
-                <span className="relative block">
-                  <Eye className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />
-                  <input
-                    inputMode="numeric"
-                    value={viewsText}
-                    onChange={(e) => setViewsFromInput(e.target.value)}
-                    className="field field-with-icon"
-                    aria-label="Channel monthly views"
-                  />
-                </span>
-              </label>
-              <label className="block">
-                <span className="mb-1.5 block text-[13px] font-bold text-heading">Niche</span>
-                <select value={nicheSlug} onChange={(e) => { setNicheSlug(e.target.value); setCpmOverride(null); }} className="select-field">
-                  {NICHES.map((n) => <option key={n.slug} value={n.slug}>{n.name}</option>)}
-                </select>
-              </label>
-              <label className="block">
-                <span className="mb-1.5 block text-[13px] font-bold text-heading">Audience country</span>
-                <select value={countrySlug} onChange={(e) => { setCountrySlug(e.target.value); setCpmOverride(null); }} className="select-field">
-                  <option value="worldwide">Worldwide (Average)</option>
-                  {COUNTRIES.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
-                </select>
-              </label>
-            </div>
-
-            <div role="region" aria-label="Channel projection" className="rounded-xl border border-border bg-surface p-4">
-              <p className="text-[12px] font-bold uppercase tracking-wide text-[#5b6b80]">Channel projection</p>
-              <p className="num-mono mt-1 font-display text-3xl font-extrabold tracking-tight text-heading">
-                {money(afterShare)}
-                <span className="ml-1 text-[13px] font-semibold text-[#64748b]">/ month</span>
-              </p>
-              <dl className="mt-3 space-y-2 text-[13px]">
-                {[
-                  ["Annualized (same monthly rate)", money(afterShare * 12)],
-                  ["Q4 scenario / month", money(afterShare / seasonMult * Math.max(...SEASONS.map((s) => s.mult)))],
-                  ["Per 1,000 views", money(cpm * CREATOR_SHARE * adShare, 2)],
-                ].map(([k, v]) => (
-                  <div key={k} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-b border-border/70 pb-1.5 last:border-0 last:pb-0">
-                    <dt className="text-[#64748b]">{k}</dt>
-                    <dd className="num-mono font-bold text-heading">{v}</dd>
-                  </div>
-                ))}
-              </dl>
-              <p className="mt-3 text-[13px] leading-relaxed text-[#64748b]">
-                Estimates from the view count you enter — we never query YouTube&apos;s API or scrape a channel.
-              </p>
-            </div>
-            </div>
-          )}
-
+        <div id="results" role="region" aria-label="Earnings estimate" tabIndex={-1} className="min-w-0 scroll-mt-24 border-t border-border bg-gradient-to-br from-surface/80 to-white p-4 sm:p-7 lg:border-l lg:border-t-0 xl:p-8">
+          <div className="flex items-start justify-between gap-3"><h2 className={`${eyebrow} text-mint`}><TrendingUp aria-hidden="true" className="h-4 w-4 shrink-0" />Estimated monthly earnings</h2><button aria-label="Toggle result currency" type="button" disabled={country.currency === "USD"} onClick={() => setLocal(!local)} title={country.currency === "USD" ? "Values in US dollars" : `Switch to ${local ? "USD" : country.currency}`} className="min-h-11 shrink-0 rounded-lg bg-navy px-3 font-mono text-xs font-bold text-white disabled:cursor-default">{currency}</button></div>
+          <div aria-live="polite" aria-atomic="true" className="mt-4"><p className="break-all font-mono text-[clamp(2rem,4.3vw,3.75rem)] font-bold leading-tight tracking-tighter text-mint">{format(monthly)}</p><p className="mt-3 text-sm leading-relaxed text-fog">{custom && type === "long" ? "Custom CPM scenario" : "Model scenario range"} <strong className="font-mono text-heading">{format(views / 1000 * rpmLow)} – {format(views / 1000 * rpmHigh)}</strong> / month</p></div>
+          <dl className="mt-7 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">{[
+            { label: "Modeled ad-only RPM", value: `${format(rpmLow, 2)}–${format(rpmHigh, 2)}`, note: `per 1,000 ${type === "shorts" ? "engaged " : ""}views`, icon: BarChart3 },
+            { label: "Advertiser CPM", value: type === "shorts" ? "Not applicable" : `${format(cpmLow, 2)}–${format(cpmHigh, 2)}`, note: type === "shorts" ? "Shorts is modeled using RPM" : "per 1,000 ad impressions", icon: Zap },
+            { label: "Yearly projection", value: format(monthly * 12), note: "same monthly estimate × 12", icon: CalendarDays },
+            { label: "Per 1M views", value: format(rpm * 1000), note: "midpoint scenario, not a payout", icon: Eye },
+          ].map(({ label, value, note, icon: Icon }) => <div key={label} className="min-w-0 rounded-xl border border-border bg-white p-4 shadow-sm"><dt className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-fog"><Icon aria-hidden="true" className="h-3 w-3 shrink-0 text-yt-red" />{label}</dt><dd className="mt-2 break-all font-mono text-lg font-bold tracking-tight text-heading sm:text-xl">{value}</dd><p className="mt-1 text-xs leading-relaxed text-fog">{note}</p></div>)}</dl>
+          <aside className="mt-6 rounded-xl border border-yt-red/20 bg-yt-red-light/30 p-4 text-sm leading-relaxed text-fog"><strong className="text-heading">Scenario insight — </strong>{type === "shorts" ? "Shorts has a separate pooled-revenue model. These assumed RPM ranges are not verified averages or a conversion from long-form CPM." : <>The {country.slug === "worldwide" ? "unweighted worldwide" : country.name} model uses {countryMultiplier(country).toFixed(2)}× the US baseline. {custom ? "You are using a custom CPM instead of that benchmark." : "This multiplier is a planning assumption, not a measured channel rate."}</>}</aside>
+          <div data-assumptions-summary className="mt-5 text-xs leading-relaxed text-fog">{niche.name} · {country.name} · {seasonKey === "annual" ? "Annual baseline" : seasonKey} · {type === "long" ? `${money(cpm, 2)} ${custom ? "custom" : "benchmark"} CPM · ${Math.round(adShare * 100)}% ad fill` : "Shorts engaged-view scenario"}</div>
+          {type === "long" && adShare === 1 && <p className="mt-3 text-xs font-semibold leading-relaxed text-gold">100% ad fill — optimistic scenario, not a guaranteed payout</p>}
+          {country.currency !== "USD" && <p className="mt-3 text-xs leading-relaxed text-fog">{fxNote(country)} (approximate, not live). <button type="button" onClick={() => setLocal(!local)} className="min-h-11 font-semibold text-yt-red underline">Show {local ? "USD" : country.currency}</button></p>}
         </div>
       </div>
-
-      {/* Result tiles sit outside the card, as in the reference */}
-      <div role="region" aria-label="Earnings estimate" id="results" tabIndex={-1} className="mt-4 grid scroll-mt-24 grid-cols-1 min-[420px]:grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4 xl:gap-4">
-        <div className="tile tile-mint !px-3 !py-3 sm:!px-4">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#d3f3e1] text-mint sm:h-11 sm:w-11"><Eye className="h-5 w-5" /></span>
-          <span className="min-w-0">
-            <span title={num(views)} className="num-mono block break-all text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{num(views)}</span>
-            <span className="mt-0.5 block text-[12px] font-medium leading-tight text-[#5b6b80] sm:text-[13px]">{tab === "channel" ? "Monthly Views" : "Total Views"}</span>
-          </span>
-        </div>
-        <div className="tile tile-blue !px-3 !py-3 sm:!px-4">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#d8e6fa] text-blue"><DollarSign className="h-5 w-5" /></span>
-          <span className="min-w-0">
-            <span className="num-mono block break-all text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{money(cpm, 2)}</span>
-            <span className="mt-0.5 block text-[12px] font-medium leading-tight text-[#5b6b80] sm:text-[13px]">CPM (USD)</span>
-          </span>
-        </div>
-        <div className="tile tile-amber !px-3 !py-3 sm:!px-4">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#fbe9b8] text-[#c2810a]"><BarChart3 className="h-5 w-5" /></span>
-          <span className="min-w-0">
-            <span className="num-mono block break-all text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{money(gross)}</span>
-            <span className="mt-0.5 block text-[12px] font-medium leading-tight text-[#5b6b80] sm:text-[13px]">Gross Ad Revenue</span>
-          </span>
-        </div>
-        <div className="tile tile-pink !px-3 !py-3 sm:!px-4">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#fbd6e0] text-yt-red">
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
-              <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.6 3.6 12 3.6 12 3.6s-7.6 0-9.4.5A3 3 0 0 0 .5 6.2C0 8 0 12 0 12s0 4 .5 5.8a3 3 0 0 0 2.1 2.1c1.8.5 9.4.5 9.4.5s7.6 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 16 24 12 24 12s0-4-.5-5.8ZM9.6 15.6V8.4L15.8 12l-6.2 3.6Z" />
-            </svg>
-          </span>
-          <span className="min-w-0">
-            <span className="num-mono block break-all text-[17px] font-extrabold leading-tight tracking-tight text-heading sm:text-[19px] xl:text-[21px]">{money(afterShare)}</span>
-            <span className="mt-0.5 block text-[12px] font-medium leading-tight text-[#5b6b80] sm:text-[13px]">Creator Earnings ({Math.round(CREATOR_SHARE * 100)}%)</span>
-          </span>
-        </div>
-      </div>
-
-      <aside aria-label="Estimate limitations" className="mt-3 rounded-xl border border-border bg-surface px-4 py-3 text-sm leading-relaxed text-[#4a5a6e]">
-        <p className="font-semibold text-heading">Indicative long-form ad revenue only. Excludes taxes, sponsorships and other income.</p>
-        <p className="mt-1">Model: one ad impression per monetized view · {Math.round(CREATOR_SHARE * 100)}% creator share · {Math.round(adShare * 100)}% ad fill. For comparison, {viewsLabel(views)} views at an illustrative 70% fill return <strong>{money(fill70)}</strong> to the creator.</p>
-        <a href="/methodology" className="mt-1 inline-block py-1 font-semibold text-yt-red underline underline-offset-4">How this estimate works</a>
-      </aside>
-    </>
-  );
+      <div className="border-t border-border bg-surface px-4 py-4 text-center font-mono text-[10px] leading-relaxed tracking-wide text-fog sm:px-7">{type === "long" ? "EARNINGS = VIEWS ÷ 1,000 × CPM × 55% × AD FILL · ONE AD IMPRESSION PER MONETIZED VIEW" : "SHORTS SCENARIO = ENGAGED VIEWS ÷ 1,000 × ASSUMED SHORTS RPM · NO EXTRA 55% DEDUCTION"}</div>
+    </div>
+    <aside aria-label="Estimate limitations" className="mt-4 text-sm leading-relaxed text-fog"><p>Directional model assumptions, not verified averages or live YouTube data. Excludes taxes, sponsorships and other income. <a href="/methodology" className="font-semibold text-yt-red underline">How this estimate works</a>.</p><p className="mt-2">Have matching report inputs? Calculate your <a href="/youtube-cpm-calculator" className="font-semibold text-yt-red underline">CPM</a> or <a href="/youtube-rpm-calculator" className="font-semibold text-yt-red underline">RPM</a> directly. Studio is the source for your channel&apos;s actual metrics.</p></aside>
+    <details className="mt-5 rounded-xl border border-border p-4"><summary className="cursor-pointer py-2 text-sm font-semibold text-heading">Compare views &amp; channel projections</summary>
+      <div role="group" aria-label="Calculator mode" className="mt-4 grid grid-cols-3 gap-1 rounded-xl bg-surface p-1">{[["cpm", "Earnings Estimate"], ["views", "Earnings by Views"], ["channel", "Channel Estimator"]].map(([id, label]) => <button key={id} type="button" aria-pressed={mode === id} onClick={() => setMode(id)} className={`min-h-16 min-w-0 rounded-lg px-2 py-3 text-xs font-semibold sm:text-sm ${mode === id ? "hot-gradient text-white" : "text-fog"}`}><span className="block">{label}</span></button>)}</div>
+      {mode === "views" && <div className="mt-4 divide-y divide-border">{QUICK.map(v => <button key={v} type="button" onClick={() => { updateViews(v); setMode("cpm"); }} className="flex min-h-12 w-full flex-wrap items-center justify-between gap-2 py-3 text-left text-sm hover:text-yt-red"><span>{viewsLabel(v)} views</span><strong className="font-mono">{format(v / 1000 * rpm)} / month</strong></button>)}</div>}
+      {mode === "channel" && <div role="region" aria-label="Channel projection" className="mt-4 rounded-xl bg-surface p-4"><p className="text-sm text-fog">Projection for the monthly views entered above. We do not connect to or scrape a channel.</p><p className="mt-3 break-all font-mono text-2xl font-bold text-heading">{format(monthly)} / month</p><dl className="mt-3 text-sm"><dt>Per 1,000 {type === "shorts" ? "engaged " : ""}views</dt><dd className="font-mono font-bold">{format(rpm, 2)}</dd></dl></div>}
+    </details>
+  </>;
 }

@@ -39,10 +39,10 @@ try {
     console.log('PASS SEO HTML',path);
   }
   await page.goto(base);
-  assert.equal(await page.locator('details').count(),6);
-  assert((await page.locator('details').nth(4).textContent()).includes('owner authorization'));
-  await page.locator('summary').nth(4).click();
-  assert(await page.locator('details').nth(4).locator('p').isVisible(), 'FAQ works without JS');
+  assert.equal(await page.locator('details[id^="faq-"]').count(),6);
+  assert((await page.locator('details[id^="faq-"]').nth(4).textContent()).includes('owner authorization'));
+  await page.locator('details[id^="faq-"] summary').nth(4).click();
+  assert(await page.locator('details[id^="faq-"]').nth(4).locator('p').isVisible(), 'FAQ works without JS');
   assert.equal((await page.goto(base+'/guides/nonexistent-guide')).status(),404);
   const map=await (await page.request.get(base+'/sitemap.xml')).text();
   for(const path of paths.filter(p=>p!=='/')) assert(map.includes(origin+path),`sitemap ${path}`);
