@@ -7,7 +7,7 @@ export const SOURCES = [
   { id: "access", title: "YouTube Analytics API: Channel reports", url: "https://developers.google.com/youtube/analytics/channel_reports", supports: "Owner authorization and monetary-report access requirements; private channel data is not a public lookup." },
   { id: "share", title: "YouTube Help: Partner earnings overview", url: "https://support.google.com/youtube/answer/72902?hl=en", supports: "Watch Page and Shorts revenue-sharing rules. Different formats have different models." },
   { id: "data-api", title: "YouTube Data API v3: Reference", url: "https://developers.google.com/youtube/v3/docs", supports: "Public channels, playlist items, video statistics, tags and categories retrieved by the Channel Auditor. Public data only." },
-  { id: "quota", title: "YouTube Data API: Quota usage", url: "https://developers.google.com/youtube/v3/getting-started#quota", supports: "How the API quota is calculated and why deep audits consume more requests than an overview." },
+  { id: "quota", title: "YouTube Data API: Quota usage", url: "https://developers.google.com/youtube/v3/getting-started#quota", supports: "How the API quota is calculated and why a large public channel scan consumes more requests than an overview." },
 ] as const;
 
 export type Guide = {
@@ -17,7 +17,7 @@ export type Guide = {
 };
 export const GUIDES: Guide[] = [
   {
-    slug: "how-to-check-youtube-cpm", title: "How to Check Your YouTube CPM in YouTube Studio",
+    slug: "how-to-check-youtube-cpm", title: "How to Check Your YouTube CPM in Studio",
     description: "Find your channel's CPM in YouTube Studio, compare it with playback-based CPM and RPM, and learn why a public channel URL cannot reveal private earnings.",
     answer: "To check your own YouTube CPM, sign in to YouTube Studio, open Analytics, choose Revenue and inspect ad-performance metrics for a consistent date range. If the metric is not on the overview, use Advanced mode and the available revenue or ad-performance reports. Labels and availability can vary by channel and interface.",
     sections: [
@@ -28,7 +28,7 @@ export const GUIDES: Guide[] = [
     ], sourceIds: ["definitions", "access", "metrics"],
   },
   {
-    slug: "youtube-cpm-vs-rpm", title: "YouTube CPM vs RPM: Meaning, Formulas and Examples",
+    slug: "youtube-cpm-vs-rpm", title: "YouTube CPM vs RPM: Meaning and Formulas",
     description: "Understand advertiser CPM, playback-based CPM and creator RPM with a worked example. Learn why total video views and ad impressions are not interchangeable.",
     answer: "CPM measures advertiser cost per 1,000 ad impressions before revenue sharing. Playback-based CPM uses monetized playbacks instead of ad impressions. RPM measures creator revenue per 1,000 views; for Shorts, use the engaged-view basis described by YouTube. These metrics answer different questions.",
     sections: [

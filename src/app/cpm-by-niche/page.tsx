@@ -1,4 +1,4 @@
-import { pageMetadata } from "@/lib/seo";
+import { breadcrumbs, pageMetadata, serializeJsonLd, webPageSchema } from "@/lib/seo";
 import type { Metadata } from "next";
 import { BenchmarkNotice } from "@/components/source-notice";
 import Link from "next/link";
@@ -6,15 +6,24 @@ import { ArrowRight, Layers } from "lucide-react";
 import { Reveal } from "@/components/motion";
 import { NicheRangeChart } from "@/components/charts";
 import { NICHE_ICONS } from "@/lib/niche-icons";
-import { NICHES_BY_CPM, CREATOR_SHARE, DATA_YEAR, money, perMillionViews } from "@/lib/data";
+import { NICHES_BY_CPM, CREATOR_SHARE, DATA_YEAR, DATA_UPDATED_AT, money, perMillionViews } from "@/lib/data";
 
-export const metadata: Metadata = pageMetadata(`YouTube CPM by Niche ${DATA_YEAR} — Compare Scenarios`, "Compare indicative YouTube CPM scenarios across 18 niches. See model assumptions, ad-only RPM projections and why actual channel earnings differ.", "/cpm-by-niche");
+import { STATIC_PAGE_SEO } from "@/lib/seo-keywords";
+const seo = STATIC_PAGE_SEO["/cpm-by-niche"];
+export const metadata: Metadata = pageMetadata(
+  `YouTube CPM by Niche — ${DATA_YEAR} Scenarios`,
+  "Compare indicative YouTube CPM scenarios across 18 niches. See model assumptions, ad-only RPM projections and why actual channel earnings differ.",
+  "/cpm-by-niche",
+  { focus: seo.focus, keywords: seo.keywords, category: "finance", modifiedTime: DATA_UPDATED_AT },
+);
 
 export default function NicheIndex() {
   return (
     <section className="relative overflow-hidden pt-10 sm:pt-14 lg:pt-16">
       <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 blob-pink" aria-hidden />
       <div className="relative shell">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(webPageSchema({ path: "/cpm-by-niche", name: `YouTube CPM by Niche ${DATA_YEAR} — Compare Scenarios`, description: "Compare indicative YouTube CPM scenarios across 18 niches. See model assumptions, ad-only RPM projections and why actual channel earnings differ.", dateModified: DATA_UPDATED_AT, section: "Niche benchmarks", about: ["YouTube CPM by niche", "YouTube RPM by niche", "Niche ad-rate benchmarks"] })) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbs([{ name: "Home", path: "/" }, { name: "YouTube CPM by niche", path: "/cpm-by-niche" }])) }} />
         <BenchmarkNotice />
         <Reveal>
           <div className="flex items-center gap-3">

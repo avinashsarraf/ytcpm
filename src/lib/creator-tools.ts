@@ -64,7 +64,7 @@ export const CREATOR_TOOLS: CreatorTool[] = [
   },
   {
     slug: "youtube-engagement-rate-calculator", title: "YouTube Engagement Rate Calculator", shortTitle: "Engagement rate", keyword: "YouTube engagement rate calculator", category: "Audience", unit: "percent", resultLabel: "View-based engagement rate",
-    description: "Calculate YouTube engagement rate by views from likes and comments. Understand the formula, compare consistent reporting windows and avoid misleading benchmarks.",
+    description: "Calculate YouTube engagement rate from likes, comments and views. Understand the formula, compare consistent reporting windows and avoid misleading benchmarks.",
     fields: [field("views", "Video views", "10000", "Use the same video and observation window as the interactions.", 1e9, 1, "1"), field("likes", "Likes", "400", "Count of likes for the same scope.", 1e9, 0, "1"), field("comments", "Comments", "50", "Count of comments; repeat commenters can generate multiple comments.", 1e9, 0, "1")],
     formula: "View-based engagement rate = (likes + comments) ÷ views × 100",
     example: "For a video with 10,000 views, 400 likes and 50 comments, this defined interaction rate is (400 + 50) ÷ 10,000 × 100 = 4.5%. This is not a percentage of unique people.",
@@ -74,7 +74,7 @@ export const CREATOR_TOOLS: CreatorTool[] = [
   },
   {
     slug: "youtube-watch-time-calculator", title: "YouTube Watch Time Calculator", shortTitle: "Watch time", keyword: "YouTube watch time calculator", category: "Audience", unit: "hours", resultLabel: "Estimated watch hours",
-    description: "Calculate YouTube watch hours from views and average view duration. Model views needed for a watch-hour target without confusing total hours with YPP eligibility.",
+    description: "Calculate YouTube watch hours from views and average duration. Model views needed for a watch-hour target without confusing total hours with YPP eligibility.",
     fields: [field("views", "Video views", "10000", "Choose views for the same videos and period as average duration.", 1e9, 0, "1"), field("minutes", "Average view duration (minutes)", "4", "Use minutes: 4 minutes 30 seconds is 4.5, not 4.30.", 1440, 0.01), field("target", "Watch-hour planning target", "4000", "An editable planning goal—not a claim that every calculated hour qualifies for YPP.", 1e9, 0)],
     formula: "Watch hours = views × average view duration in minutes ÷ 60",
     example: "With 10,000 views and a four-minute average duration, total modeled watch time is 666.67 hours. To model 4,000 hours at that same duration requires 60,000 views. Whether any hours qualify for monetization is a separate question.",

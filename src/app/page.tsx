@@ -8,7 +8,8 @@ import {
 } from "lucide-react";
 import CpmRateTicker from "@/components/cpm-rate-ticker";
 import LearningSection from "@/components/learning-section";
-import { pageMetadata } from "@/lib/seo";
+import { breadcrumbs, pageMetadata, serializeJsonLd, webPageSchema } from "@/lib/seo";
+import { STATIC_PAGE_SEO } from "@/lib/seo-keywords";
 import CreatorToolCards from "@/components/creator-tool-cards";
 import Calculator from "@/components/calculator";
 import Faq from "@/components/faq";
@@ -19,10 +20,12 @@ import {
 } from "@/lib/data";
 import { flagUrl } from "@/lib/flags";
 
+const seo = STATIC_PAGE_SEO["/"];
 export const metadata: Metadata = pageMetadata(
   "YouTube Earnings Calculator — CPM & RPM Estimates",
-  "Estimate YouTube ad earnings from views and CPM. Calculate CPM or RPM from your own reports, compare audience-country benchmarks, and learn how to check CPM in Studio.",
-  "/"
+  "Estimate YouTube ad earnings from views and CPM. Calculate CPM or RPM from your own reports, compare country and niche benchmarks, and audit any public channel.",
+  "/",
+  { focus: seo.focus, keywords: seo.keywords, category: "finance", modifiedTime: DATA_UPDATED_AT },
 );
 
 
@@ -86,8 +89,10 @@ export default function Home() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(appLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(appLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(webPageSchema({ path: "/", name: "YouTube Earnings Calculator — CPM & RPM Estimates", description: "Estimate YouTube ad earnings from views and CPM. Calculate CPM or RPM from your own reports, compare audience-country and niche benchmarks, and audit any public channel.", dateModified: DATA_UPDATED_AT, section: "Home", about: ["YouTube earnings calculator", "YouTube CPM", "YouTube RPM", "YouTube channel auditor"] })) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbs([{ name: "Home", path: "/" }])) }} />
 
       {/* ══════ HERO ══════ */}
       <section className="hero-shell relative overflow-hidden">

@@ -1,20 +1,29 @@
-import { pageMetadata } from "@/lib/seo";
+import { breadcrumbs, pageMetadata, serializeJsonLd, webPageSchema } from "@/lib/seo";
 import type { Metadata } from "next";
 import { BenchmarkNotice } from "@/components/source-notice";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, ArrowUpRight, Globe2 } from "lucide-react";
 import { Reveal } from "@/components/motion";
-import { COUNTRIES_BY_CPM, TIER_LABEL, DATA_YEAR, perMillionViews, CREATOR_SHARE, localMoney } from "@/lib/data";
+import { COUNTRIES_BY_CPM, TIER_LABEL, DATA_YEAR, DATA_UPDATED_AT, perMillionViews, CREATOR_SHARE, localMoney } from "@/lib/data";
 import { flagUrl } from "@/lib/flags";
 
-export const metadata: Metadata = pageMetadata(`YouTube CPM by Country ${DATA_YEAR} — Model Benchmarks`, "Compare directional YouTube CPM scenarios by audience country, with local-currency conversions, full-fill assumptions and links to check your actual Studio CPM.", "/cpm-by-country");
+import { STATIC_PAGE_SEO } from "@/lib/seo-keywords";
+const seo = STATIC_PAGE_SEO["/cpm-by-country"];
+export const metadata: Metadata = pageMetadata(
+  `YouTube CPM by Country — ${DATA_YEAR} Benchmarks`,
+  "Compare directional YouTube CPM scenarios by audience country, with local-currency conversions, full-fill assumptions and links to check your actual Studio CPM.",
+  "/cpm-by-country",
+  { focus: seo.focus, keywords: seo.keywords, category: "finance", modifiedTime: DATA_UPDATED_AT },
+);
 
 export default function CountryIndex() {
   return (
     <section className="w-full">
       <div className="w-full border-b border-border bg-gradient-to-b from-yt-red-light to-white py-12">
         <div className="shell">
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(webPageSchema({ path: "/cpm-by-country", name: `YouTube CPM by Country ${DATA_YEAR} — Model Benchmarks`, description: "Compare directional YouTube CPM scenarios by audience country, with local-currency conversions, full-fill assumptions and links to check your actual Studio CPM.", dateModified: DATA_UPDATED_AT, section: "Country benchmarks", about: ["YouTube CPM by country", "YouTube RPM by country", "Country ad-rate benchmarks"] })) }} />
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbs([{ name: "Home", path: "/" }, { name: "YouTube CPM by country", path: "/cpm-by-country" }])) }} />
           <Reveal>
             <div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-full bg-yt-red-bg"><Globe2 className="h-5 w-5 text-yt-red" /></span><span className="tag-red text-[11px]">{DATA_YEAR} Benchmarks</span></div>
             <h1 className="mt-5 display-2">YouTube CPM Rates <span className="text-yt-gradient">by Country</span></h1>

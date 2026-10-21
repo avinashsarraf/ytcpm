@@ -4,13 +4,18 @@ import MetricComparison from "@/components/metric-comparison";
 import ProsePage from "@/components/prose-page";
 import { SourceLinks } from "@/components/source-notice";
 import { CONTENT_UPDATED, GUIDES, SITE_URL, SOURCES } from "@/lib/editorial";
-import { breadcrumbs, pageMetadata, serializeJsonLd } from "@/lib/seo";
+import { breadcrumbs, pageMetadata, serializeJsonLd, webPageSchema } from "@/lib/seo";
+import { guideSeo } from "@/lib/seo-keywords";
 export const dynamicParams = false;
 export function generateStaticParams() { return GUIDES.map(g => ({ slug: g.slug })); }
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const guide = GUIDES.find(g => g.slug === slug);
-  return guide ? pageMetadata(guide.title, guide.description, `/guides/${guide.slug}`) : {};
+  if (!guide) return {};
+  const seo = guideSeo(guide);
+  return pageMetadata(guide.title, guide.description, `/guides/${guide.slug}`, {
+    focus: seo.focus, keywords: seo.keywords, type: "article", modifiedTime: CONTENT_UPDATED,
+  });
 }
 export default async function GuidePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -19,7 +24,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
   const path = `/guides/${slug}`;
   const schema = { "@context": "https://schema.org", "@type": "Article", headline: guide.title, description: guide.description, dateModified: CONTENT_UPDATED, mainEntityOfPage: SITE_URL + path, author: { "@type": "Organization", name: "YTCPM", url: SITE_URL + "/about" }, publisher: { "@id": SITE_URL + "/#organization" }, citation: SOURCES.filter(s => guide.sourceIds.includes(s.id)).map(s => s.url) };
   return <>
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd([schema, breadcrumbs([{ name: "Home", path: "/" }, { name: "Guides", path: "/guides" }, { name: guide.title, path }])]) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd([schema, breadcrumbs([{ name: "Home", path: "/" }, { name: "Guides", path: "/guides" }, { name: guide.title, path }]), webPageSchema({ path, name: guide.title, description: guide.description, dateModified: CONTENT_UPDATED, section: "Guides", about: [guide.title] })]) }} />
     <ProsePage eyebrow={<>YTCPM guide · Updated <time dateTime={CONTENT_UPDATED}>{CONTENT_UPDATED}</time></>} title={guide.title} lede={guide.description}>
       <nav aria-label="Breadcrumb" className="mb-5 text-sm"><Link href="/" className="underline">Home</Link> / <Link href="/guides" className="underline">Guides</Link></nav>
       <section className="rounded-xl border border-border bg-surface p-5"><h2 className="font-bold text-heading">Quick answer</h2><p className="mt-2 leading-relaxed">{guide.answer}</p></section>

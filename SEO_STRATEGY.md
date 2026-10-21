@@ -120,3 +120,53 @@ Browser checks: `test:channel-auditor` (metadata, schema graph, editorial depth,
 ## Legal-page follow-up
 
 The legal center and four separate policies now have descriptive topic-specific titles and descriptions, Open Graph/Twitter metadata, visible topic labels, breadcrumbs and WebPage/CollectionPage schema. Regional information is conditional educational context with official authority reference links, not a claim of global legal compliance. Useful summaries, native FAQs and responsive section navigation improve access to the disclosures; no obsolete meta-keywords or tool-keyword stuffing was added. Policies should support transparency and user understanding, not become thin landing pages targeting unrelated calculator queries. Operator/deployment-specific facts still need professional review.
+
+## Site-wide SEO sweep — 2026-10-21
+
+Every one of the 68 indexable routes was audited page by page and brought to a zero-warning state. The audit is reproducible with `npm run test:seo-audit` (writes `/tmp/ytcpm-seo-audit.json`).
+
+**Central SEO layer**
+
+- `src/lib/seo.ts` — `pageMetadata(title, description, path, options?)` now accepts `focus`, `keywords[]`, `image {url,width,height,alt}`, `type`, `publishedTime`, `modifiedTime`, `robots` and `category`. It always emits a canonical, `og:locale: "en_US"`, `og:site_name`, `twitter:image` + `twitter:image:alt`, `og:image:alt`, and a `max-image-preview: large` robots directive. `webPageSchema()` builds a `WebPage` node with `@id`, `isPartOf`, `publisher`, `primaryImageOfPage` and an `about` array; `serializeJsonLd()` escapes `<` so a JSON-LD payload can never break out of its script tag.
+- `src/lib/seo-keywords.ts` — the focus-keyword registry. `STATIC_PAGE_SEO` (13 static routes), `LEGAL_PAGE_SEO` (4 policies) plus `countrySeo()`, `nicheSeo()`, `toolSeo()`, `guideSeo()` and `allPageSeo()`. One page owns one intent; a regression test fails the build if two pages claim the same focus keyword.
+
+**What changed per page type**
+
+| Surface | Before | After |
+| --- | --- | --- |
+| Title | 54 of 68 pages over the 60-character SERP budget | every title ≤ 60 characters including the ` \| ytcpm.online` template |
+| Meta description | 20 over 160 characters, 12 under 90 | every description 90–160 characters |
+| `meta[name="keywords"]` | 67 pages missing | every page carries ≥ 4 keyword variants from the registry |
+| `WebPage` JSON-LD | 64 pages missing | every page emits a `WebPage` node with a stable `@id` |
+| `BreadcrumbList` JSON-LD | 22 pages missing | every page emits a breadcrumb trail |
+| `twitter:image:alt` / `og:image:alt` | 61 pages missing | every page carries a descriptive alt for its social card |
+| `og:locale` | 68 pages missing | `en_US` everywhere |
+| Heading hierarchy | `/disclaimer` H1 was the single word "Disclaimer" | every H1 is descriptive (≥ 12 characters) and carries the page intent |
+| Image alt text | 42 empty-alt flags | decorative artwork is labelled or hidden from assistive tech; flags carry their country name |
+| Internal links | lowest inbound was 2 | lowest inbound is now 4; every tool and benchmark page is reachable from its peers and from the index |
+
+**Structured data per route**
+
+- Country and niche pages: `WebPage` + `FAQPage` + `BreadcrumbList`.
+- Tool pages (`/[tool]`): `WebApplication` + `FAQPage` + `WebPage` + `BreadcrumbList`, with a route-specific social card.
+- The two report-based calculators (`/youtube-cpm-calculator`, `/youtube-rpm-calculator`): `WebApplication` + `WebPage` + `BreadcrumbList`.
+- Static editorial pages: `WebPage` + `BreadcrumbList`; `/guides` adds `CollectionPage`; `/legal` adds `CollectionPage`; legal policies add `FAQPage`.
+- Home: `WebApplication` + `FAQPage` + `WebPage` + `BreadcrumbList`.
+
+**Images**
+
+- `src/app/image-sitemap.xml/route.ts` publishes a Google-style image sitemap with `<image:loc>`, `<image:title>` and `<image:caption>` for the home card, the Channel Auditor card, all 23 country cards, all 18 niche cards and the 7 tool screenshots. `robots.ts` advertises both sitemaps.
+- The country-selector flag now uses a meaningful alt (`"India flag"`) instead of an empty string.
+
+**Content that was thin**
+
+`/about` gained "Who these tools are for" and "How the numbers are maintained"; `/contact` gained "Before you write", "What not to send" and "What happens after you write"; `/guides` was rebuilt with guide cards, a "What these guides cover" section and a "Turn a guide into a number" section. The three previously thin pages now clear the content threshold.
+
+**Verification**
+
+- `npm run test:seo-audit` — 68/68 routes, **0 errors, 0 warnings, 0 info**.
+- `npm run test:seo` — extended to 22 routes; asserts a descriptive H1, a ≤ 60-character title, a 90–160-character description, ≥ 4 keywords, `og:locale`, `og:image:alt`, `twitter:image:alt`, a `WebPage` node, a `BreadcrumbList` node and a non-null `alt` on every `<img>`; also checks the image sitemap and the robots reference.
+- `src/lib/__tests__/seo.test.ts` — 14 permanent regression tests over the registry, the metadata builder and the structured-data helpers.
+- Full suite: `npm test` (14 files / 335 tests), `test:seo`, `test:creator-tools`, `test:project` (68 pages), `test:ui`, `test:branding`, `test:country-selector`, `test:animation`, `test:calculator-menus`, `test:channel-auditor` and `test:accessibility` (0 violations) all pass.
+
+Titles, descriptions, keyword sets and schema are now generated from one registry, so a new route inherits the full SEO surface by default instead of relying on a hand-written metadata object.

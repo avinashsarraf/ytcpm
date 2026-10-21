@@ -23,7 +23,8 @@
     "test:project": "node scripts/audit-project.mjs",
     "test:migrations": "node --test scripts/db-connection.test.mjs",
     "test:calculator-menus": "node scripts/smoke-calculator-menus.mjs",
-    "test:channel-auditor": "node scripts/smoke-channel-auditor.mjs"
+    "test:channel-auditor": "node scripts/smoke-channel-auditor.mjs",
+    "test:seo-audit": "node scripts/audit-seo-full.mjs"
   },
   "dependencies": {
     "dotenv": "17.3.1",

@@ -3,13 +3,21 @@ import { ArrowUpRight, Globe2, Mail, ShieldCheck } from "lucide-react";
 import ProsePage from "@/components/prose-page";
 import { LEGAL_POLICIES, LEGAL_UPDATED } from "@/lib/legal";
 import { SITE_URL } from "@/lib/editorial";
-import { breadcrumbs, pageMetadata, serializeJsonLd } from "@/lib/seo";
-export const metadata = pageMetadata("Legal Center: Privacy, Terms, Cookies & Disclaimer", "Explore ytcpm.online privacy, terms, cookies and earnings disclaimers, with international guidance, calculator data practices and policy contact details.", "/legal");
+import { breadcrumbs, pageMetadata, serializeJsonLd, webPageSchema } from "@/lib/seo";
+import { STATIC_PAGE_SEO } from "@/lib/seo-keywords";
+const seo = STATIC_PAGE_SEO["/legal"];
+export const metadata = pageMetadata(
+  "Legal Center: Privacy, Terms & Disclaimers",
+  "Explore ytcpm.online privacy, terms, cookies and earnings disclaimers, with international guidance, calculator data practices and policy contact details.",
+  "/legal",
+  { focus: seo.focus, keywords: seo.keywords, modifiedTime: LEGAL_UPDATED },
+);
 export default function Page() {
-  const schema = { "@context": "https://schema.org", "@type": "CollectionPage", name: "ytcpm.online Legal Center", url: SITE_URL + "/legal", dateModified: LEGAL_UPDATED, inLanguage: "en", isPartOf: { "@id": SITE_URL + "/#website" }, hasPart: LEGAL_POLICIES.map(p => ({ "@type": "WebPage", name: p.seoTitle, url: SITE_URL + p.path })) };
+  const schema = { "@context": "https://schema.org", "@type": "CollectionPage", name: "ytcpm.online Legal Center", url: SITE_URL + "/legal", dateModified: LEGAL_UPDATED, inLanguage: "en", isPartOf: { "@id": SITE_URL + "/#website" }, publisher: { "@id": SITE_URL + "/#organization" }, hasPart: LEGAL_POLICIES.map(p => ({ "@type": "WebPage", name: p.seoTitle, url: SITE_URL + p.path })) };
   return <ProsePage wide eyebrow={<>Legal · Updated <time dateTime={LEGAL_UPDATED}>{LEGAL_UPDATED}</time></>} title="Legal & Privacy Center" lede="Understand how our calculators work, how information is handled and which limitations matter before using a YouTube earnings estimate.">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbs([{ name: "Home", path: "/" }, { name: "Legal", path: "/legal" }])) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(webPageSchema({ path: "/legal", name: "Legal & Privacy Center", description: "Privacy, terms, cookies and earnings disclaimers for the ytcpm.online calculators and channel auditor.", dateModified: LEGAL_UPDATED, section: "Legal", about: ["Privacy policy", "Terms of use", "Cookie policy", "Earnings disclaimer"] })) }} />
     <nav aria-label="Breadcrumb" className="mb-7 flex items-center gap-2 text-sm text-fog"><Link href="/" className="py-3 hover:text-yt-red">Home</Link><span aria-hidden="true">/</span><span aria-current="page">Legal</span></nav>
     <div className="grid gap-5 md:grid-cols-2">{LEGAL_POLICIES.map((p, i) => <section key={p.path} className="card flex flex-col p-5 sm:p-7"><span className="text-xs font-bold uppercase tracking-wider text-yt-red">Policy {String(i + 1).padStart(2, "0")}</span><h2 className="mt-3 text-2xl font-bold text-heading"><Link href={p.path} className="hover:text-yt-red">{p.title}</Link></h2><p className="mt-3 max-w-[64ch] text-sm leading-7 text-fog">{p.description}</p><div className="mt-4 flex flex-wrap gap-2">{p.topics.map(t => <span key={t} className="rounded-full bg-surface px-3 py-1.5 text-xs text-fog">{t}</span>)}</div><Link href={p.path} aria-label={`Read ${p.title}`} className="mt-5 inline-flex min-h-11 items-center gap-2 self-start rounded-lg border border-border px-4 py-3 text-sm font-semibold text-heading transition-colors hover:border-yt-red hover:text-yt-red">Read policy<ArrowUpRight aria-hidden="true" className="h-4 w-4" /></Link></section>)}</div>
     <div className="mt-9 grid gap-6 lg:grid-cols-2">

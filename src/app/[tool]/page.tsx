@@ -4,7 +4,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { CREATOR_TOOLS, getCreatorTool } from "@/lib/creator-tools";
-import { breadcrumbs, pageMetadata, serializeJsonLd } from "@/lib/seo";
+import { breadcrumbs, pageMetadata, serializeJsonLd, webPageSchema } from "@/lib/seo";
+import { toolSeo } from "@/lib/seo-keywords";
+import { CREATOR_TOOLS_UPDATED } from "@/lib/creator-tools";
 import { SITE_URL } from "@/lib/editorial";
 import CreatorToolCalculator from "@/components/creator-tool-calculator";
 import CreatorToolCards from "@/components/creator-tool-cards";
@@ -15,15 +17,20 @@ export function generateStaticParams() { return CREATOR_TOOLS.map(t => ({ tool: 
 export async function generateMetadata({ params }: { params: Promise<{ tool: string }> }): Promise<Metadata> {
   const { tool: slug } = await params; const tool = getCreatorTool(slug);
   if (!tool) return {};
-  const base = pageMetadata(tool.title, tool.description, `/${tool.slug}`);
+  const seo = toolSeo(tool);
   const image = { url: `/images/tools/${tool.slug}.png`, width: 1200, height: 630, alt: `${tool.title}: transparent formula and editable scenario inputs` };
-  return { ...base, openGraph: { ...base.openGraph, images: [image] }, twitter: { ...base.twitter, images: [image] } };
+  return pageMetadata(tool.title, tool.description, `/${tool.slug}`, {
+    focus: seo.focus, keywords: seo.keywords, image,
+    category: tool.unit === "USD" || tool.unit === "views" ? "finance" : "utilities",
+    modifiedTime: CREATOR_TOOLS_UPDATED,
+  });
 }
 export default async function ToolPage({ params }: { params: Promise<{ tool: string }> }) {
   const { tool: slug } = await params; const tool = getCreatorTool(slug);
   if (!tool) notFound();
   const path = `/${tool.slug}`;
-  const schema = [breadcrumbs([{ name: "Home", path: "/" }, { name: "Creator tools", path: "/tools" }, { name: tool.shortTitle, path }]), { "@context": "https://schema.org", "@type": "WebApplication", "@id": SITE_URL + path + "#app", name: tool.title, description: tool.description, url: SITE_URL + path, applicationCategory: tool.unit === "USD" || tool.unit === "views" ? "FinanceApplication" : "UtilitiesApplication", operatingSystem: "Any", inLanguage: "en", isAccessibleForFree: true, offers: { "@type": "Offer", price: "0", priceCurrency: "USD" }, publisher: { "@id": SITE_URL + "/#organization" }, image: SITE_URL + `/images/tools/${tool.slug}.png` }, { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: tool.faqs.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }];
+  const schema = [breadcrumbs([{ name: "Home", path: "/" }, { name: "Creator tools", path: "/tools" }, { name: tool.shortTitle, path }]),
+    webPageSchema({ path, name: tool.title, description: tool.description, image: `/images/tools/${tool.slug}.png`, dateModified: CREATOR_TOOLS_UPDATED, section: "Creator tools", about: [tool.keyword, tool.category] }), { "@context": "https://schema.org", "@type": "WebApplication", "@id": SITE_URL + path + "#app", name: tool.title, description: tool.description, url: SITE_URL + path, applicationCategory: tool.unit === "USD" || tool.unit === "views" ? "FinanceApplication" : "UtilitiesApplication", operatingSystem: "Any", inLanguage: "en", isAccessibleForFree: true, offers: { "@type": "Offer", price: "0", priceCurrency: "USD" }, publisher: { "@id": SITE_URL + "/#organization" }, image: SITE_URL + `/images/tools/${tool.slug}.png` }, { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: tool.faqs.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }];
   return <article className="overflow-hidden">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }} />
     <header className="border-b border-border bg-gradient-to-br from-[#fff0f4] via-white to-[#f4f9fb] py-8 sm:py-12 lg:py-16"><div className="shell">
@@ -39,7 +46,11 @@ export default async function ToolPage({ params }: { params: Promise<{ tool: str
         </div>
         <aside className="rounded-2xl border border-border bg-surface p-6 lg:sticky lg:top-24"><h2 className="text-sm font-bold text-heading">Use the right inputs</h2><p className="mt-3 text-sm leading-7 text-fog">{tool.takeaway}</p><h3 className="mt-6 border-t border-border pt-5 text-xs font-bold uppercase tracking-wider text-heading">Sources & methodology</h3><ul className="mt-3 space-y-3 text-sm leading-6"><li><a href={tool.source.url} className="text-yt-red underline underline-offset-4">{tool.source.label}</a></li><li><Link href="/methodology" className="text-yt-red underline underline-offset-4">Model assumptions and limitations</Link></li><li><Link href="/sources" className="text-yt-red underline underline-offset-4">Sources & editorial policy</Link></li></ul><p className="mt-5 text-xs leading-6 text-fog">Independent of YouTube and Google. No private channel access. USD outputs are not local-currency or live-rate conversions.</p></aside>
       </div>
-      <section className="mt-12 border-t border-border pt-10"><div className="mb-6 flex flex-wrap items-center justify-between gap-3"><h2 className="text-2xl font-bold text-heading">Continue your creator plan</h2><Link href="/tools" className="min-h-11 py-3 text-sm font-bold text-yt-red">Explore all tools →</Link></div><CreatorToolCards slugs={tool.related} /><nav aria-label="Related benchmarks" className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-yt-red">{[["/cpm-by-country", "Compare audience countries"], ["/cpm-by-niche", "Explore niche scenarios"], ["/youtube-rpm-calculator", "Calculate actual RPM"], ["/guides", "Read creator guides"]].map(([href, label]) => <Link key={href} href={href} className="inline-flex min-h-11 items-center underline underline-offset-4">{label}</Link>)}</nav></section>
+      <section className="mt-12 border-t border-border pt-10"><div className="mb-6 flex flex-wrap items-center justify-between gap-3"><h2 className="text-2xl font-bold text-heading">Continue your creator plan</h2><Link href="/tools" className="min-h-11 py-3 text-sm font-bold text-yt-red">Explore all tools →</Link></div><CreatorToolCards slugs={tool.related} /><nav aria-label="Related benchmarks" className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-yt-red">{[["/cpm-by-country", "Compare audience countries"], ["/cpm-by-niche", "Explore niche scenarios"], ["/youtube-rpm-calculator", "Calculate actual RPM"], ["/guides", "Read creator guides"], ["/channel-auditor", "Audit a public channel"]].map(([href, label]) => <Link key={href} href={href} className="inline-flex min-h-11 items-center underline underline-offset-4">{label}</Link>)}</nav>
+        <h3 className="mt-10 text-lg font-bold text-heading">Every free YouTube tool</h3>
+        <p className="mt-2 max-w-[70ch] text-sm leading-7 text-fog">Each tool states its formula, its assumptions and its limits. Pick the one that matches the number you need.</p>
+        <nav aria-label="All creator tools" className="mt-4 flex flex-wrap gap-2">{CREATOR_TOOLS.filter(t => t.slug !== tool.slug).map(t => <Link key={t.slug} href={`/${t.slug}`} className="inline-flex min-h-11 items-center rounded-full border border-border bg-white px-4 text-sm font-medium text-heading transition-colors hover:border-yt-red/40 hover:text-yt-red">{t.shortTitle}</Link>)}</nav>
+      </section>
     </div>
   </article>;
 }

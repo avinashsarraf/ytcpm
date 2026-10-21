@@ -1,4 +1,5 @@
-import { serializeJsonLd } from "@/lib/seo";
+import { serializeJsonLd, webPageSchema, breadcrumbs, pageMetadata } from "@/lib/seo";
+import { countrySeo } from "@/lib/seo-keywords";
 import Calculator from "@/components/calculator";
 import type { Metadata } from "next";
 import { BenchmarkNotice } from "@/components/source-notice";
@@ -15,25 +16,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const c = getCountry(slug);
   if (!c) return {};
-  return {
-    title: `YouTube CPM in ${c.name} — ${DATA_YEAR} Model`,
-    description: `YouTube CPM in ${c.name} model range is $${c.cpmLow}–$${c.cpmHigh} (≈ ${localMoney(c.cpmLow, c, 0)}–${localMoney(c.cpmHigh, c, 0)}) in ${DATA_YEAR}.`,
-    alternates: { canonical: `/cpm-by-country/${c.slug}` },
-    openGraph: {
-      images: [{ url: `/cpm-by-country/${c.slug}/opengraph-image`, width: 1200, height: 630, alt: `${c.name} YouTube CPM model scenarios` }],
-      type: "article",
-      title: `YouTube CPM in ${c.name} ${DATA_YEAR}: $${c.cpmLow}–$${c.cpmHigh}`,
-      description: `CPM and RPM benchmarks for ${c.name} with local-currency conversions (${c.currency}).`,
-      url: `https://ytcpm.online/cpm-by-country/${c.slug}`,
-      siteName: "ytcpm.online",
+  const seo = countrySeo(c);
+  const path = `/cpm-by-country/${c.slug}`;
+  return pageMetadata(
+    `YouTube CPM in ${c.name} — ${DATA_YEAR} Model`,
+    `YouTube CPM in ${c.name} model range is $${c.cpmLow}–$${c.cpmHigh} (≈ ${localMoney(c.cpmLow, c, 0)}–${localMoney(c.cpmHigh, c, 0)}) in ${DATA_YEAR}. Compare creator RPM, per-1M-view earnings and local-currency scenarios.`,
+    path,
+    {
+      focus: seo.focus, keywords: seo.keywords, type: "article", category: "finance",
+      image: { url: `${path}/opengraph-image`, width: 1200, height: 630, alt: `${c.name} YouTube CPM model scenarios` },
+      modifiedTime: DATA_UPDATED_AT,
     },
-    twitter: {
-      images: [`/cpm-by-country/${c.slug}/opengraph-image`],
-      card: "summary_large_image",
-      title: `YouTube CPM in ${c.name} ${DATA_YEAR}`,
-      description: `CPM $${c.cpmLow}–$${c.cpmHigh} · RPM benchmarks in ${c.currency}.`,
-    },
-  };
+  );
 }
 
 export default async function CountryPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -67,6 +61,7 @@ export default async function CountryPage({ params }: { params: Promise<{ slug: 
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(webPageSchema({ path: `/cpm-by-country/${country.slug}`, name: `YouTube CPM in ${country.name} — ${DATA_YEAR} Model`, description: `YouTube CPM in ${country.name} model range is $${country.cpmLow}–$${country.cpmHigh} in ${DATA_YEAR}, with creator RPM and local-currency scenarios.`, image: `/cpm-by-country/${country.slug}/opengraph-image`, dateModified: DATA_UPDATED_AT, section: "Country benchmarks", about: [`YouTube CPM in ${country.name}`, `YouTube RPM in ${country.name}`, `${country.name} ad rates`] })) }} />
       <article className="relative overflow-hidden pt-10 sm:pt-14 lg:pt-16">
         <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 blob-pink" aria-hidden />
         <div className="relative shell">
@@ -113,7 +108,10 @@ export default async function CountryPage({ params }: { params: Promise<{ slug: 
           <section className="mt-14"><Reveal><h2 className="display-sub">FAQs — {country.name}</h2></Reveal><Reveal delay={0.06} className="mt-5"><Faq items={faqs} /></Reveal></section>
 
           <section className="mt-14 grid gap-8 pb-4 lg:grid-cols-2">
-            <div><h2 className="display-3">Similar Markets</h2><div className="mt-4 flex flex-wrap gap-2">{related.map((c) => (<Link key={c.slug} href={`/cpm-by-country/${c.slug}`} className="group rounded-full border border-border bg-white px-4 py-1.5 text-xs font-medium text-fog hover:border-yt-red/40 hover:text-heading">{c.code} {c.name}</Link>))}</div></div>
+            <div><h2 className="display-3">Similar Markets</h2><div className="mt-4 flex flex-wrap gap-2">{related.map((c) => (<Link key={c.slug} href={`/cpm-by-country/${c.slug}`} className="group rounded-full border border-border bg-white px-4 py-1.5 text-xs font-medium text-fog hover:border-yt-red/40 hover:text-heading">{c.code} {c.name}</Link>))}</div>
+              <h3 className="mt-6 text-sm font-bold uppercase tracking-wider text-heading">All {COUNTRIES.length} audience countries</h3>
+              <nav aria-label="All country benchmarks" className="mt-3 flex flex-wrap gap-1.5">{COUNTRIES.filter(c => c.slug !== slug).map((c) => (<Link key={c.slug} href={`/cpm-by-country/${c.slug}`} className="inline-flex min-h-9 items-center rounded-full border border-border bg-white px-3 py-1 text-[11px] font-medium text-fog transition-colors hover:border-yt-red/40 hover:text-heading">{c.name}</Link>))}</nav>
+            </div>
             <div className="panel relative overflow-hidden p-6"><h2 className="display-3">Calculate in {country.currency}</h2><p className="mt-2 text-sm text-fog">Explore a local-currency scenario with editable assumptions.</p><Link href="#calculator" className="group mt-4 inline-flex items-center gap-2 rounded-full bg-yt-red px-5 py-2.5 text-sm font-semibold text-white hover:bg-yt-red-hover">Open Calculator<ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" /></Link></div>
           </section>
         </div>

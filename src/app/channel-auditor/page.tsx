@@ -8,39 +8,22 @@ import ChannelAuditor from "@/components/channel-auditor";
 import Faq from "@/components/faq";
 import { pageMetadata, breadcrumbs, serializeJsonLd } from "@/lib/seo";
 import { SITE_URL } from "@/lib/editorial";
+import { STATIC_PAGE_SEO } from "@/lib/seo-keywords";
 import {
   AUDIT_COVERAGE, AUDIT_STEPS, AUDITOR_FAQS, COMPARISON, LIMITATIONS, PROVENANCE, USE_CASES,
 } from "@/lib/auditor/content";
 
 const PATH = "/channel-auditor";
-const TITLE = "YouTube Channel Auditor — Free Channel Audit & Analysis Tool";
-const DESCRIPTION = "Audit any public YouTube channel for free. See its category, every video, playlists, tags, keywords, best and worst performing uploads plus clearly labeled CPM, RPM and revenue scenarios. No signup.";
+const TITLE = "YouTube Channel Auditor — Free Channel Audit";
+const DESCRIPTION = "Audit any public YouTube channel free: category, every video, playlists, tags, keywords, best and worst performers, plus labeled CPM, RPM and revenue scenarios.";
+const seo = STATIC_PAGE_SEO[PATH];
 
-export const metadata: Metadata = {
-  ...pageMetadata(TITLE, DESCRIPTION, PATH),
-  keywords: [
-    "youtube channel auditor", "youtube channel audit tool", "audit youtube channel",
-    "youtube channel analyzer", "free youtube channel audit", "youtube channel analysis",
-    "youtube keyword analysis tool", "youtube tag analyzer", "best performing videos finder",
-    "youtube channel stats checker", "youtube competitor analysis", "youtube channel revenue estimate",
-  ],
+export const metadata: Metadata = pageMetadata(TITLE, DESCRIPTION, PATH, {
+  focus: seo.focus,
+  keywords: seo.keywords,
   category: "finance",
-  openGraph: {
-    type: "website",
-    title: TITLE,
-    description: DESCRIPTION,
-    url: `${SITE_URL}${PATH}`,
-    siteName: "ytcpm.online",
-    images: [{ url: `${PATH}/opengraph-image`, width: 1200, height: 630, alt: "YouTube Channel Auditor: public channel categories, keywords, top videos and modeled CPM/RPM scenarios" }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: TITLE,
-    description: DESCRIPTION,
-    images: [`${PATH}/opengraph-image`],
-  },
-  robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } },
-};
+  image: { url: `${PATH}/opengraph-image`, width: 1200, height: 630, alt: "YouTube Channel Auditor: public channel categories, keywords, top videos and modeled CPM/RPM scenarios" },
+});
 
 const PROVENANCE_STYLE: Record<string, string> = {
   Public: "bg-mint-bg text-mint border-mint/25",

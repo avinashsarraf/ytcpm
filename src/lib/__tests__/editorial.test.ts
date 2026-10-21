@@ -27,7 +27,7 @@ describe("editorial SEO contract", () => {
     expect(urls.some(u => /\/monitor|\/api\//.test(u))).toBe(false);
   });
   it("keeps public content crawlable without exposing API paths", () => {
-    expect(robots().sitemap).toBe(SITE_URL + "/sitemap.xml");
+    expect(robots().sitemap).toEqual([SITE_URL + "/sitemap.xml", SITE_URL + "/image-sitemap.xml"]);
     expect(robots().rules).toEqual(expect.arrayContaining([expect.objectContaining({ allow: "/", disallow: ["/api/"] })]));
   });
   it("creates page-specific canonicals and social URLs", () => {

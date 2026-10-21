@@ -9,7 +9,15 @@ import {
   US_BLENDED_CPM, SEASONS, money,
 } from "@/lib/data";
 
-export const metadata: Metadata = pageMetadata(`Methodology — How we estimate ${DATA_YEAR} CPM & RPM`, `How ytcpm.online builds its ${DATA_YEAR} YouTube CPM/RPM benchmarks: sources, formulas, seasonality, FX handling and limitations.`, "/methodology");
+import { STATIC_PAGE_SEO } from "@/lib/seo-keywords";
+import { breadcrumbs, serializeJsonLd, webPageSchema } from "@/lib/seo";
+const seo = STATIC_PAGE_SEO["/methodology"];
+export const metadata: Metadata = pageMetadata(
+  `Methodology — How We Estimate YouTube CPM`,
+  `How ytcpm.online builds its ${DATA_YEAR} YouTube CPM and RPM benchmarks: sources, formulas, seasonality, FX handling and the limitations every estimate carries.`,
+  "/methodology",
+  { focus: seo.focus, keywords: seo.keywords, modifiedTime: DATA_UPDATED_AT },
+);
 
 const Section = ({ icon: Icon, title, children }: { icon: typeof Globe2; title: string; children: React.ReactNode }) => (
   <section className="mt-10">
@@ -25,10 +33,12 @@ export default function MethodologyPage() {
   return (
     <ProsePage
       eyebrow={<>Transparency · snapshot {DATA_UPDATED_AT}</>}
-      title={<>How we calculate <span className="text-yt-gradient">CPM &amp; RPM</span></>}
+      title={<>How we calculate <span className="text-yt-gradient">YouTube CPM &amp; RPM</span></>}
       lede={<>Every number on this site comes from a single published dataset and one formula module.
           This page documents both, so you can judge — and challenge — the estimates.</>}
     >
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(webPageSchema({ path: "/methodology", name: `Methodology — How we estimate ${DATA_YEAR} CPM & RPM`, description: `How ytcpm.online builds its ${DATA_YEAR} YouTube CPM and RPM benchmarks: sources, formulas, seasonality, FX handling and limitations.`, dateModified: DATA_UPDATED_AT, section: "Methodology", about: ["YouTube CPM calculation", "YouTube RPM calculation", "Benchmark assumptions"] })) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbs([{ name: "Home", path: "/" }, { name: "Methodology", path: "/methodology" }])) }} />
 
         <Section icon={Database} title="Where the numbers come from">
           <p>

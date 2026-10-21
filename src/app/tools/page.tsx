@@ -4,9 +4,17 @@ import CreatorToolCards from "@/components/creator-tool-cards";
 import ProsePage from "@/components/prose-page";
 import { CREATOR_TOOLS } from "@/lib/creator-tools";
 import { SITE_URL } from "@/lib/editorial";
-import { breadcrumbs, pageMetadata, serializeJsonLd } from "@/lib/seo";
+import { breadcrumbs, pageMetadata, serializeJsonLd, webPageSchema } from "@/lib/seo";
+import { STATIC_PAGE_SEO } from "@/lib/seo-keywords";
+import { CREATOR_TOOLS_UPDATED } from "@/lib/creator-tools";
 
-export const metadata = pageMetadata("Free YouTube Creator Tools & Calculators", "Explore free YouTube calculators for Shorts earnings, views to money, revenue goals, sponsorships, engagement and watch time. Clear formulas, no signup.", "/tools");
+const seo = STATIC_PAGE_SEO["/tools"];
+export const metadata = pageMetadata(
+  "Free YouTube Creator Tools & Calculators",
+  "Seven free YouTube calculators for Shorts earnings, views to money, revenue goals, sponsorships, engagement and watch time, plus a channel auditor.",
+  "/tools",
+  { focus: seo.focus, keywords: seo.keywords, modifiedTime: CREATOR_TOOLS_UPDATED },
+);
 const benchmarks = [
   { href: "/cpm-by-country", title: "Country earnings scenarios", description: "Compare audience markets and model earnings in their local currencies. Audience location is not creator residence.", icon: Globe2 },
   { href: "/cpm-by-niche", title: "Niche earnings library", description: "Explore finance, gaming, technology and other modeled niche scenarios with transparent assumptions.", icon: Layers },
@@ -16,6 +24,7 @@ const benchmarks = [
 export default function ToolsPage() {
   return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd([breadcrumbs([{ name: "Home", path: "/" }, { name: "Creator tools", path: "/tools" }]), { "@context": "https://schema.org", "@type": "ItemList", name: "Free YouTube creator calculators", itemListElement: CREATOR_TOOLS.map((t, i) => ({ "@type": "ListItem", position: i + 1, name: t.title, url: SITE_URL + "/" + t.slug })) }]) }} />
     <ProsePage wide eyebrow="The creator planning studio · Free, no signup" title={<>YouTube creator tools.<br /><span className="text-yt-gradient">Clearer decisions.</span></>} lede="Free YouTube creator tools for earnings, sponsorship proposals and audience planning. Start with your own figures, explore a scenario, and understand the formula behind every result.">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(webPageSchema({ path: "/tools", name: "Free YouTube Creator Tools & Calculators", description: "Seven focused free YouTube calculators for earnings, sponsorship proposals, engagement and watch time, plus a public channel auditor. Clear formulas, no signup.", dateModified: CREATOR_TOOLS_UPDATED, section: "Creator tools", about: ["YouTube creator tools", "YouTube calculators", "Creator planning tools"] })) }} />
       <nav aria-label="Breadcrumb" className="mb-7 text-xs text-fog"><Link href="/" className="underline">Home</Link> / <span aria-current="page">Creator tools</span></nav>
       <section><div className="mb-6 flex flex-wrap items-end justify-between gap-3"><div><p className="font-mono text-[10px] font-bold uppercase tracking-widest text-yt-red">Your next decision starts here</p><h2 className="mt-2 text-2xl font-bold text-heading">Find your calculator</h2></div><span className="rounded-full border border-border bg-surface px-4 py-2 text-xs text-fog">7 focused tools · Browser-only inputs</span></div><CreatorToolCards /></section>
       <section className="mt-12"><h2 className="mb-6 text-2xl font-bold text-heading">Add context to your numbers</h2><div className="grid gap-4 lg:grid-cols-3">{benchmarks.map(({ href, title, description, icon: Icon }) => <Link key={href} href={href} className="group rounded-2xl border border-border bg-surface p-6"><Icon aria-hidden className="h-5 w-5 text-mint" /><h3 className="mt-4 text-lg font-bold text-heading">{title}</h3><p className="mt-3 text-sm leading-7 text-fog">{description}</p><ArrowRight aria-hidden className="mt-5 h-4 w-4 text-yt-red" /></Link>)}</div></section>

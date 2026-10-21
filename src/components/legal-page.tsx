@@ -15,6 +15,10 @@ export default function LegalPage({ policy }: { policy: LegalPolicy }) {
   return <ProsePage wide eyebrow={<>Legal · Updated <time dateTime={LEGAL_UPDATED}>{LEGAL_UPDATED}</time></>} title={policy.title} lede={policy.description}>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(structuredData) }} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbs([{ name: "Home", path: "/" }, { name: "Legal", path: "/legal" }, { name: policy.title, path: policy.path }])) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd({
+      "@context": "https://schema.org", "@type": "FAQPage", "@id": SITE_URL + policy.path + "#faq",
+      mainEntity: policy.faqs.map(f => ({ "@type": "Question", name: f.question, acceptedAnswer: { "@type": "Answer", text: f.answer } })),
+    }) }} />
     <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-2 text-sm text-fog"><Link href="/" className="py-2 hover:text-yt-red">Home</Link><span aria-hidden="true">/</span><Link href="/legal" className="py-2 hover:text-yt-red">Legal</Link><span aria-hidden="true">/</span><span aria-current="page" className="font-semibold text-heading">{policy.title}</span></nav>
     <nav aria-label="Legal policies" className="flex flex-wrap gap-2 border-b border-border pb-6 print:hidden">
       {LEGAL_POLICIES.map(p => <Link key={p.path} href={p.path} aria-current={p.path === policy.path ? "page" : undefined} className={`rounded-xl border px-4 py-3 text-sm font-semibold transition-colors ${p.path === policy.path ? "border-yt-red bg-yt-red-light text-heading" : "border-border hover:border-yt-red hover:text-yt-red"}`}>{p.title}</Link>)}

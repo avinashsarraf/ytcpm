@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/"],
       },
     ],
-    sitemap: "https://ytcpm.online/sitemap.xml",
+    sitemap: ["https://ytcpm.online/sitemap.xml", "https://ytcpm.online/image-sitemap.xml"],
   };
 }

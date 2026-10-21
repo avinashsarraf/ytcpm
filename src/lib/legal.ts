@@ -55,11 +55,11 @@ export const LEGAL_POLICIES: LegalPolicy[] = [
     ],
   },
   {
-    seoTitle: "YouTube Earnings Disclaimer: CPM & RPM Estimates",
+    seoTitle: "YouTube Earnings Disclaimer & Limits",
     summary: ["Model estimates are not verified channel earnings or payment promises.", "A formula result is only as reliable as the report inputs you supply.", "Currency conversion, taxes and other income require separate consideration."],
     topics: ["Earnings limitations", "Currency and tax", "YouTube independence"],
     faqs: [{"question": "Is the earnings result a take-home income figure?", "answer": "No. It is not a tax, withholding, payment-fee or expense calculation. Country scenarios and ad-only forecasts also do not include every revenue source shown in YouTube Studio RPM."}, {"question": "Why can my Studio RPM differ from the estimate?", "answer": "Actual views, monetized playbacks, ad impressions, audience, revenue scope and period can differ from the model assumptions. CPM and RPM also use different revenue and denominator definitions."}, {"question": "Does an official source verify the benchmark ranges?", "answer": "No. Official sources explain metric definitions and platform rules. Our country and niche model ranges are directional inputs, not a verified dataset supplied or endorsed by YouTube."}],
-    path: "/disclaimer", title: "Disclaimer",
+    path: "/disclaimer", title: "Earnings Disclaimer & Estimate Limits",
     description: "Understand the limits of YouTube CPM, RPM and earnings estimates: global audiences, currency conversion, taxes, report inputs and independent model assumptions.",
     sections: [
       { id: "estimates", title: "Estimates are not guaranteed earnings", paragraphs: ["Country and niche benchmarks are manually maintained, directional model inputs. They are not independently verified averages, a live advertising feed or a statement of what YouTube will pay. Audience mix, advertising eligibility, monetized playbacks, format and reporting period can materially change actual earnings.", "Full-fill scenarios assume one ad impression per view and the stated revenue-share assumption. They should not be treated as a universal conversion from advertiser CPM to creator RPM. Shorts use a different monetization model."] },

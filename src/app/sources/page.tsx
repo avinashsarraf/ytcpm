@@ -1,10 +1,19 @@
 import Link from "next/link";
 import ProsePage from "@/components/prose-page";
 import { CONTENT_UPDATED, SOURCES } from "@/lib/editorial";
-import { pageMetadata } from "@/lib/seo";
-export const metadata = pageMetadata("Sources, Editorial Policy & Benchmark Limitations", "See the official sources behind YTCPM's metric definitions, how model assumptions differ from measured data, and how to request corrections.", "/sources");
+import { breadcrumbs, pageMetadata, serializeJsonLd, webPageSchema } from "@/lib/seo";
+import { STATIC_PAGE_SEO } from "@/lib/seo-keywords";
+const seo = STATIC_PAGE_SEO["/sources"];
+export const metadata = pageMetadata(
+  "Sources, Editorial Policy & Limitations",
+  "See the official YouTube and Google sources behind YTCPM's metric definitions, how model assumptions differ from measured data, and how to request a correction.",
+  "/sources",
+  { focus: seo.focus, keywords: seo.keywords, modifiedTime: CONTENT_UPDATED },
+);
 export default function Page() {
-  return <ProsePage eyebrow={<>Transparency · Updated {CONTENT_UPDATED}</>} title="Sources and editorial policy" lede="YTCPM is an independent calculation and education website. We are not affiliated with YouTube or Google, and we do not have access to a channel's private earnings.">
+  return <ProsePage eyebrow={<>Transparency · Updated {CONTENT_UPDATED}</>} title="YouTube data sources and editorial policy" lede="YTCPM is an independent calculation and education website. We are not affiliated with YouTube or Google, and we do not have access to a channel's private earnings.">
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(webPageSchema({ path: "/sources", name: "YouTube data sources and editorial policy", description: "Official YouTube and Google sources for YTCPM's metric definitions, editorial policy and benchmark limitations.", dateModified: CONTENT_UPDATED, section: "Editorial policy", about: ["YouTube CPM sources", "YouTube analytics documentation", "Benchmark limitations"] })) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbs([{ name: "Home", path: "/" }, { name: "Sources", path: "/sources" }])) }} />
     <section className="space-y-3 leading-relaxed"><h2 className="text-xl font-bold text-heading">What is documented and what is modeled?</h2><p>Official sources below establish metric definitions, revenue-sharing context and access requirements. They do not endorse YTCPM or validate the numerical country and niche ranges on this website.</p><p>CPM and RPM tools perform arithmetic on your inputs. The homepage and benchmark tables use manually maintained planning assumptions. A per-record first-party source ledger and independently verified country averages are not currently available. Treat benchmark values as directional scenarios, not current market measurements or guaranteed payouts.</p></section>
     <section className="mt-8"><h2 className="text-xl font-bold text-heading">Primary documentation</h2><ol className="mt-4 list-decimal space-y-5 pl-6">{SOURCES.map(s => <li key={s.id}><a href={s.url} className="font-semibold text-yt-red underline">{s.title}</a><p className="mt-1 leading-relaxed">{s.supports}</p></li>)}</ol></section>
     <section className="mt-8 space-y-3 leading-relaxed"><h2 className="text-xl font-bold text-heading">How we publish and correct content</h2><p>We distinguish a platform definition, a calculation from user inputs, a hypothetical worked example and an unverified benchmark assumption. Examples are labeled and do not imply typical earnings. We do not invent expert credentials, user reviews, performance claims or endorsements by search engines and AI services.</p><p>Content may be drafted with AI assistance. Publication here is not a claim of independent expert review. Check the linked primary documentation and your own Studio reports before making financial decisions. Dates describe content or dataset snapshots, not a live data feed; a date change alone does not establish a new market study.</p><p>Report a correction through our <Link href="/contact" className="text-yt-red underline">contact page</Link>. Include the page, disputed statement, source and date. Do not send account passwords, OAuth tokens or private analytics unless you choose to share a suitably redacted example.</p></section>

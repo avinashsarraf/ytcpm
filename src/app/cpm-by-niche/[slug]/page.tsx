@@ -1,4 +1,5 @@
-import { serializeJsonLd } from "@/lib/seo";
+import { serializeJsonLd, webPageSchema, breadcrumbs, pageMetadata } from "@/lib/seo";
+import { nicheSeo } from "@/lib/seo-keywords";
 import Calculator from "@/components/calculator";
 import type { Metadata } from "next";
 import { BenchmarkNotice } from "@/components/source-notice";
@@ -16,25 +17,24 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const n = getNiche(slug);
   if (!n) return {};
-  return {
-    title: `${n.name} YouTube CPM Model`,
-    description: `Explore a directional ${n.name} CPM model of $${n.cpmLow}–$${n.cpmHigh} for US audiences, with full-fill ad RPM assumptions and limitations.`,
-    alternates: { canonical: `/cpm-by-niche/${n.slug}` },
-    openGraph: {
-      images: [{ url: `/cpm-by-niche/${n.slug}/opengraph-image`, width: 1200, height: 630, alt: `${n.name} YouTube CPM model scenarios` }],
-      type: "article",
-      title: `${n.name} CPM ${DATA_YEAR}: $${n.cpmLow}–$${n.cpmHigh}`,
-      description: `${n.name} niche benchmarks: CPM, RPM and per-1M-view earnings.`,
-      url: `https://ytcpm.online/cpm-by-niche/${n.slug}`,
-      siteName: "ytcpm.online",
+  const seo = nicheSeo(n);
+  const path = `/cpm-by-niche/${n.slug}`;
+  return pageMetadata(
+    nicheTitle(n),
+    `A directional ${n.name} CPM model of $${n.cpmLow}–$${n.cpmHigh} for US audiences, with creator RPM, per-1M-view earnings, country adjustments and limitations.`,
+    path,
+    {
+      focus: seo.focus, keywords: seo.keywords, type: "article", category: "finance",
+      image: { url: `${path}/opengraph-image`, width: 1200, height: 630, alt: `${n.name} YouTube CPM model scenarios` },
+      modifiedTime: DATA_UPDATED_AT,
     },
-    twitter: {
-      images: [`/cpm-by-niche/${n.slug}/opengraph-image`],
-      card: "summary_large_image",
-      title: `${n.name} CPM ${DATA_YEAR}`,
-      description: `CPM $${n.cpmLow}–$${n.cpmHigh} · RPM $${(n.cpmLow * CREATOR_SHARE).toFixed(2)}–$${(n.cpmHigh * CREATOR_SHARE).toFixed(2)}.`,
-    },
-  };
+  );
+}
+
+/** Keep the SERP title inside the 60-character budget for long niche names. */
+function nicheTitle(n: { name: string }): string {
+  const full = `${n.name} YouTube CPM — ${DATA_YEAR} Model`;
+  return full.length <= 45 ? full : `${n.name} YouTube CPM — ${DATA_YEAR}`;
 }
 
 const TD: Record<string, string> = { S: "S-tier — highest model CPM", A: "A-tier — higher model CPM", B: "B-tier — mid-range model CPM", C: "C-tier — lower model CPM" };
@@ -64,12 +64,19 @@ export default async function NichePage({ params }: { params: Promise<{ slug: st
     ],
   };
   const faqLd = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) };
-  const related = NICHES_BY_CPM.filter((n) => n.slug !== slug).slice(0, 6);
+  // Pick neighbours by CPM proximity so every niche is reachable from its
+  // closest peers, not only from the top of the list.
+  const myCpm = (niche.cpmLow + niche.cpmHigh) / 2;
+  const related = NICHES_BY_CPM
+    .filter((n) => n.slug !== slug)
+    .sort((a, b) => Math.abs((a.cpmLow + a.cpmHigh) / 2 - myCpm) - Math.abs((b.cpmLow + b.cpmHigh) / 2 - myCpm))
+    .slice(0, 8);
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(webPageSchema({ path: `/cpm-by-niche/${niche.slug}`, name: `${niche.name} YouTube CPM — ${DATA_YEAR} Model`, description: `A directional ${niche.name} CPM model of $${niche.cpmLow}–$${niche.cpmHigh} for US audiences, with creator RPM, per-1M-view earnings and country adjustments.`, image: `/cpm-by-niche/${niche.slug}/opengraph-image`, dateModified: DATA_UPDATED_AT, section: "Niche benchmarks", about: [`YouTube CPM for ${niche.name.toLowerCase()}`, `YouTube RPM ${niche.name.toLowerCase()}`, `${niche.name} channel earnings`] })) }} />
       <article className="relative overflow-hidden pt-10 sm:pt-14 lg:pt-16">
         <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 blob-pink" aria-hidden />
         <div className="relative shell">
@@ -114,7 +121,10 @@ export default async function NichePage({ params }: { params: Promise<{ slug: st
           <section className="mt-14"><Reveal><h2 className="display-sub">FAQs — {niche.name}</h2></Reveal><Reveal delay={0.06} className="mt-5"><Faq items={faqs} /></Reveal></section>
 
           <section className="mt-14 grid gap-8 pb-4 lg:grid-cols-2">
-            <div><h2 className="display-3">Related Niches</h2><div className="mt-4 flex flex-wrap gap-2">{related.map((n) => { const RIcon = NICHE_ICONS[n.icon]; return (<Link key={n.slug} href={`/cpm-by-niche/${n.slug}`} className="group flex items-center gap-1.5 rounded-full border border-border bg-white px-3.5 py-1.5 text-xs font-medium text-fog hover:border-yt-red/40 hover:text-heading"><RIcon className="h-3 w-3 group-hover:text-yt-red" />{n.name}</Link>); })}</div></div>
+            <div><h2 className="display-3">Related Niches</h2><div className="mt-4 flex flex-wrap gap-2">{related.map((n) => { const RIcon = NICHE_ICONS[n.icon]; return (<Link key={n.slug} href={`/cpm-by-niche/${n.slug}`} className="group flex items-center gap-1.5 rounded-full border border-border bg-white px-3.5 py-1.5 text-xs font-medium text-fog hover:border-yt-red/40 hover:text-heading"><RIcon className="h-3 w-3 group-hover:text-yt-red" />{n.name}</Link>); })}</div>
+              <h3 className="mt-6 text-sm font-bold uppercase tracking-wider text-heading">All {NICHES.length} niche benchmarks</h3>
+              <nav aria-label="All niche benchmarks" className="mt-3 flex flex-wrap gap-1.5">{NICHES.filter(n => n.slug !== slug).map((n) => (<Link key={n.slug} href={`/cpm-by-niche/${n.slug}`} className="inline-flex min-h-9 items-center rounded-full border border-border bg-white px-3 py-1 text-[11px] font-medium text-fog transition-colors hover:border-yt-red/40 hover:text-heading">{n.name}</Link>))}</nav>
+            </div>
             <div className="panel p-6"><h2 className="display-3">Run your numbers</h2><p className="mt-2 text-sm text-fog">Your views × {niche.name.toLowerCase()} rates — modeled with explicit assumptions.</p><Link href="#calculator" className="group mt-4 inline-flex items-center gap-2 rounded-full bg-yt-red px-5 py-2.5 text-sm font-semibold text-white hover:bg-yt-red-hover">Open Calculator<ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" /></Link></div>
           </section>
         </div>
