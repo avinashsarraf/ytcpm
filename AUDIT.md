@@ -191,3 +191,32 @@ Refined the shared homepage/country/niche earnings workspace: compact studio too
 Addressed the reference screenshot's clipped initial Worldwide option and square nested search focus. Menu keyboard navigation scrolls only the menu, not the document; pointer hover no longer invokes scrollIntoView. Popovers do not move subsequent fields, can open above when space is limited, restore focus after selection/Escape, close outside/when tabbing away, respect reduced motion and keep 44px-or-larger option/close controls. Financial calculations, FX conversion, animations, content-format switching and custom CPM behavior are unchanged. Updated older smoke assertions for the new searchable niche control and workspace toolbar without removing behavioral coverage.
 
 Validation: lint/typecheck, 285 unit tests and production build (115 outputs) pass. New `test:calculator-menus` verifies both selectors at six widths 320–1920, no layout reflow, bounds/sticky-header visibility, keyboard/mouse search/select/reset/empty/Tab flows, currencies and automated accessibility of both open menus. Country-selector, amount-animation, 12-width UI, creator-tools, whole-project link/image audit, SEO and branding browser suites pass. Desktop country/niche and mobile calculator screenshots visually inspected. GitHub push only; no PR merge.
+
+
+## Channel Auditor addition — 2026-10-21
+
+Added a public-channel auditor at `/channel-auditor` with a matching premium dashboard, plus the
+server-side groundwork for paid Half and Full audits. The feature reads public YouTube Data API
+responses only: channel statistics, public video details, tags, categories, playlists, derived
+performance signals and inferred phrases. It never requests a channel login and cannot reach
+private, unlisted, deleted or owner-only data, so a channel's real CPM, RPM, impressions,
+audience-country mix and revenue remain out of reach — every revenue figure is a labelled model
+scenario with a visitor-controlled market assumption.
+
+User input is parsed rather than fetched, so a submitted string can never become a request target.
+Pagination cursors and export tokens are HMAC-signed and expire; CSV exports are re-fetched
+server-side from the signed token instead of trusting browser-supplied rows. Razorpay order
+amounts come from the server plan table and a captured payment is verified before a signed,
+HttpOnly entitlement cookie is issued. Checkout stays closed until credentials are configured, so
+no payment can be taken during the free launch period.
+
+Credentials (`YOUTUBE_API_KEY`, `AUDIT_SIGNING_SECRET`, `RAZORPAY_*`, `AUDIT_BILLING_MODE`) live
+only in environment variables and are documented in `.env.example` and
+`docs/product/channel-auditor.md`. Privacy, terms, disclaimer and sources pages now describe what
+the auditor does and cannot show.
+
+Validation: lint, typecheck, production build and 315 unit tests pass (30 new). The new browser
+suite covers API guards, the sample dashboard, all four tabs, clipboard copy, the plan dialog,
+five widths and axe checks. The 68-page project audit, creator-tools, SEO, branding, 12-width UI,
+calculator-menu, country-selector, animation and the full accessibility suite (all sitemap routes
+at 375px and 1440px) pass with zero violations.

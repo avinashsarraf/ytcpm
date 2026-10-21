@@ -4,6 +4,7 @@ import Image from "next/image";
 import {
   Zap, CheckCircle2, ShieldCheck, Calculator as CalcIcon, Database,
   PieChart, ArrowRight, ArrowUpRight, Lightbulb, Sparkles,
+  FileSearch, Hash, TrendingUp,
 } from "lucide-react";
 import CpmRateTicker from "@/components/cpm-rate-ticker";
 import LearningSection from "@/components/learning-section";
@@ -262,6 +263,11 @@ export default function Home() {
       </section>
 
       <section className="bg-white py-10 sm:py-14"><div className="shell"><div className="mb-6 flex flex-wrap items-end justify-between gap-4"><div><p className="tag-red w-fit text-[11px]">The creator toolkit</p><h2 className="mt-3 display-sub">Plan your next milestone</h2><p className="mt-3 text-sm leading-7 text-fog">Shorts earnings, revenue targets and audience planning—with formulas you can check.</p></div><Link href="/tools" className="min-h-11 py-3 text-sm font-bold text-yt-red">Explore all creator tools →</Link></div><CreatorToolCards slugs={["youtube-shorts-earnings-calculator", "youtube-views-to-money-calculator", "youtube-revenue-goal-calculator"]} /></div></section>
+
+      <section className="border-y border-border bg-gradient-to-br from-yt-red-light/70 via-white to-white py-10 sm:py-12"><div className="shell"><div className="grid gap-6 lg:grid-cols-[1.15fr_1fr] lg:items-center">
+        <div><p className="tag-red w-fit text-[11px]">New · Channel intelligence</p><h2 className="mt-3 display-sub">Audit any public channel</h2><p className="mt-3 max-w-[52ch] text-sm leading-7 text-fog">Paste a channel URL or @handle to see its public videos, playlists, tags, keywords, best and worst performers plus clearly labeled CPM and RPM scenarios. Public data only—no login, no private analytics.</p><div className="mt-5 flex flex-wrap gap-3"><Link href="/channel-auditor" className="hot-gradient inline-flex min-h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold text-white shadow-[0_6px_18px_-8px_rgba(238,18,73,0.65)]">Open the Channel Auditor<ArrowRight aria-hidden className="h-4 w-4" /></Link><Link href="/methodology" className="inline-flex min-h-11 items-center px-2 text-sm font-bold text-yt-red underline">How the model works</Link></div></div>
+        <ul className="grid gap-3 sm:grid-cols-2">{[{ icon: FileSearch, title: "Full public inventory", copy: "Every upload the API returns, with views, tags and categories." }, { icon: Hash, title: "Keyword signals", copy: "Strongest and weakest repeated phrases with views behind them." }, { icon: TrendingUp, title: "Performance ranking", copy: "Best and worst performers by views and views per day." }, { icon: ShieldCheck, title: "Labelled estimates", copy: "Public, inferred and estimated figures are never mixed." }].map(({ icon: Icon, title, copy }) => <li key={title} className="rounded-2xl border border-border bg-white p-4"><span className="grid h-9 w-9 place-items-center rounded-lg bg-yt-red-light text-yt-red"><Icon aria-hidden className="h-4 w-4" /></span><p className="mt-3 text-sm font-bold text-heading">{title}</p><p className="mt-1.5 text-xs leading-6 text-fog">{copy}</p></li>)}</ul>
+      </div></div></section>
       <LearningSection />
 
       {/* ══════ FAQ ══════ */}

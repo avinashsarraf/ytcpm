@@ -18,6 +18,7 @@ const LINKS = [
   { href: "/cpm-by-niche", label: "Niche CPM" },
   { href: "/guides", label: "Guides" },
   { href: "/tools", label: "Creator Tools" },
+  { href: "/channel-auditor", label: "Channel Auditor" },
 ];
 
 export default function SiteHeader() {

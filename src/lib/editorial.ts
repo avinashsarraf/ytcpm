@@ -6,6 +6,8 @@ export const SOURCES = [
   { id: "metrics", title: "YouTube Analytics API: Metrics", url: "https://developers.google.com/youtube/analytics/metrics", supports: "Gross versus estimated creator revenue and advertising metric definitions." },
   { id: "access", title: "YouTube Analytics API: Channel reports", url: "https://developers.google.com/youtube/analytics/channel_reports", supports: "Owner authorization and monetary-report access requirements; private channel data is not a public lookup." },
   { id: "share", title: "YouTube Help: Partner earnings overview", url: "https://support.google.com/youtube/answer/72902?hl=en", supports: "Watch Page and Shorts revenue-sharing rules. Different formats have different models." },
+  { id: "data-api", title: "YouTube Data API v3: Reference", url: "https://developers.google.com/youtube/v3/docs", supports: "Public channels, playlist items, video statistics, tags and categories retrieved by the Channel Auditor. Public data only." },
+  { id: "quota", title: "YouTube Data API: Quota usage", url: "https://developers.google.com/youtube/v3/getting-started#quota", supports: "How the API quota is calculated and why deep audits consume more requests than an overview." },
 ] as const;
 
 export type Guide = {

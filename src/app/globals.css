@@ -488,3 +488,24 @@ input[type="range"].slider::-moz-range-thumb { width: 18px; height: 18px; border
   .picker-option-icon { width: 30px; height: 32px; }
 }
 @media (prefers-reduced-motion: reduce) { .picker-panel { animation: none; } }
+
+/* ─── Channel Auditor ────────────────────────────────────────────────────── */
+.auditor-shell {
+  border: 1px solid var(--color-border); border-radius: 20px; background: white;
+  box-shadow: 0 2px 6px rgba(11, 22, 38, .04), 0 22px 48px -30px rgba(11, 22, 38, .22);
+  overflow: hidden;
+}
+.auditor-toolbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: 1rem 1.25rem; border-bottom: 1px solid var(--color-border);
+  background: linear-gradient(180deg, #fbfbfd, #f6f6f9);
+}
+.auditor-inputs { background: #fff; }
+.auditor-empty { background: linear-gradient(180deg, #fbfbfd, #fff); }
+.auditor-panel { background: #fff; }
+.auditor-panel table th, .auditor-panel table td { vertical-align: top; }
+.auditor-shell .field-with-icon .field { padding-left: 2.6rem; }
+@media (max-width: 639px) {
+  .auditor-shell { border-radius: 16px; }
+  .auditor-toolbar { padding: .875rem 1rem; }
+}

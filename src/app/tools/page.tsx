@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Globe2, Layers, Calculator } from "lucide-react";
+import { ArrowRight, Globe2, Layers, Calculator, FileSearch } from "lucide-react";
 import CreatorToolCards from "@/components/creator-tool-cards";
 import ProsePage from "@/components/prose-page";
 import { CREATOR_TOOLS } from "@/lib/creator-tools";
@@ -11,6 +11,7 @@ const benchmarks = [
   { href: "/cpm-by-country", title: "Country earnings scenarios", description: "Compare audience markets and model earnings in their local currencies. Audience location is not creator residence.", icon: Globe2 },
   { href: "/cpm-by-niche", title: "Niche earnings library", description: "Explore finance, gaming, technology and other modeled niche scenarios with transparent assumptions.", icon: Layers },
   { href: "/youtube-rpm-calculator", title: "Report-based CPM & RPM", description: "Have your own revenue report? Calculate actual RPM or advertiser CPM from matching inputs.", icon: Calculator },
+  { href: "/channel-auditor", title: "Channel Auditor", description: "Audit a public channel: videos, playlists, tags, keywords, top performers and modeled revenue scenarios.", icon: FileSearch },
 ];
 export default function ToolsPage() {
   return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd([breadcrumbs([{ name: "Home", path: "/" }, { name: "Creator tools", path: "/tools" }]), { "@context": "https://schema.org", "@type": "ItemList", name: "Free YouTube creator calculators", itemListElement: CREATOR_TOOLS.map((t, i) => ({ "@type": "ListItem", position: i + 1, name: t.title, url: SITE_URL + "/" + t.slug })) }]) }} />
