@@ -161,6 +161,7 @@ export default function ChannelAuditorPage() {
       <section className="mt-16">
         <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-yt-red">How it works</p>
         <h2 className="mt-3 text-2xl font-bold text-heading">How to audit a YouTube channel in three steps</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-7 text-fog">The audit runs entirely against public YouTube Data API responses, so what you see is exactly what any visitor could read from the channel page — nothing owner-only.</p>
         <p className="mt-2 max-w-3xl text-sm leading-7 text-fog">No account, no extension and no channel connection. The whole flow runs in your browser against public API data.</p>
         <ol className="mt-6 grid gap-4 md:grid-cols-3">
           {AUDIT_STEPS.map((step, index) => <li key={step.title} id={`step-${index + 1}`} className="scroll-mt-24 rounded-2xl border border-border bg-white p-5">
