@@ -9,7 +9,9 @@ try {
   const context = await browser.newContext({ reducedMotion: 'reduce' });
   const page = await context.newPage();
   const xml = await (await page.request.get(base + '/sitemap.xml')).text();
-  const paths = [...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map(m => new URL(m[1]).pathname).concat(['/monitor', '/not-a-real-page']);
+  // The CMS sign-in screen is not in the sitemap (it is noindex), so it is
+  // added here to keep it covered by the accessibility sweep.
+  const paths = [...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map(m => new URL(m[1]).pathname).concat(['/monitor', '/not-a-real-page', '/cms/login']);
   const scan = async (label) => {
     const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice']).analyze();
     for (const v of result.violations) findings.push({ page: label, id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.map(n => ({ target: n.target, html: n.html, summary: n.failureSummary })) });
@@ -18,7 +20,8 @@ try {
   for (const width of [375, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     for (const path of paths) {
-      await page.goto(base + path); await page.locator('footer').scrollIntoViewIfNeeded(); await page.evaluate(() => window.scrollTo(0, 0));
+      // The CMS screens have no public footer, so the wait is best-effort.
+      await page.goto(base + path); await page.locator('footer').scrollIntoViewIfNeeded().catch(() => {}); await page.evaluate(() => window.scrollTo(0, 0));
       await scan(`${path} @${width}`);
     }
   }

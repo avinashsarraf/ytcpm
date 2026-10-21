@@ -29,7 +29,9 @@ try {
     report.pages.push({ path, titleLength: title.length, descriptionLength: description.length, words: (await page.locator('main').innerText()).trim().split(/\s+/).length });
   }
   for (const link of links) {
-    assert(paths.includes(link.to) || link.to === '/monitor', `internal URL ${link.from} → ${link.to}`);
+    // `/blog/rss.xml` is a feed, not a page, so it is allowed next to the
+    // sitemap routes and the noindex monitor page.
+    assert(paths.includes(link.to) || link.to === '/monitor' || link.to === '/blog/rss.xml', `internal URL ${link.from} → ${link.to}`);
     if (link.fragment) { assert(idsByPath.get(link.to)?.has(link.fragment), `fragment ${link.from} → ${link.to}#${link.fragment}`); report.fragmentLinks++; }
   }
   for (const src of resources) {

@@ -118,195 +118,194 @@ export default function PostEditor({ post, mode }: { post: EditorPost | null; mo
             ))}
           </div>
 
-          {tab === "content" ? (
-            <div id="panel-content" role="tabpanel" aria-labelledby="tab-content" className="space-y-4">
-              <div className="rounded-xl border border-border bg-white p-5">
-                <div>
-                  <label htmlFor="title" className={labelClass}>Title</label>
-                  <input
-                    id="title"
-                    name="title"
-                    required
-                    maxLength={140}
-                    value={title}
-                    onChange={(event) => {
-                      setTitle(event.target.value);
-                      if (mode === "create") setSlug(autoSlug(event.target.value));
-                    }}
-                    className={inputClass}
-                    placeholder="YouTube CPM vs RPM: what the numbers mean"
-                  />
-                  <p className="mt-1.5 text-xs text-fog">{title.length} characters. The page title adds “ | ytcpm.online”.</p>
-                  {errors.title ? <p className="mt-1.5 text-xs font-semibold text-yt-red">{errors.title}</p> : null}
-                </div>
-
-                <div className="mt-4">
-                  <label htmlFor="subtitle" className={labelClass}>Subtitle <span className="font-normal text-fog">(optional)</span></label>
-                  <input id="subtitle" name="subtitle" maxLength={200} defaultValue={post?.subtitle ?? ""} className={inputClass} placeholder="One sentence that expands on the title" />
-                </div>
-
-                <div className="mt-4">
-                  <label htmlFor="slug" className={labelClass}>URL slug</label>
-                  <div className="flex items-center gap-2">
-                    <span className="mt-1.5 shrink-0 rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-fog">/blog/</span>
-                    <input
-                      id="slug"
-                      name="slug"
-                      value={slug}
-                      onChange={(event) => setSlug(event.target.value)}
-                      className={inputClass}
-                      placeholder="youtube-cpm-vs-rpm"
-                    />
-                  </div>
-                  {errors.slug ? <p className="mt-1.5 text-xs font-semibold text-yt-red">{errors.slug}</p> : null}
-                </div>
-
-                <div className="mt-4">
-                  <label htmlFor="excerpt" className={labelClass}>Short description</label>
-                  <textarea id="excerpt" name="excerpt" rows={3} maxLength={320} value={excerpt} onChange={(event) => setExcerpt(event.target.value)} className={inputClass} placeholder="The summary shown on the blog index and used as the meta description when none is set." />
-                  <p className="mt-1.5 text-xs text-fog">{excerpt.length} characters. Aim for 90–160.</p>
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-border bg-white p-5">
-                <label htmlFor="contentMd" className={labelClass}>Article body (Markdown)</label>
-                <p className="mt-1 text-xs text-fog">
-                  Headings (<code className="font-mono">##</code>), lists, tables, links, images, bold and code are supported. Raw HTML is escaped, so it is shown as text.
-                </p>
-                <textarea
-                  id="contentMd"
-                  name="contentMd"
-                  required
-                  rows={22}
-                  value={contentMd}
-                  onChange={(event) => setContentMd(event.target.value)}
-                  className={`${inputClass} font-mono text-[13px] leading-6`}
-                  placeholder={"## Why the two numbers differ\n\nStart with a short answer, then explain.\n\n- First point\n- Second point"}
+          {/*
+            The panels stay mounted and are hidden instead of unmounted: a
+            field that is not in the DOM is not submitted, so saving from the
+            SEO tab would silently drop the title, the slug and the body.
+          */}
+          <div id="panel-content" role="tabpanel" aria-labelledby="tab-content" hidden={tab !== "content"} className="space-y-4">
+            <div className="rounded-xl border border-border bg-white p-5">
+              <div>
+                <label htmlFor="title" className={labelClass}>Title</label>
+                <input
+                  id="title"
+                  name="title"
+                  required={tab === "content"}
+                  maxLength={140}
+                  value={title}
+                  onChange={(event) => {
+                    setTitle(event.target.value);
+                    if (mode === "create") setSlug(autoSlug(event.target.value));
+                  }}
+                  className={inputClass}
+                  placeholder="YouTube CPM vs RPM: what the numbers mean"
                 />
-                {errors.contentMd ? <p className="mt-1.5 text-xs font-semibold text-yt-red">{errors.contentMd}</p> : null}
-                <p className="mt-1.5 text-xs text-fog">{report.wordCount} words · about {report.readingMinutes} min read</p>
+                <p className="mt-1.5 text-xs text-fog">{title.length} characters. The page title adds “ | ytcpm.online”.</p>
+                {errors.title ? <p className="mt-1.5 text-xs font-semibold text-yt-red">{errors.title}</p> : null}
+              </div>
+
+              <div className="mt-4">
+                <label htmlFor="subtitle" className={labelClass}>Subtitle <span className="font-normal text-fog">(optional)</span></label>
+                <input id="subtitle" name="subtitle" maxLength={200} defaultValue={post?.subtitle ?? ""} className={inputClass} placeholder="One sentence that expands on the title" />
+              </div>
+
+              <div className="mt-4">
+                <label htmlFor="slug" className={labelClass}>URL slug</label>
+                <div className="flex items-center gap-2">
+                  <span className="mt-1.5 shrink-0 rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-fog">/blog/</span>
+                  <input
+                    id="slug"
+                    name="slug"
+                    value={slug}
+                    onChange={(event) => setSlug(event.target.value)}
+                    className={inputClass}
+                    placeholder="youtube-cpm-vs-rpm"
+                  />
+                </div>
+                {errors.slug ? <p className="mt-1.5 text-xs font-semibold text-yt-red">{errors.slug}</p> : null}
+              </div>
+
+              <div className="mt-4">
+                <label htmlFor="excerpt" className={labelClass}>Short description</label>
+                <textarea id="excerpt" name="excerpt" rows={3} maxLength={320} value={excerpt} onChange={(event) => setExcerpt(event.target.value)} className={inputClass} placeholder="The summary shown on the blog index and used as the meta description when none is set." />
+                <p className="mt-1.5 text-xs text-fog">{excerpt.length} characters. Aim for 90–160.</p>
               </div>
             </div>
-          ) : null}
 
-          {tab === "seo" ? (
-            <div id="panel-seo" role="tabpanel" aria-labelledby="tab-seo" className="space-y-4">
-              <div className="rounded-xl border border-border bg-white p-5">
-                <h2 className="text-base font-bold text-heading">Search appearance</h2>
-                <p className="mt-1 text-sm text-fog">These fields override what is generated from the article body.</p>
+            <div className="rounded-xl border border-border bg-white p-5">
+              <label htmlFor="contentMd" className={labelClass}>Article body (Markdown)</label>
+              <p className="mt-1 text-xs text-fog">
+                Headings (<code className="font-mono">##</code>), lists, tables, links, images, bold and code are supported. Raw HTML is escaped, so it is shown as text.
+              </p>
+              <textarea
+                id="contentMd"
+                name="contentMd"
+                required={tab === "content"}
+                rows={22}
+                value={contentMd}
+                onChange={(event) => setContentMd(event.target.value)}
+                className={`${inputClass} font-mono text-[13px] leading-6`}
+                placeholder={"## Why the two numbers differ\n\nStart with a short answer, then explain.\n\n- First point\n- Second point"}
+              />
+              {errors.contentMd ? <p className="mt-1.5 text-xs font-semibold text-yt-red">{errors.contentMd}</p> : null}
+              <p className="mt-1.5 text-xs text-fog">{report.wordCount} words · about {report.readingMinutes} min read</p>
+            </div>
+          </div>
 
-                <div className="mt-4">
-                  <label htmlFor="focusKeyword" className={labelClass}>Focus keyword</label>
-                  <input id="focusKeyword" name="focusKeyword" value={focusKeyword} onChange={(event) => setFocusKeyword(event.target.value)} className={inputClass} placeholder="youtube cpm vs rpm" />
-                  <p className="mt-1.5 text-xs text-fog">The one query this post should win. It must appear in the title, description, slug, opening paragraph and a sub-heading.</p>
+          <div id="panel-seo" role="tabpanel" aria-labelledby="tab-seo" hidden={tab !== "seo"} className="space-y-4">
+            <div className="rounded-xl border border-border bg-white p-5">
+              <h2 className="text-base font-bold text-heading">Search appearance</h2>
+              <p className="mt-1 text-sm text-fog">These fields override what is generated from the article body.</p>
+
+              <div className="mt-4">
+                <label htmlFor="focusKeyword" className={labelClass}>Focus keyword</label>
+                <input id="focusKeyword" name="focusKeyword" value={focusKeyword} onChange={(event) => setFocusKeyword(event.target.value)} className={inputClass} placeholder="youtube cpm vs rpm" />
+                <p className="mt-1.5 text-xs text-fog">The one query this post should win. It must appear in the title, description, slug, opening paragraph and a sub-heading.</p>
+              </div>
+
+              <div className="mt-4">
+                <label htmlFor="seoTitle" className={labelClass}>SEO title <span className="font-normal text-fog">(optional)</span></label>
+                <input id="seoTitle" name="seoTitle" maxLength={70} value={seoTitle} onChange={(event) => setSeoTitle(event.target.value)} className={inputClass} placeholder="Defaults to the article title" />
+                <p className="mt-1.5 text-xs text-fog">{(seoTitle || title).length} characters including the site suffix.</p>
+              </div>
+
+              <div className="mt-4">
+                <label htmlFor="seoDescription" className={labelClass}>Meta description <span className="font-normal text-fog">(optional)</span></label>
+                <textarea id="seoDescription" name="seoDescription" rows={3} maxLength={180} value={seoDescription} onChange={(event) => setSeoDescription(event.target.value)} className={inputClass} placeholder="Defaults to the short description" />
+                <p className="mt-1.5 text-xs text-fog">{(seoDescription || excerpt).length} characters. Aim for 90–160.</p>
+              </div>
+
+              <div className="mt-4">
+                <label htmlFor="seoKeywords" className={labelClass}>Keyword variants</label>
+                <input id="seoKeywords" name="seoKeywords" defaultValue={post?.seoKeywords?.join(", ") ?? ""} className={inputClass} placeholder="youtube cpm vs rpm, cpm or rpm, youtube monetization metrics" />
+                <p className="mt-1.5 text-xs text-fog">Comma separated. These are the phrases the page should also match.</p>
+              </div>
+
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="ogImageUrl" className={labelClass}>Social image URL</label>
+                  <input id="ogImageUrl" name="ogImageUrl" defaultValue={post?.ogImageUrl ?? ""} className={inputClass} placeholder="/media/2026/10/abc.png" />
                 </div>
-
-                <div className="mt-4">
-                  <label htmlFor="seoTitle" className={labelClass}>SEO title <span className="font-normal text-fog">(optional)</span></label>
-                  <input id="seoTitle" name="seoTitle" maxLength={70} value={seoTitle} onChange={(event) => setSeoTitle(event.target.value)} className={inputClass} placeholder="Defaults to the article title" />
-                  <p className="mt-1.5 text-xs text-fog">{(seoTitle || title).length} characters including the site suffix.</p>
-                </div>
-
-                <div className="mt-4">
-                  <label htmlFor="seoDescription" className={labelClass}>Meta description <span className="font-normal text-fog">(optional)</span></label>
-                  <textarea id="seoDescription" name="seoDescription" rows={3} maxLength={180} value={seoDescription} onChange={(event) => setSeoDescription(event.target.value)} className={inputClass} placeholder="Defaults to the short description" />
-                  <p className="mt-1.5 text-xs text-fog">{(seoDescription || excerpt).length} characters. Aim for 90–160.</p>
-                </div>
-
-                <div className="mt-4">
-                  <label htmlFor="seoKeywords" className={labelClass}>Keyword variants</label>
-                  <input id="seoKeywords" name="seoKeywords" defaultValue={post?.seoKeywords?.join(", ") ?? ""} className={inputClass} placeholder="youtube cpm vs rpm, cpm or rpm, youtube monetization metrics" />
-                  <p className="mt-1.5 text-xs text-fog">Comma separated. These are the phrases the page should also match.</p>
-                </div>
-
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label htmlFor="ogImageUrl" className={labelClass}>Social image URL</label>
-                    <input id="ogImageUrl" name="ogImageUrl" defaultValue={post?.ogImageUrl ?? ""} className={inputClass} placeholder="/media/2026/10/abc.png" />
-                  </div>
-                  <div>
-                    <label htmlFor="ogImageAlt" className={labelClass}>Social image alt text</label>
-                    <input id="ogImageAlt" name="ogImageAlt" defaultValue={post?.ogImageAlt ?? ""} className={inputClass} placeholder="What the image shows" />
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <label htmlFor="canonicalUrl" className={labelClass}>Canonical URL <span className="font-normal text-fog">(optional)</span></label>
-                  <input id="canonicalUrl" name="canonicalUrl" defaultValue={post?.canonicalUrl ?? ""} className={inputClass} placeholder="Leave empty — this page owns its URL" />
-                </div>
-
-                <div className="mt-5 flex flex-wrap gap-5 border-t border-border pt-4">
-                  <label className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-heading">
-                    <input type="checkbox" name="noindex" defaultChecked={post?.noindex ?? false} className="h-4 w-4 rounded border-border" />
-                    noindex this page
-                  </label>
-                  <label className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-heading">
-                    <input type="checkbox" name="allowIndex" defaultChecked={post?.allowIndex ?? true} className="h-4 w-4 rounded border-border" />
-                    list in sitemap.xml
-                  </label>
+                <div>
+                  <label htmlFor="ogImageAlt" className={labelClass}>Social image alt text</label>
+                  <input id="ogImageAlt" name="ogImageAlt" defaultValue={post?.ogImageAlt ?? ""} className={inputClass} placeholder="What the image shows" />
                 </div>
               </div>
 
-              <div className="rounded-xl border border-border bg-white p-5">
-                <h2 className="text-base font-bold text-heading">Classification</h2>
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label htmlFor="category" className={labelClass}>Category</label>
-                    <input id="category" name="category" defaultValue={post?.category ?? ""} className={inputClass} placeholder="CPM & RPM" />
-                  </div>
-                  <div>
-                    <label htmlFor="tags" className={labelClass}>Tags</label>
-                    <input id="tags" name="tags" defaultValue={post?.tags?.join(", ") ?? ""} className={inputClass} placeholder="cpm, rpm, monetization" />
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <label htmlFor="template" className={labelClass}>Template</label>
-                  <select id="template" name="template" defaultValue={post?.template ?? "article"} className={inputClass}>
-                    <option value="article">Article</option>
-                    <option value="landing">Landing page</option>
-                  </select>
-                </div>
+              <div className="mt-4">
+                <label htmlFor="canonicalUrl" className={labelClass}>Canonical URL <span className="font-normal text-fog">(optional)</span></label>
+                <input id="canonicalUrl" name="canonicalUrl" defaultValue={post?.canonicalUrl ?? ""} className={inputClass} placeholder="Leave empty — this page owns its URL" />
+              </div>
+
+              <div className="mt-5 flex flex-wrap gap-5 border-t border-border pt-4">
+                <label className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-heading">
+                  <input type="checkbox" name="noindex" defaultChecked={post?.noindex ?? false} className="h-4 w-4 rounded border-border" />
+                  noindex this page
+                </label>
+                <label className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-heading">
+                  <input type="checkbox" name="allowIndex" defaultChecked={post?.allowIndex ?? true} className="h-4 w-4 rounded border-border" />
+                  list in sitemap.xml
+                </label>
               </div>
             </div>
-          ) : null}
 
-          {tab === "preview" ? (
-            <div id="panel-preview" role="tabpanel" aria-labelledby="tab-preview" className="rounded-xl border border-border bg-white p-6">
-              <h2 className="text-base font-bold text-heading">Search result preview</h2>
-              <div className="mt-4 rounded-lg border border-border bg-surface p-4">
-                <p className="text-xs text-fog">ytcpm.online › blog › {slug || "your-post"}</p>
-                <p className="mt-1.5 text-lg font-medium leading-snug text-[#1a0dab]">{seoTitle || title || "Your title appears here"}</p>
-                <p className="mt-1.5 text-sm leading-6 text-fog">{seoDescription || excerpt || "Your meta description appears here. Write one that makes the click worth it."}</p>
+            <div className="rounded-xl border border-border bg-white p-5">
+              <h2 className="text-base font-bold text-heading">Classification</h2>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="category" className={labelClass}>Category</label>
+                  <input id="category" name="category" defaultValue={post?.category ?? ""} className={inputClass} placeholder="CPM & RPM" />
+                </div>
+                <div>
+                  <label htmlFor="tags" className={labelClass}>Tags</label>
+                  <input id="tags" name="tags" defaultValue={post?.tags?.join(", ") ?? ""} className={inputClass} placeholder="cpm, rpm, monetization" />
+                </div>
               </div>
-
-              <h3 className="mt-6 text-base font-bold text-heading">Article outline</h3>
-              {report.headings.length === 0 ? (
-                <p className="mt-2 text-sm text-fog">No headings yet. Add <code className="font-mono">##</code> sections so the post is skimmable and the table of contents works.</p>
-              ) : (
-                <ul className="mt-2 space-y-1 text-sm">
-                  {report.headings.map((heading) => (
-                    <li key={heading.id} style={{ paddingLeft: `${(heading.level - 2) * 16}px` }} className="text-fog">
-                      <span className="mr-2 font-mono text-[10px] text-fog">H{heading.level}</span>
-                      {heading.text}
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              <h3 className="mt-6 text-base font-bold text-heading">Links found</h3>
-              <p className="mt-1.5 text-sm text-fog">{report.internalLinks} internal · {report.externalLinks} external</p>
-              {report.internalLinks > 0 ? (
-                <ul className="mt-2 space-y-1 text-sm">
-                  {report.internalLinkList.slice(0, 12).map((href) => (
-                    <li key={href} className="truncate text-fog">
-                      <span className="mr-2 rounded bg-mint-bg px-1.5 py-0.5 text-[10px] font-bold text-mint">internal</span>
-                      {href}
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
+              <div className="mt-4">
+                <label htmlFor="template" className={labelClass}>Template</label>
+                <select id="template" name="template" defaultValue={post?.template ?? "article"} className={inputClass}>
+                  <option value="article">Article</option>
+                  <option value="landing">Landing page</option>
+                </select>
+              </div>
             </div>
-          ) : null}
+          </div>
+
+          <div id="panel-preview" role="tabpanel" aria-labelledby="tab-preview" hidden={tab !== "preview"} className="rounded-xl border border-border bg-white p-6">
+            <h2 className="text-base font-bold text-heading">Search result preview</h2>
+            <div className="mt-4 rounded-lg border border-border bg-surface p-4">
+              <p className="text-xs text-fog">ytcpm.online › blog › {slug || "your-post"}</p>
+              <p className="mt-1.5 text-lg font-medium leading-snug text-[#1a0dab]">{seoTitle || title || "Your title appears here"}</p>
+              <p className="mt-1.5 text-sm leading-6 text-fog">{seoDescription || excerpt || "Your meta description appears here. Write one that makes the click worth it."}</p>
+            </div>
+
+            <h3 className="mt-6 text-base font-bold text-heading">Article outline</h3>
+            {report.headings.length === 0 ? (
+              <p className="mt-2 text-sm text-fog">No headings yet. Add <code className="font-mono">##</code> sections so the post is skimmable and the table of contents works.</p>
+            ) : (
+              <ul className="mt-2 space-y-1 text-sm">
+                {report.headings.map((heading) => (
+                  <li key={heading.id} style={{ paddingLeft: `${(heading.level - 2) * 16}px` }} className="text-fog">
+                    <span className="mr-2 font-mono text-[10px] text-fog">H{heading.level}</span>
+                    {heading.text}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <h3 className="mt-6 text-base font-bold text-heading">Links found</h3>
+            <p className="mt-1.5 text-sm text-fog">{report.internalLinks} internal · {report.externalLinks} external</p>
+            {report.internalLinks > 0 ? (
+              <ul className="mt-2 space-y-1 text-sm">
+                {report.internalLinkList.slice(0, 12).map((href) => (
+                  <li key={href} className="truncate text-fog">
+                    <span className="mr-2 rounded bg-mint-bg px-1.5 py-0.5 text-[10px] font-bold text-mint">internal</span>
+                    {href}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
         </div>
 
         {/* Sidebar */}

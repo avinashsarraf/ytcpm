@@ -85,7 +85,10 @@ export async function storeFile(buffer: Buffer, extension: string): Promise<Stor
   const storageKey = buildStorageKey(extension);
   const target = resolveStoragePath(storageKey);
   if (!target) throw new Error("Invalid storage key.");
-  await mkdir(path.dirname(target), { recursive: true });
+  // Both calls need the ignore comment: without it the bundler traces the
+  // path into the build output and the file never reaches the storage
+  // directory that the media route reads from.
+  await mkdir(/*turbopackIgnore: true*/ path.dirname(target), { recursive: true });
   await writeFile(/*turbopackIgnore: true*/ target, buffer, { mode: 0o644 });
   return { storageKey, url: publicUrlFor(storageKey), size: buffer.byteLength };
 }

@@ -11,6 +11,7 @@
     "test:watch": "vitest",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
+    "db:migrate": "node scripts/migrate.mjs",
     "db:seed-admin": "node scripts/seed-admin.mjs",
     "db:studio": "drizzle-kit studio",
     "test:ui": "node scripts/smoke-ui.mjs",
@@ -25,6 +26,7 @@
     "test:migrations": "node --test scripts/db-connection.test.mjs",
     "test:calculator-menus": "node scripts/smoke-calculator-menus.mjs",
     "test:channel-auditor": "node scripts/smoke-channel-auditor.mjs",
+    "test:cms": "node scripts/test-cms.mjs",
     "test:seo-audit": "node scripts/audit-seo-full.mjs"
   },
   "dependencies": {
@@ -39,6 +41,8 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
+    "@electric-sql/pglite": "^0.5.11",
+    "@electric-sql/pglite-socket": "^0.2.14",
     "@tailwindcss/postcss": "4.1.17",
     "@types/node": "22.19.15",
     "@types/pg": "8.18.0",

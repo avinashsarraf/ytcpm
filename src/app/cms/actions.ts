@@ -25,8 +25,9 @@ import { deleteMedia, updateMedia, uploadMedia } from "@/lib/cms/media";
 import { moderateComment, deleteComment } from "@/lib/cms/comments";
 import { setSettings, type CmsSettingKey } from "@/lib/cms/settings";
 import { createSession, destroySession, destroyUserSessions, requireUserOrThrow } from "@/lib/cms/session";
+import { clearRedirectCache } from "@/lib/cms/redirects";
 import { hashPassword, verifyPassword } from "@/lib/cms/auth";
-import { SESSION_COOKIE, SESSION_TTL_SECONDS, sessionCookieOptions } from "@/lib/cms/auth";
+import { sessionCookieOptions } from "@/lib/cms/auth";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 
 /**
@@ -47,8 +48,6 @@ export type ActionState = {
   /** A redirect target for the client to follow after a successful write. */
   redirectTo?: string;
 };
-
-export const emptyState: ActionState = { ok: false, message: "" };
 
 const LOGIN_LIMIT = 8;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
@@ -473,6 +472,8 @@ export async function saveRedirectAction(_previous: ActionState, formData: FormD
       }
     }
     await recordActivity({ userId: user.id, action: "redirect.saved", entity: "redirect", entityId: id || null, summary: `${parsed.data.fromPath} → ${parsed.data.toPath}` });
+    // The rule has to work straight away, not after the cache expires.
+    clearRedirectCache();
     revalidatePath("/cms/redirects");
     return { ok: true, message: "Redirect saved." };
   } catch (error) {
@@ -489,6 +490,7 @@ export async function deleteRedirectAction(formData: FormData): Promise<ActionSt
   const rows = await db.select().from(cmsRedirects).where(eq(cmsRedirects.id, id)).limit(1);
   await db.delete(cmsRedirects).where(eq(cmsRedirects.id, id));
   await recordActivity({ userId: user.id, action: "redirect.deleted", entity: "redirect", entityId: id, summary: rows[0] ? `Deleted ${rows[0].fromPath}.` : "Deleted a redirect." });
+  clearRedirectCache();
   revalidatePath("/cms/redirects");
   return { ok: true, message: "Redirect deleted." };
 }
@@ -648,6 +650,3 @@ export async function changePasswordAction(_previous: ActionState, formData: For
   await recordActivity({ userId: user.id, action: "user.password_changed", entity: "user", entityId: user.id, summary: `${user.name} changed their password.` });
   return { ok: true, message: "Password changed." };
 }
-
-/** Re-exported so the login page can reference the cookie name in one place. */
-export { SESSION_COOKIE, SESSION_TTL_SECONDS };

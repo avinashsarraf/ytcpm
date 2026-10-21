@@ -15,7 +15,7 @@ database is not connected.
 ```bash
 # 1. Apply the schema (or let the container do it on start).
 npm run db:generate     # only after editing src/db/schema.ts
-node scripts/migrate.mjs
+npm run db:migrate
 
 # 2. Create the first administrator.
 npm run db:seed-admin -- --email editor@ytcpm.online
@@ -258,8 +258,27 @@ npm run db:generate    # writes drizzle/000N_*.sql — commit it
 ```bash
 npm test                          # 422 unit tests, no database needed
 npx vitest run src/lib/cms       # just the CMS suite (87 tests)
+npm run test:cms                  # full end-to-end test, real database
 ```
 
-The CMS suite covers the Markdown renderer's escaping and URL rules, the SEO
+The unit suite covers the Markdown renderer's escaping and URL rules, the SEO
 analyzer, password hashing and session tokens, every form validator, and the
 storage path guard. None of it needs a live database.
+
+`npm run test:cms` is the end-to-end test. It starts a throwaway PostgreSQL
+(PGlite, the real database compiled to WebAssembly), applies the migrations,
+seeds an administrator, starts the production build and drives it with a real
+browser. It signs in, opens every admin screen, writes and publishes a post,
+checks that the publish gate blocks a thin article, confirms the post on the
+blog, the feed and the sitemap, uploads an image and serves it from `/media`,
+creates a redirect and follows it, moderates a comment, calls the HTTP API and
+signs out again.
+
+```bash
+npm run test:cms
+# → 44/44 checks passed
+```
+
+The test needs a Chromium binary. Point `CHROMIUM_EXECUTABLE_PATH` at one, or
+let Playwright download it. `CMS_TEST_PORT` moves the test server off the
+default port 3131.

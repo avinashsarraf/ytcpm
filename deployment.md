@@ -180,7 +180,7 @@ git add drizzle && git commit -m "db: add ..."
 Manual run (e.g. from a Coolify terminal):
 
 ```bash
-DATABASE_URL=... node scripts/migrate.mjs
+DATABASE_URL=... npm run db:migrate
 ```
 
 Alternative — Drizzle CLI (needs dev dependencies, useful locally):
@@ -197,7 +197,7 @@ DATABASE_URL=... npm run db:studio     # browse data
 - [ ] `/api/health` returns `{"ok":true,"database":"up"}`
 - [ ] `calculations` table + 4 indexes exist (`\d calculations` in psql)
 - [ ] The CMS tables exist (`\d cms_posts` in psql)
-- [ ] An administrator exists — run `node scripts/seed-admin.mjs --email you@ytcpm.online` from a Coolify terminal
+- [ ] An administrator exists — run `npm run db:seed-admin -- --email you@ytcpm.online` from a Coolify terminal
 - [ ] A volume is mounted at `CMS_STORAGE_DIR` if you intend to upload images
 
 ---
@@ -222,7 +222,7 @@ service mounts `./storage/uploads:/app/storage/uploads`.
 against the same database:
 
 ```bash
-node scripts/seed-admin.mjs --email you@ytcpm.online
+npm run db:seed-admin -- --email you@ytcpm.online
 # → prints a generated password once; store it in a password manager
 ```
 
@@ -427,7 +427,7 @@ Useful commands:
 
 ```bash
 docker compose logs -f web
-docker compose exec web node scripts/migrate.mjs
+docker compose exec web npm run db:migrate
 docker compose exec db psql -U ytcpm -d ytcpm -c '\dt'
 curl -s localhost:3000/api/health
 ```

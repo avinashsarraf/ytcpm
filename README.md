@@ -62,7 +62,7 @@ The site ships with its own content system — no third-party service, PostgreSQ
 | API | `POST /api/cms/posts`, `POST /api/cms/media`, `POST /api/cms/auth/login|logout`, `POST /api/cms/revalidate` (HMAC-signed) |
 
 ```bash
-node scripts/migrate.mjs                     # apply the schema
+npm run db:migrate                        # apply the schema
 npm run db:seed-admin -- --email you@ytcpm.online   # create the first admin
 ```
 
@@ -127,7 +127,7 @@ cp .env.example .env
 
 ```bash
 createdb app_db
-npm run db:push        # or: node scripts/migrate.mjs  (applies drizzle/*.sql)
+npm run db:push        # or: npm run db:migrate  (applies drizzle/*.sql)
 ```
 
 ### 4. Run
@@ -205,9 +205,11 @@ The Docker entrypoint applies those SQL files exactly once (tracked in `_migrati
 | `npm run test:watch` | Vitest in watch mode |
 | `npm run db:generate` | Generate a SQL migration from the schema |
 | `npm run db:push` | Push the schema directly (dev only) |
+| `npm run db:migrate` | Apply the generated SQL migrations to the database |
 | `npm run db:studio` | Drizzle Studio |
 | `npm run db:seed-admin` | Create the first CMS administrator |
 | `npm run test:seo-audit` | Crawl every route and report the full SEO surface |
+| `npm run test:cms` | End-to-end CMS test against a throwaway PostgreSQL |
 
 ## Routes
 
@@ -379,7 +381,8 @@ docker run -p 3000:3000 -e DATABASE_URL=postgresql://... ytcpm
 ## Testing
 
 ```bash
-npm test          # 33 unit tests
+npm test             # 422 unit tests
+npm run test:cms     # end-to-end CMS test (real database, real browser)
 ```
 
 Coverage focuses on what can silently break money math:

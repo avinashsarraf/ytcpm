@@ -1,8 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { eq } from "drizzle-orm";
-import { db, isDatabaseConfigured } from "@/db";
-import { cmsRedirects } from "@/db/schema";
-import { logOnce } from "@/lib/log";
+import { loadRedirectRules } from "@/lib/cms/redirects";
 import { SESSION_COOKIE } from "@/lib/cms/auth";
 
 /**
@@ -17,51 +14,11 @@ import { SESSION_COOKIE } from "@/lib/cms/auth";
  *    path, not the protection.
  *
  * 2. Editor-managed redirects — a 301/302 rule stored in the database. The
- *    rule set is cached in-process for 60 seconds, and every database problem
- *    fails open: the request continues as if no redirect existed, because a
- *    broken database must never take the site down.
+ *    rule set is cached in-process for 60 seconds and cleared as soon as a
+ *    rule is saved, and every database problem fails open: the request
+ *    continues as if no redirect existed, because a broken database must
+ *    never take the site down.
  */
-
-const REDIRECT_CACHE_MS = 60_000;
-
-type RedirectRule = { fromPath: string; toPath: string; statusCode: number };
-
-const globalForProxy = globalThis as typeof globalThis & {
-  __ytcpmRedirectCache?: { rules: RedirectRule[]; expiresAt: number };
-};
-
-function cachedRules(): RedirectRule[] | null {
-  const cache = globalForProxy.__ytcpmRedirectCache;
-  if (!cache) return null;
-  if (cache.expiresAt <= Date.now()) {
-    globalForProxy.__ytcpmRedirectCache = undefined;
-    return null;
-  }
-  return cache.rules;
-}
-
-async function loadRules(): Promise<RedirectRule[] | null> {
-  const cached = cachedRules();
-  if (cached) return cached;
-
-  if (!isDatabaseConfigured()) return null;
-
-  try {
-    const rows = await db
-      .select({ fromPath: cmsRedirects.fromPath, toPath: cmsRedirects.toPath, statusCode: cmsRedirects.statusCode })
-      .from(cmsRedirects)
-      .where(eq(cmsRedirects.isActive, true))
-      .limit(500);
-
-    const rules = rows.map((row) => ({ fromPath: row.fromPath, toPath: row.toPath, statusCode: row.statusCode }));
-    globalForProxy.__ytcpmRedirectCache = { rules, expiresAt: Date.now() + REDIRECT_CACHE_MS };
-    return rules;
-  } catch (error) {
-    // Fail open — a database outage must not break the public site.
-    logOnce("cms", "redirect lookup failed", error);
-    return null;
-  }
-}
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -85,14 +42,17 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const rules = await loadRules();
+  const rules = await loadRedirectRules();
   if (!rules || rules.length === 0) return NextResponse.next();
 
   const match = rules.find((rule) => rule.fromPath === pathname);
   if (!match) return NextResponse.next();
 
   const destination = new URL(match.toPath, request.nextUrl.origin);
-  const response = NextResponse.redirect(destination, match.statusCode === 302 ? 302 : match.statusCode === 307 ? 307 : match.statusCode === 308 ? 308 : 301);
+  const response = NextResponse.redirect(
+    destination,
+    match.statusCode === 302 ? 302 : match.statusCode === 307 ? 307 : match.statusCode === 308 ? 308 : 301,
+  );
   response.headers.set("Cache-Control", "no-store");
   return response;
 }
