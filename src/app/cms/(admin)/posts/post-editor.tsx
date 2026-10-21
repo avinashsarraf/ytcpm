@@ -28,6 +28,8 @@ export type EditorPost = {
   template: string;
   publishedAt: string | null;
   scheduledFor: string | null;
+  /** Changes whenever the post changes, so the editor can reset its state. */
+  updatedAt: string;
 };
 
 /**

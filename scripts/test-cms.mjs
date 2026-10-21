@@ -32,6 +32,7 @@ import { ADMIN_EMAIL, ADMIN_PASSWORD, seedFixtures } from "./cms-test-fixtures.m
 const PORT = Number(process.env.CMS_TEST_PORT ?? 3131);
 const BASE = `http://127.0.0.1:${PORT}`;
 const API_KEY = "cms-e2e-test-key-0123456789";
+const NEW_PASSWORD = "Ytc!RotatedOwner2026";
 
 const results = [];
 let failures = 0;
@@ -255,6 +256,7 @@ async function main() {
 
     const slugValue = await page.locator("#slug").inputValue();
     check("the slug is generated from the title", slugValue === slug, slugValue);
+    const postId = Number(page.url().split("/").pop());
 
     /* 5. The post is live on the public blog ---------------------------- */
     const publicPost = await context.newPage();
@@ -372,7 +374,161 @@ async function main() {
     const apiUnauthorized = await publicPost.request.get(`${BASE}/api/cms/posts`);
     check("the API refuses a request without a key", apiUnauthorized.status() === 401 || apiUnauthorized.status() === 403, `status ${apiUnauthorized.status()}`);
 
-    /* 10. Sign out ------------------------------------------------------ */
+    /* 11. Settings ------------------------------------------------------ */
+    await page.goto(`${BASE}/cms/settings`, { waitUntil: "domcontentloaded" });
+    await page.fill('input[name="blog.authorName"]', "YTCPM Test Desk");
+    await page.click('button:has-text("Save settings")');
+    await page.waitForTimeout(2500);
+    const savedAuthor = await page.locator('input[name="blog.authorName"]').inputValue();
+    check("a setting is saved and kept", savedAuthor === "YTCPM Test Desk", savedAuthor);
+
+    /* 12. Users --------------------------------------------------------- */
+    await page.goto(`${BASE}/cms/users`, { waitUntil: "domcontentloaded" });
+    await page.fill('input[name="name"]', "Second Editor");
+    await page.fill('input[name="email"]', "editor@ytcpm.online");
+    await page.selectOption('select[name="role"]', "editor");
+    await page.fill('input[name="password"]', "Ytc!SecondEditor2026");
+    await page.click('button:has-text("Create account")');
+    await page.waitForTimeout(2500);
+    const usersText = await page.locator("body").innerText();
+    check("a new account is created", usersText.includes("editor@ytcpm.online"), "account missing");
+
+    const deleteUser = page.locator("form:has(input[value]) button:has-text('Delete')").first();
+    if (await deleteUser.count()) {
+      await deleteUser.click();
+      await page.waitForTimeout(2000);
+    }
+    const usersAfter = await page.locator("body").innerText();
+    check("an account can be deleted", !usersAfter.includes("editor@ytcpm.online"), "account still listed");
+
+    /* 13. Post states --------------------------------------------------- */
+    await page.goto(`${BASE}/cms/posts/${postId}`, { waitUntil: "domcontentloaded" });
+    const unpublish = page.locator('button:has-text("Unpublish")');
+    if (await unpublish.count()) {
+      await unpublish.click();
+      await page.waitForTimeout(2500);
+    }
+    const statusMessage = await page.locator('[role="status"]').allInnerTexts();
+    const afterUnpublish = await publicPost.request.get(`${BASE}/blog/${slug}`);
+    check("an unpublished post leaves the public blog", afterUnpublish.status() === 404, `status ${afterUnpublish.status()} — ${JSON.stringify(statusMessage)}`);
+
+    const publishNow = page.locator('button:has-text("Publish now")');
+    if (await publishNow.count()) {
+      await publishNow.click();
+      await page.waitForTimeout(2500);
+    }
+    const afterRepublish = await publicPost.request.get(`${BASE}/blog/${slug}`);
+    check("the post can be published again", afterRepublish.status() === 200, `status ${afterRepublish.status()}`);
+
+    /* 14. A scheduled post stays out of the public blog ------------------ */
+    await page.goto(`${BASE}/cms/posts/new`, { waitUntil: "domcontentloaded" });
+    await page.click('#tab-content');
+    await page.fill("#title", "A post scheduled for next year");
+    await page.fill("#excerpt", "A scheduled post proves the scheduling state is kept out of the public blog until its date.");
+    await page.fill("#contentMd", "## Scheduled\n\nThis article is scheduled and must not be public before its date.");
+    await page.click('#tab-seo');
+    await page.fill("#focusKeyword", "scheduled post");
+    await page.selectOption("#status", "scheduled");
+    await page.fill("#scheduledFor", "2030-01-01T09:00");
+    await page.click('button:has-text("Create post")');
+    let scheduledCreated = true;
+    try {
+      await page.waitForURL(/\/cms\/posts\/\d+/, { timeout: 30_000 });
+    } catch {
+      scheduledCreated = false;
+    }
+    check("a scheduled post is created", scheduledCreated, page.url());
+    const scheduledPublic = await publicPost.request.get(`${BASE}/blog/a-post-scheduled-for-next-year`);
+    check("a scheduled post is not public yet", scheduledPublic.status() === 404, `status ${scheduledPublic.status()}`);
+
+    /* 15. Restoring an earlier version ----------------------------------- */
+    await page.goto(`${BASE}/cms/posts/${postId}`, { waitUntil: "domcontentloaded" });
+    await page.click('#tab-content');
+    await page.fill("#title", "A different title for the same post");
+    await page.click('button:has-text("Save changes")');
+    await page.waitForTimeout(2500);
+    const changedTitle = await page.locator("#title").inputValue();
+    check("an edit is saved", changedTitle === "A different title for the same post", changedTitle);
+
+    const restore = page.locator('button:has-text("Restore this version")').first();
+    if (await restore.count()) {
+      await restore.click();
+      await page.waitForTimeout(2500);
+    }
+    // No reload: the editor has to pick the restored version up on its own.
+    const restoredTitle = await page.locator("#title").inputValue();
+    check("an earlier version can be restored", restoredTitle === title, restoredTitle);
+
+    /* 16. Deleting a post ------------------------------------------------ */
+    await page.goto(`${BASE}/cms/posts/new`, { waitUntil: "domcontentloaded" });
+    await page.click('#tab-content');
+    await page.fill("#title", "A post that is about to be deleted");
+    await page.fill("#excerpt", "This post exists only so the delete flow can be tested end to end.");
+    await page.fill("#contentMd", "## Temporary\n\nThis article is deleted again a moment later.");
+    await page.click('button:has-text("Create post")');
+    let tempPostCreated = true;
+    try {
+      await page.waitForURL(/\/cms\/posts\/\d+/, { timeout: 30_000 });
+    } catch {
+      tempPostCreated = false;
+    }
+    check("a temporary post is created", tempPostCreated, page.url());
+
+    const deleteToggle = page.locator('button:has-text("Delete post")');
+    if (await deleteToggle.count()) {
+      await deleteToggle.click();
+      await page.waitForTimeout(800);
+    }
+    const confirmDelete = page.locator('button:has-text("Yes, delete it")');
+    if (await confirmDelete.count()) {
+      await confirmDelete.click();
+      await page.waitForTimeout(3000);
+    }
+    const postsText = await page.locator("body").innerText();
+    check("the deleted post is gone from the admin", !postsText.includes("A post that is about to be deleted"), "post still listed");
+
+    /* 17. Deleting media and redirects ----------------------------------- */
+    const mediaListBefore = await page.goto(`${BASE}/cms/media`, { waitUntil: "domcontentloaded" });
+    void mediaListBefore;
+    const deleteFile = page.locator('button:has-text("Delete file")').first();
+    if (await deleteFile.count()) {
+      await deleteFile.click();
+      await page.waitForTimeout(2500);
+    }
+    const filesAfterDelete = await listFiles(storageDir);
+    check("a deleted file is removed from the storage directory", filesAfterDelete.length === 1, JSON.stringify(filesAfterDelete));
+
+    await page.goto(`${BASE}/cms/redirects`, { waitUntil: "domcontentloaded" });
+    const deleteRedirect = page.locator('button:has-text("Delete")').first();
+    if (await deleteRedirect.count()) {
+      await deleteRedirect.click();
+      await page.waitForTimeout(2500);
+    }
+    const afterRedirectDelete = await publicPost.request.get(`${BASE}/old-rpm-page`, { maxRedirects: 0 });
+    check("a deleted redirect stops redirecting", afterRedirectDelete.status() !== 301, `status ${afterRedirectDelete.status()}`);
+
+    /* 18. Changing the password ----------------------------------------- */
+    await page.goto(`${BASE}/cms/settings`, { waitUntil: "domcontentloaded" });
+    await page.fill('input[name="currentPassword"]', ADMIN_PASSWORD);
+    await page.fill('input[name="newPassword"]', NEW_PASSWORD);
+    await page.click('button:has-text("Change password")');
+    await page.waitForTimeout(3000);
+    const passwordMessage = await page.locator('[role="status"]').allInnerTexts();
+    check("the password can be changed", passwordMessage.join(" ").toLowerCase().includes("password"), JSON.stringify(passwordMessage));
+
+    await page.goto(`${BASE}/cms`, { waitUntil: "domcontentloaded" });
+    const signOut2 = page.locator('button:has-text("Sign out")').first();
+    if (await signOut2.count()) {
+      await signOut2.click();
+      await page.waitForTimeout(2000);
+    }
+    await page.goto(`${BASE}/cms/login`, { waitUntil: "domcontentloaded" });
+    await page.fill('input[name="email"]', ADMIN_EMAIL);
+    await page.fill('input[name="password"]', NEW_PASSWORD);
+    await Promise.all([page.waitForURL(/\/cms(\?|$)/, { timeout: 30_000 }), page.click('form button[type="submit"]')]);
+    check("the new password signs in", /\/cms(\?|$)/.test(page.url()), page.url());
+
+    /* 19. Sign out ------------------------------------------------------ */
     await page.goto(`${BASE}/cms`, { waitUntil: "domcontentloaded" });
     const signOut = page.locator('button:has-text("Sign out")').first();
     if (await signOut.count()) {
@@ -381,7 +537,7 @@ async function main() {
     await page.goto(`${BASE}/cms/posts`, { waitUntil: "domcontentloaded" });
     check("the gate closes again after signing out", page.url().endsWith("/cms/login"), page.url());
 
-    /* 11. No browser errors --------------------------------------------- */
+    /* 20. No browser errors --------------------------------------------- */
     const noisy = consoleErrors.filter((entry) => !/favicon|404 \(Not Found\)/i.test(entry));
     check("no console errors in the browser", noisy.length === 0, noisy.slice(0, 3).join(" | "));
 

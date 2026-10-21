@@ -271,12 +271,13 @@ seeds an administrator, starts the production build and drives it with a real
 browser. It signs in, opens every admin screen, writes and publishes a post,
 checks that the publish gate blocks a thin article, confirms the post on the
 blog, the feed and the sitemap, uploads an image and serves it from `/media`,
-creates a redirect and follows it, moderates a comment, calls the HTTP API and
-signs out again.
+creates a redirect and follows it, moderates a comment, calls the HTTP API,
+changes the password, restores an earlier version, deletes a post, a file, a
+redirect and an account, and signs out again.
 
 ```bash
 npm run test:cms
-# → 44/44 checks passed
+# → 59/59 checks passed
 ```
 
 The test needs a Chromium binary. Point `CHROMIUM_EXECUTABLE_PATH` at one, or

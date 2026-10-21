@@ -43,6 +43,7 @@ export default async function EditPostPage({ params }: { params: Params }) {
     template: post.template,
     publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
     scheduledFor: post.scheduledFor ? post.scheduledFor.toISOString() : null,
+    updatedAt: post.updatedAt.toISOString(),
   };
 
   return (
@@ -67,7 +68,9 @@ export default async function EditPostPage({ params }: { params: Params }) {
         }
       />
 
-      <PostEditor post={editorPost} mode="edit" />
+      {/* The key changes with the post, so the editor picks up a restored or
+          reloaded version instead of keeping the state it started with. */}
+      <PostEditor key={editorPost.updatedAt} post={editorPost} mode="edit" />
 
       <section className="mt-8 max-w-[680px] rounded-xl border border-border bg-white p-5">
         <h2 className="text-base font-bold text-heading">Publishing controls</h2>

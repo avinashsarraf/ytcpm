@@ -22,6 +22,8 @@ export default function PostActions({
 }) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState<ActionState, FormData>(async (previous, formData) => {
+    // The status buttons send `status`; the delete and restore buttons send
+    // `__intent`.
     const intent = String(formData.get("__intent") ?? "");
     const result =
       intent === "delete"
@@ -55,8 +57,8 @@ export default function PostActions({
           {status !== "published" ? (
             <button
               type="submit"
-              name="__intent"
-              value="publish"
+              name="status"
+              value="published"
               disabled={pending}
               className="inline-flex min-h-10 items-center rounded-lg bg-mint px-4 text-sm font-bold text-white hover:opacity-90 disabled:opacity-60"
             >
@@ -65,7 +67,7 @@ export default function PostActions({
           ) : (
             <button
               type="submit"
-              name="__intent"
+              name="status"
               value="draft"
               disabled={pending}
               className="inline-flex min-h-10 items-center rounded-lg border border-border bg-white px-4 text-sm font-bold text-heading hover:bg-surface disabled:opacity-60"
@@ -76,7 +78,7 @@ export default function PostActions({
           {status !== "scheduled" ? (
             <button
               type="submit"
-              name="__intent"
+              name="status"
               value="scheduled"
               disabled={pending}
               className="inline-flex min-h-10 items-center rounded-lg border border-border bg-white px-4 text-sm font-bold text-heading hover:bg-surface disabled:opacity-60"
@@ -87,7 +89,7 @@ export default function PostActions({
           {status !== "archived" ? (
             <button
               type="submit"
-              name="__intent"
+              name="status"
               value="archived"
               disabled={pending}
               className="inline-flex min-h-10 items-center rounded-lg border border-border bg-white px-4 text-sm font-bold text-heading hover:bg-surface disabled:opacity-60"
