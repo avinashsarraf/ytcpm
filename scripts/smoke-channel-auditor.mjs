@@ -53,15 +53,18 @@ try {
   assert(clipboard.includes('Channel Auditor report'), 'summary not copied');
   assert(clipboard.includes('public YouTube data'), 'summary provenance missing');
 
-  // Premium plan dialog explains what paid depth adds and stays honest about checkout.
-  await page.getByRole('button', { name: 'Half Audit' }).click();
+  // No pricing, plan names or paid-depth wording anywhere on the page.
+  const pageText = (await page.locator('body').innerText()).toLowerCase();
+  for (const banned of ['₹', 'half audit', 'full audit', 'free overview', 'upgrade', 'subscribe now', 'per month']) {
+    assert(!pageText.includes(banned), `pricing or plan wording still visible: ${banned}`);
+  }
+  assert.equal(await page.getByRole('button', { name: /Half Audit|Full Audit|Free Overview/ }).count(), 0, 'plan buttons still visible');
+  assert.equal(await page.getByRole('dialog').count(), 0, 'plan dialog should not exist');
+
+  // CSV download on a sample report explains that a live audit is needed instead of opening a paywall.
   await page.getByRole('button', { name: 'Download CSV' }).click();
-  const dialog = page.getByRole('dialog');
-  await dialog.waitFor();
-  assert((await dialog.innerText()).includes('Half Audit') && (await dialog.innerText()).includes('Full Audit'));
-  assert((await dialog.innerText()).includes('Checkout is not switched on yet'), 'checkout honesty text missing');
-  await page.getByRole('button', { name: 'Close plans' }).click();
-  assert.equal(await page.getByRole('dialog').count(), 0);
+  await page.waitForTimeout(200);
+  assert((await page.locator('.auditor-shell').innerText()).toLowerCase().includes('live audit'), 'CSV fallback message missing');
 
   // Responsive: no horizontal overflow and the toolbar stays usable.
   for (const width of [320, 375, 768, 1024, 1920]) {
@@ -86,5 +89,5 @@ try {
   const audit = await new AxeBuilder({ page }).include('.auditor-shell').withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
   assert.deepEqual(audit.violations.map(v => ({ id: v.id, nodes: v.nodes.map(n => n.html) })), []);
   assert.deepEqual(errors, []);
-  console.log('PASS channel auditor: API guards, sample dashboard, tabs, copy, plan dialog, 5 widths and axe checks');
+  console.log('PASS channel auditor: API guards, sample dashboard, tabs, copy, no-pricing check, CSV fallback, 5 widths and axe checks');
 } finally { await browser.close(); }

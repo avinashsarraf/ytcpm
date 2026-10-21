@@ -2,13 +2,14 @@ import { NextResponse } from "next/server";
 import { readLimitedJson } from "@/lib/calculate-input";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { entitlementCookie, issueEntitlement, readEntitlement } from "@/lib/auditor/entitlement";
-import { planPrice, type AuditPlan } from "@/lib/auditor/premium";
+import { entitlementCookie, issueEntitlement } from "@/lib/auditor/entitlement";
+import { depthPrice } from "@/lib/auditor/premium";
 import { verifyPayment } from "@/lib/auditor/razorpay";
+import type { AuditDepth } from "@/lib/auditor/catalog";
 export const runtime = "nodejs";
 export const maxDuration = 30;
 const headers = { "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" };
-/** Confirms a captured payment and grants a signed, HttpOnly plan cookie. */
+/** Confirms a captured payment and grants a signed, HttpOnly access cookie. */
 export async function POST(req: Request) {
   const origin = req.headers.get("origin");
   if (origin && origin !== new URL(req.url).origin) return NextResponse.json({ error: "Cross-origin requests are not allowed." }, { status: 403, headers });
@@ -20,7 +21,7 @@ export async function POST(req: Request) {
   const paymentId = typeof body?.razorpay_payment_id === "string" ? body.razorpay_payment_id : "";
   const orderId = typeof body?.razorpay_order_id === "string" ? body.razorpay_order_id : "";
   const signature = typeof body?.razorpay_signature === "string" ? body.razorpay_signature : "";
-  const plan: AuditPlan = body?.plan === "full" ? "full" : "half";
+  const depth: AuditDepth = body?.depth === "complete" ? "complete" : "deep";
   if (!paymentId || !orderId || !signature) return NextResponse.json({ error: "Missing payment details." }, { status: 422, headers });
   const secret = process.env.RAZORPAY_KEY_SECRET;
   if (!secret) return NextResponse.json({ error: "Payments are not configured yet." }, { status: 503, headers });
@@ -30,9 +31,9 @@ export async function POST(req: Request) {
   try {
     const payment = await verifyPayment(paymentId);
     if (payment.status !== "captured") return NextResponse.json({ error: `Payment is ${payment.status}, not captured.` }, { status: 402, headers });
-    if (payment.amount !== Math.round(planPrice(plan) * 100)) return NextResponse.json({ error: "The paid amount does not match the selected plan." }, { status: 400, headers });
-    const { token } = issueEntitlement(plan, paymentId);
-    const response = NextResponse.json({ plan, expiresInDays: 365 }, { headers });
+    if (payment.amount !== Math.round(depthPrice(depth) * 100)) return NextResponse.json({ error: "The paid amount does not match the selected depth." }, { status: 400, headers });
+    const { token } = issueEntitlement(depth, paymentId);
+    const response = NextResponse.json({ depth, expiresInDays: 365 }, { headers });
     response.headers.append("Set-Cookie", entitlementCookie(token));
     return response;
   } catch (error) {

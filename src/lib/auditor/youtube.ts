@@ -1,6 +1,7 @@
 import { signCursor, type AuditCursor } from "./cursor";
 import type { ChannelLocator } from "./input";
-import type { AuditChannel, AuditLevel, AuditPage, AuditPlaylist, AuditReport, AuditVideo } from "./types";
+import type { AuditChannel, AuditPage, AuditPlaylist, AuditReport, AuditVideo } from "./types";
+import type { AuditDepth } from "./catalog";
 
 type Item = { id?: string; snippet?: { title?: string; description?: string; customUrl?: string; publishedAt?: string; country?: string; tags?: string[]; categoryId?: string; resourceId?: { videoId?: string } }; statistics?: { subscriberCount?: string; hiddenSubscriberCount?: boolean; viewCount?: string; videoCount?: string; likeCount?: string; commentCount?: string }; contentDetails?: { relatedPlaylists?: { uploads?: string }; duration?: string; itemCount?: number }; brandingSettings?: { channel?: { keywords?: string } } };
 type YouTubeResponse = { items?: Item[]; nextPageToken?: string; error?: { errors?: { reason?: string }[] } };
@@ -30,11 +31,11 @@ async function api(path: string, params: Record<string, string>): Promise<YouTub
   cache.set(cacheKey, { expires: Date.now() + 15 * 60 * 1000, value: data });
   return data;
 }
-function continuation(channelId: string, collection: AuditCursor["collection"], playlistId: string, level: AuditLevel, pageToken?: string) {
+function continuation(channelId: string, collection: AuditCursor["collection"], playlistId: string, level: AuditDepth, pageToken?: string) {
   return pageToken ? signCursor({ channelId, collection, playlistId, level, pageToken }) : null;
 }
 export async function loadAuditPage(cursor: Omit<AuditCursor, "expires">): Promise<AuditPage> {
-  const size = cursor.level === "overview" ? "12" : "50";
+  const size = "50";
   if (cursor.collection === "playlists") {
     const data = await api("playlists", { part: "snippet,contentDetails", channelId: cursor.channelId, maxResults: size, ...(cursor.pageToken ? { pageToken: cursor.pageToken } : {}) });
     const playlists: AuditPlaylist[] = (data.items ?? []).filter(i => /^[A-Za-z0-9_-]+$/.test(i.id ?? "")).map(i => ({ id: i.id!, title: i.snippet?.title ?? "Untitled playlist", description: i.snippet?.description ?? "", itemCount: count(i.contentDetails?.itemCount) }));
@@ -47,7 +48,7 @@ export async function loadAuditPage(cursor: Omit<AuditCursor, "expires">): Promi
   return { videos, cursor: continuation(cursor.channelId, "videos", cursor.playlistId, cursor.level, data.nextPageToken), fetchedAt: new Date().toISOString() };
 }
 /** Walks several playlist pages so a deep audit covers the whole upload history. */
-async function collectVideos(channelId: string, playlistId: string, level: AuditLevel, maxVideos: number, maxPages: number): Promise<{ videos: AuditVideo[]; cursor: string | null }> {
+async function collectVideos(channelId: string, playlistId: string, level: AuditDepth, maxVideos: number, maxPages: number): Promise<{ videos: AuditVideo[]; cursor: string | null }> {
   const videos: AuditVideo[] = []; const seen = new Set<string>(); let pageToken: string | undefined; let cursor: string | null = null;
   for (let page = 0; page < maxPages && videos.length < maxVideos; page += 1) {
     const result = await loadAuditPage({ channelId, collection: "videos", playlistId, pageToken: pageToken ?? "", level });
@@ -65,20 +66,20 @@ async function collectVideos(channelId: string, playlistId: string, level: Audit
 function readToken(cursor: string): string | null {
   try { const [body, signature] = cursor.split("."); if (!body || !signature) return null; const parsed = JSON.parse(Buffer.from(body, "base64url").toString()) as { pageToken?: string }; return typeof parsed.pageToken === "string" && parsed.pageToken ? parsed.pageToken : null; } catch { return null; }
 }
-export async function startAudit(locator: ChannelLocator, level: AuditLevel, limits: { videos: number; playlists: number }): Promise<AuditReport> {
+export async function startAudit(locator: ChannelLocator, level: AuditDepth, limits: { videos: number; playlists: number }): Promise<AuditReport> {
   const filter: Record<string, string> = locator.kind === "id" ? { id: locator.value } : locator.kind === "handle" ? { forHandle: locator.value } : { forUsername: locator.value };
   const data = await api("channels", { part: "snippet,statistics,contentDetails,brandingSettings", ...filter });
   const item = data.items?.[0]; const uploads = item?.contentDetails?.relatedPlaylists?.uploads;
   if (!item?.id || !uploads) throw new AuditError(404, "Channel not found. Try its current @handle or /channel/UC… URL; custom /c/ links are not supported.");
   const channel: AuditChannel = { id: item.id, title: item.snippet?.title ?? "YouTube channel", description: item.snippet?.description ?? "", handle: item.snippet?.customUrl ?? "", publishedAt: item.snippet?.publishedAt ?? "", country: item.snippet?.country ?? null, subscribers: item.statistics?.hiddenSubscriberCount ? null : optionalCount(item.statistics?.subscriberCount), views: count(item.statistics?.viewCount), videoCount: count(item.statistics?.videoCount), keywords: item.brandingSettings?.channel?.keywords ?? null };
-  const maxPages = level === "full" ? 20 : level === "overview" ? 1 : 4;
+  const maxPages = level === "complete" ? 20 : level === "deep" ? 6 : 1;
   const videos = await collectVideos(item.id, uploads, level, limits.videos, maxPages);
   const playlists = await collectPlaylists(item.id, level, limits.playlists);
   return { channel, videos: videos.videos, playlists: playlists.playlists, videoCursor: videos.cursor, playlistCursor: playlists.cursor, fetchedAt: new Date().toISOString(), level };
 }
-async function collectPlaylists(channelId: string, level: AuditLevel, maxPlaylists: number): Promise<{ playlists: AuditPlaylist[]; cursor: string | null }> {
+async function collectPlaylists(channelId: string, level: AuditDepth, maxPlaylists: number): Promise<{ playlists: AuditPlaylist[]; cursor: string | null }> {
   const playlists: AuditPlaylist[] = []; const seen = new Set<string>(); let pageToken: string | undefined; let cursor: string | null = null;
-  const maxPages = level === "full" ? 10 : level === "overview" ? 1 : 2;
+  const maxPages = level === "complete" ? 10 : level === "deep" ? 3 : 1;
   for (let page = 0; page < maxPages && playlists.length < maxPlaylists; page += 1) {
     const result = await loadAuditPage({ channelId, collection: "playlists", playlistId: "", pageToken: pageToken ?? "", level });
     for (const playlist of result.playlists ?? []) {
@@ -98,6 +99,6 @@ export async function collectChannelVideos(channelId: string, maxVideos: number)
   const uploads = data.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
   if (!uploads) throw new AuditError(404, "Channel not found.");
   const maxPages = Math.max(1, Math.ceil(maxVideos / 50));
-  const collected = await collectVideos(channelId, uploads, "full", maxVideos, Math.min(20, maxPages));
+  const collected = await collectVideos(channelId, uploads, "complete", maxVideos, Math.min(20, maxPages));
   return collected.videos;
 }

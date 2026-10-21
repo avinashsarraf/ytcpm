@@ -1,4 +1,5 @@
-export type AuditLevel = "overview" | "full";
+import type { AuditDepth } from "./catalog";
+export type { AuditDepth };
 export type AuditVideo = {
   id: string; title: string; description: string; publishedAt: string; tags: string[];
   categoryId: string; views: number; likes: number | null; comments: number | null; duration: string;
@@ -8,7 +9,6 @@ export type AuditChannel = { id: string; title: string; description: string; han
 export type AuditReport = {
   channel: AuditChannel; videos: AuditVideo[]; playlists: AuditPlaylist[];
   videoCursor: string | null; playlistCursor: string | null;
-  fetchedAt: string; level: AuditLevel; isDemo?: boolean;
+  fetchedAt: string; level: AuditDepth; isDemo?: boolean;
 };
 export type AuditPage = { videos?: AuditVideo[]; playlists?: AuditPlaylist[]; cursor: string | null; fetchedAt: string };
-export type AuditPolicy = { freeAudits: boolean; copy: false; export: false; checkout: false };

@@ -32,6 +32,6 @@ export function sampleReport(): AuditReport {
   return {
     channel: { id: "sample-channel", title: "Sample Tech Channel", description: "Demonstration channel used to preview the auditor layout. This is not a real channel and every figure is synthetic.", handle: "@sample-tech-channel", publishedAt: "2021-04-12T00:00:00Z", country: "IN", subscribers: 248_300, views: 19_400_000, videoCount: 214, keywords: "tech, editing, creator gear" },
     videos, playlists, videoCursor: null, playlistCursor: null,
-    fetchedAt: new Date(base).toISOString(), level: "overview", isDemo: true,
+    fetchedAt: new Date(base).toISOString(), level: "standard", isDemo: true,
   };
 }

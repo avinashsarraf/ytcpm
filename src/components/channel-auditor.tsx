@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import {
-  Activity, ArrowDownAZ, BarChart3, CalendarClock, Copy, Crown, Download, Eye, FileSearch,
-  Hash, Heart, ListVideo, Lock, PlayCircle, Search, Sparkles, Tag, TrendingDown, TrendingUp,
+  Activity, BarChart3, CalendarClock, Copy, Download, Eye, FileSearch,
+  Hash, Heart, ListVideo, PlayCircle, Search, Sparkles, Tag, TrendingDown, TrendingUp,
   Users, X,
 } from "lucide-react";
 import { COUNTRIES, NICHES, localMoney, money, viewsLabel } from "@/lib/data";
@@ -11,15 +11,9 @@ import { buildInsights, type ChannelInsights } from "@/lib/auditor/insights";
 import { buildScenario, WORLDWIDE } from "@/lib/auditor/estimate";
 import { buildSummaryText } from "@/lib/auditor/report";
 import { sampleReport } from "@/lib/auditor/sample";
-import { PLANS, type AuditPlan } from "@/lib/auditor/catalog";
 import type { AuditReport } from "@/lib/auditor/types";
 
 type SortKey = "views" | "published" | "engagement" | "title";
-const LEVELS: { id: AuditPlan; label: string; detail: string }[] = [
-  { id: "free", label: "Free Overview", detail: "12 videos · 8 playlists" },
-  { id: "half", label: "Half Audit", detail: "Up to 200 videos · full keyword table" },
-  { id: "full", label: "Full Audit", detail: "Up to 1,000 videos · every playlist" },
-];
 const TABS = [
   { id: "overview", label: "Overview", icon: Activity },
   { id: "videos", label: "Videos", icon: ListVideo },
@@ -35,7 +29,6 @@ const date = (value: string) => (value ? new Date(value).toISOString().slice(0, 
 /** Public channel audit. Public, inferred and estimated data stay visibly separate. */
 export default function ChannelAuditor() {
   const [input, setInput] = useState("");
-  const [level, setLevel] = useState<AuditPlan>("free");
   const [tab, setTab] = useState<TabId>("overview");
   const [report, setReport] = useState<AuditReport | null>(null);
   const [insights, setInsights] = useState<ChannelInsights | null>(null);
@@ -47,7 +40,6 @@ export default function ChannelAuditor() {
   const [query, setQuery] = useState("");
   const [marketSlug, setMarketSlug] = useState("worldwide");
   const [nicheSlug, setNicheSlug] = useState("technology-software");
-  const [showPlans, setShowPlans] = useState(false);
 
   const insightsFor = useMemo(() => {
     if (!report) return null;
@@ -64,10 +56,10 @@ export default function ChannelAuditor() {
     if (!input.trim()) { setError("Enter a channel URL or @handle first."); return; }
     setLoading(true);
     try {
-      const response = await fetch("/api/channel-audit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ channel: input, level }) });
+      const response = await fetch("/api/channel-audit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ channel: input }) });
       const data = await response.json().catch(() => null) as { report?: AuditReport; exportToken?: string; error?: string; code?: string } | null;
       if (!response.ok || !data?.report) {
-        if (data?.code === "premium_required") { setShowPlans(true); setError("This depth is part of a paid audit. Choose a plan to continue."); }
+        if (data?.code === "premium_required") setError("This audit depth is not available on your access.");
         else setError(data?.error ?? "The audit could not finish. Please try again.");
         return;
       }
@@ -94,11 +86,11 @@ export default function ChannelAuditor() {
   };
 
   const downloadCsv = async () => {
-    if (!exportToken) { setShowPlans(true); setNotice("CSV download is part of a paid audit."); return; }
+    if (!exportToken) { setNotice("Run a live audit to download the CSV — the sample report has no channel to export."); return; }
     setNotice("Preparing your CSV…");
     try {
       const response = await fetch("/api/channel-audit/export", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token: exportToken }) });
-      if (!response.ok) { const data = await response.json().catch(() => null) as { error?: string } | null; setNotice(data?.error ?? "The download is not available for this audit."); if (response.status === 402) setShowPlans(true); return; }
+      if (!response.ok) { const data = await response.json().catch(() => null) as { error?: string } | null; setNotice(data?.error ?? "The download is not available for this audit."); return; }
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -123,7 +115,7 @@ export default function ChannelAuditor() {
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-yt-red-light text-yt-red"><FileSearch aria-hidden className="h-5 w-5" /></span>
         <div className="min-w-0"><p className="truncate text-sm font-bold text-heading">Channel Auditor</p><p className="mt-0.5 truncate text-xs leading-5 text-fog">Public channel data · no login needed</p></div>
       </div>
-      <span className="inline-flex shrink-0 items-center gap-2 text-[11px] font-semibold text-mint"><span className="h-1.5 w-1.5 rounded-full bg-mint" />Free during launch</span>
+      <span className="inline-flex shrink-0 items-center gap-2 text-[11px] font-semibold text-mint"><span className="h-1.5 w-1.5 rounded-full bg-mint" />Free · no signup</span>
     </div>
 
     <form onSubmit={runAudit} className="auditor-inputs border-b border-border p-4 sm:p-6 lg:p-7">
@@ -137,12 +129,9 @@ export default function ChannelAuditor() {
           {loading ? "Auditing…" : "Run free audit"}<Sparkles aria-hidden className="h-4 w-4" />
         </button>
       </div>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-fog">Depth</span>
-        {LEVELS.map(item => <button key={item.id} type="button" onClick={() => setLevel(item.id)} aria-pressed={level === item.id} className={`inline-flex min-h-9 items-center gap-1.5 rounded-lg border px-3 text-xs font-semibold transition-colors ${level === item.id ? "border-yt-red/30 bg-yt-red-light text-yt-red" : "border-border bg-white text-fog hover:border-yt-red/25 hover:text-heading"}`}>
-          {item.label}{item.id !== "free" && <Crown aria-hidden className="h-3 w-3 text-gold" />}<span className="hidden font-normal text-fog sm:inline">· {item.detail}</span>
-        </button>)}
-        <button type="button" onClick={loadSample} className="ml-auto inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border bg-white px-3 text-xs font-semibold text-fog hover:border-yt-red/25 hover:text-heading">View sample report</button>
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <p className="text-xs leading-6 text-fog">Every audit is free right now and covers the full public channel — no depth limits, no signup, no card.</p>
+        <button type="button" onClick={loadSample} className="ml-auto inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border bg-white px-3 text-xs font-semibold text-fog hover:border-yt-red/25 hover:text-heading">View sample report</button>
       </div>
       <div aria-live="polite" className="mt-3 min-h-5 text-xs font-semibold text-mint">{notice}</div>
       {error && <p role="alert" className="mt-1 flex items-start gap-2 rounded-lg border border-yt-red/25 bg-yt-red-light px-3 py-2 text-xs font-semibold leading-5 text-yt-red"><X aria-hidden className="mt-0.5 h-3.5 w-3.5 shrink-0" />{error}</p>}
@@ -294,23 +283,5 @@ export default function ChannelAuditor() {
       </div>
     </div>}
 
-    {showPlans && <div role="dialog" aria-modal="true" aria-labelledby="auditor-plans-title" className="fixed inset-0 z-50 flex items-end justify-center bg-navy/55 p-3 backdrop-blur-sm sm:items-center sm:p-6">
-      <div className="max-h-[92dvh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-border bg-white p-5 shadow-2xl sm:p-7">
-        <div className="flex items-start justify-between gap-4">
-          <div><h2 id="auditor-plans-title" className="text-xl font-bold text-heading">Unlock the full audit</h2><p className="mt-1.5 text-sm leading-6 text-fog">Audits are free during launch. Paid Half and Full audits add depth, exports and per-video scenarios when billing opens.</p></div>
-          <button type="button" onClick={() => setShowPlans(false)} aria-label="Close plans" className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-fog hover:bg-surface hover:text-heading"><X aria-hidden className="h-5 w-5" /></button>
-        </div>
-        <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          {PLANS.map(plan => <div key={plan.id} className={`rounded-2xl border p-4 ${plan.highlight ? "border-yt-red/35 bg-yt-red-light" : "border-border bg-surface/60"}`}>
-            <div className="flex items-center justify-between gap-2"><p className="text-sm font-bold text-heading">{plan.name}</p>{plan.id !== "free" && <Crown aria-hidden className="h-4 w-4 text-gold" />}</div>
-            <p className="mt-1.5 font-mono text-lg font-bold text-heading">{plan.priceInr === 0 ? "Free" : `₹${plan.priceInr}`}</p>
-            <p className="mt-1 text-xs leading-5 text-fog">{plan.tagline}</p>
-            <ul className="mt-3 space-y-1.5">{plan.features.map(feature => <li key={feature} className="flex items-start gap-1.5 text-[11px] leading-5 text-fog"><span aria-hidden className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-mint" />{feature}</li>)}</ul>
-            <p className="mt-3 font-mono text-[10px] uppercase tracking-wider text-fog">{plan.limits}</p>
-          </div>)}
-        </div>
-        <p className="mt-4 flex items-start gap-2 rounded-xl border border-border bg-surface px-3.5 py-3 text-xs leading-6 text-fog"><Lock aria-hidden className="mt-0.5 h-3.5 w-3.5 shrink-0 text-yt-red" />Checkout is not switched on yet, so no payment can be taken today. Copy and CSV download stay free while we launch.</p>
-      </div>
-    </div>}
   </div>;
 }

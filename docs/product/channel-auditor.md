@@ -30,16 +30,24 @@ server resolves the channel through the YouTube Data API and returns:
 Each figure carries a provenance label: **Public**, **Inferred**, **Estimated** or **Owner-verified**
 (the last one is reserved for a future authorized flow and is not used today).
 
+## Pricing posture
+
+Nothing about price, plans or paid tiers is shown on the public site while the audits are free.
+The page, the component and the API responses carry no plan names or amounts, and the browser
+suite asserts that. Optional paid features are implemented server-side only: checkout stays closed
+until `AUDIT_BILLING_MODE=paid` and Razorpay credentials are configured, so no payment can be taken
+and no amount is published before the operator decides to publish it.
+
 ## Environment variables
 
 | Variable | Purpose |
 |---|---|
 | `YOUTUBE_API_KEY` | Server-only YouTube Data API key. Without it, live audits return `503 not_configured` and the UI offers a labeled sample report. |
 | `AUDIT_SIGNING_SECRET` | 32+ character secret that signs pagination cursors and export tokens. Generate with `openssl rand -hex 32`. |
-| `AUDIT_BILLING_MODE` | `free` (default) keeps every depth free during launch. `paid` requires a purchased plan for Half/Full audits, copy and CSV export. |
+| `AUDIT_BILLING_MODE` | `free` (default) keeps every audit free and publishes no pricing. `paid` switches on the optional purchased-depth path. |
 | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | Enable checkout when billing is switched on. Without both, checkout returns 503 and no payment can be created. |
 | `RAZORPAY_WEBHOOK_SECRET` | Verifies the `x-razorpay-signature` HMAC on webhook deliveries. |
-| `RAZORPAY_HALF_AUDIT_PRICE_INR` / `RAZORPAY_FULL_AUDIT_PRICE_INR` | Optional price overrides. Defaults: ₹499 and ₹1499. |
+| `RAZORPAY_DEEP_AUDIT_PRICE_INR` / `RAZORPAY_COMPLETE_AUDIT_PRICE_INR` | Optional amount overrides for the server-side depth table. |
 
 Credentials are read on the server only. Nothing is exposed to the browser bundle.
 
@@ -56,16 +64,17 @@ Credentials are read on the server only. Nothing is exposed to the browser bundl
   A captured payment is confirmed against Razorpay before a signed, HttpOnly entitlement cookie
   is issued.
 
-## Plans (catalogue)
+## Depth levels (internal, not published)
 
-| Plan | Price | Depth |
-|---|---|---|
-| Free Overview | ₹0 | 12 videos, 8 playlists |
-| Half Audit | ₹499 | up to 200 videos, 50 playlists, full keyword table, copy and CSV |
-| Full Audit | ₹1499 | up to 1,000 videos, every playlist, per-video scenarios |
+| Depth | Videos | Playlists | Pages |
+|---|---|---|---|
+| `standard` | 50 | 20 | 1 |
+| `deep` | 300 | 100 | 6 |
+| `complete` | 1,000 | 500 | 20 |
 
-Audits are free while `AUDIT_BILLING_MODE=free`. The pricing dialog states plainly that checkout
-is not switched on, so no payment can be taken today.
+In `free` mode every visitor receives the `complete` depth, so a free audit already covers the
+whole public channel. The other depths exist only for a future paid path and are not named,
+priced or shown anywhere on the site right now.
 
 ## Tests
 
@@ -76,4 +85,5 @@ is not switched on, so no payment can be taken today.
 - `src/lib/__tests__/auditor-youtube.test.ts` — mocked Data API: channel resolution, pagination,
   quota and missing-channel errors, and the guarantee that only `googleapis.com` is called.
 - `npm run test:channel-auditor` — browser run: sample dashboard, all four tabs, clipboard copy,
-  plan dialog, five widths and axe checks.
+  a check that no pricing or plan wording is visible, the CSV fallback message, five widths and axe
+  checks.

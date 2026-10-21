@@ -4,10 +4,11 @@ import { clientKey, rateLimit } from "@/lib/rate-limit";
 import { parseChannelInput } from "@/lib/auditor/input";
 import { readCursor } from "@/lib/auditor/cursor";
 import { AuditError, loadAuditPage, startAudit } from "@/lib/auditor/youtube";
-import { signExport } from "@/lib/auditor/cursor";
-import { auditConfigured, effectiveLimits, launchMode } from "@/lib/auditor/policy";
+import { auditConfigured, effectiveDepth, effectiveLimits, launchMode } from "@/lib/auditor/policy";
 import { readEntitlement } from "@/lib/auditor/entitlement";
+import { signExport } from "@/lib/auditor/cursor";
 import { cookies } from "next/headers";
+import type { AuditDepth } from "@/lib/auditor/catalog";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 const headers = { "Cache-Control": "private, no-store", "X-Robots-Tag": "noindex, nofollow" };
@@ -29,19 +30,20 @@ export async function POST(req: Request) {
   }
   const locator = parseChannelInput(input.channel);
   if (!locator) return NextResponse.json({ error: "Use a YouTube @handle, an @handle URL or a /channel/UC… URL." }, { status: 422, headers });
-  const requested = input.level === "half" || input.level === "full" ? input.level : "free";
-  if (requested !== "free" && !launchMode()) {
+  const requested: AuditDepth = input.depth === "complete" || input.depth === "deep" ? input.depth : "standard";
+  let depth = effectiveDepth(requested);
+  if (!launchMode() && depth !== "standard") {
     const store = await cookies();
-    const entitlement = readEntitlement(store.get("ytcpm_audit_plan")?.value);
-    if (!entitlement || (requested === "full" && entitlement.plan !== "full")) {
-      return NextResponse.json({ error: "This depth is part of a paid audit. Upgrade to run a Half or Full audit.", code: "premium_required" }, { status: 402, headers });
+    const entitlement = readEntitlement(store.get("ytcpm_audit_depth")?.value);
+    if (!entitlement || (depth === "complete" && entitlement.depth !== "complete")) {
+      return NextResponse.json({ error: "This depth needs a completed purchase.", code: "premium_required" }, { status: 402, headers });
     }
   }
   if (!auditConfigured()) return NextResponse.json({ error: "Live audits need a YouTube API key. Open the sample report to review the full experience.", code: "not_configured" }, { status: 503, headers });
-  const limits = effectiveLimits(requested);
+  const limits = effectiveLimits(depth);
   try {
-    const report = await startAudit(locator, requested === "free" ? "overview" : "full", limits);
-    return NextResponse.json({ report, exportToken: signExport(report.channel.id, requested) }, { headers });
+    const report = await startAudit(locator, depth, limits);
+    return NextResponse.json({ report, exportToken: signExport(report.channel.id, depth) }, { headers });
   } catch (error) {
     const status = error instanceof AuditError ? error.status : 500;
     return NextResponse.json({ error: error instanceof AuditError ? error.message : "The audit could not finish. Please try again." }, { status, headers });

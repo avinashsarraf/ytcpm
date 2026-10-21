@@ -1,16 +1,16 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { planPrice, type AuditPlan } from "./premium";
+import { depthPrice, type AuditDepth } from "./premium";
 
 const API = "https://api.razorpay.com/v1";
 function credentials(): { id: string; secret: string } | null {
   const id = process.env.RAZORPAY_KEY_ID; const secret = process.env.RAZORPAY_KEY_SECRET;
   return id && secret ? { id, secret } : null;
 }
-export async function createOrder(plan: AuditPlan, receipt: string) {
+export async function createOrder(depth: AuditDepth, receipt: string) {
   const creds = credentials(); if (!creds) throw new Error("Razorpay is not configured");
-  const amount = Math.round(planPrice(plan) * 100);
-  if (amount <= 0) throw new Error("This plan is free and cannot be purchased");
-  const body = JSON.stringify({ amount, currency: "INR", receipt, notes: { plan } });
+  const amount = Math.round(depthPrice(depth) * 100);
+  if (amount <= 0) throw new Error("This depth is free and cannot be purchased");
+  const body = JSON.stringify({ amount, currency: "INR", receipt, notes: { depth } });
   const response = await fetch(`${API}/orders`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Basic ${Buffer.from(`${creds.id}:${creds.secret}`).toString("base64")}` }, body, signal: AbortSignal.timeout(15000) });
   const data = await response.json().catch(() => null) as { id?: string; amount?: number; currency?: string; status?: string; error?: { description?: string } } | null;
   if (!response.ok || !data?.id) throw new Error(data?.error?.description ?? "Razorpay rejected the order request");

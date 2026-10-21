@@ -48,7 +48,7 @@ afterEach(() => vi.unstubAllGlobals());
 describe("YouTube audit data layer", () => {
   it("resolves a channel, reads uploads and playlists and keeps the API key server-side", async () => {
     const { startAudit } = await import("../auditor/youtube");
-    const report = await startAudit({ kind: "handle", value: "testchannel" }, "overview", { videos: 12, playlists: 8 });
+    const report = await startAudit({ kind: "handle", value: "testchannel" }, "standard", { videos: 12, playlists: 8 });
     expect(report.channel.title).toBe("Test Channel");
     expect(report.channel.subscribers).toBe(1000);
     expect(report.channel.keywords).toBe("tech,editing");
@@ -62,7 +62,7 @@ describe("YouTube audit data layer", () => {
 
   it("walks to the next page of uploads and issues a signed cursor", async () => {
     const { startAudit } = await import("../auditor/youtube");
-    const report = await startAudit({ kind: "id", value: CHANNEL_ID }, "full", { videos: 200, playlists: 50 });
+    const report = await startAudit({ kind: "id", value: CHANNEL_ID }, "complete", { videos: 200, playlists: 50 });
     expect(report.videoCursor).toBeTruthy();
     expect(calls.filter(url => url.includes("playlistItems")).length).toBeGreaterThan(1);
     expect(calls.some(url => url.includes("pageToken=page2"))).toBe(true);
@@ -71,18 +71,18 @@ describe("YouTube audit data layer", () => {
   it("reports a friendly error for a missing channel", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: { errors: [{ reason: "notFound" }] } }), { status: 404 })));
     const { startAudit, AuditError } = await import("../auditor/youtube");
-    await expect(startAudit({ kind: "handle", value: "missing" }, "overview", { videos: 12, playlists: 8 })).rejects.toBeInstanceOf(AuditError);
+    await expect(startAudit({ kind: "handle", value: "missing" }, "standard", { videos: 12, playlists: 8 })).rejects.toBeInstanceOf(AuditError);
   });
 
   it("explains quota exhaustion instead of failing silently", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: { errors: [{ reason: "quotaExceeded" }] } }), { status: 403 })));
     const { startAudit, AuditError } = await import("../auditor/youtube");
-    await expect(startAudit({ kind: "handle", value: "testchannel" }, "overview", { videos: 12, playlists: 8 })).rejects.toThrow(/quota/i);
+    await expect(startAudit({ kind: "handle", value: "testchannel" }, "standard", { videos: 12, playlists: 8 })).rejects.toThrow(/quota/i);
   });
 
   it("never requests a user-supplied URL", async () => {
     const { startAudit } = await import("../auditor/youtube");
-    await startAudit({ kind: "username", value: "someone" }, "overview", { videos: 12, playlists: 8 });
+    await startAudit({ kind: "username", value: "someone" }, "standard", { videos: 12, playlists: 8 });
     expect(calls.every(url => url.startsWith("https://www.googleapis.com/youtube/v3/"))).toBe(true);
   });
 });

@@ -4,7 +4,7 @@ import { clientKey, rateLimit } from "@/lib/rate-limit";
 import { readExport } from "@/lib/auditor/cursor";
 import { readEntitlement } from "@/lib/auditor/entitlement";
 import { launchMode } from "@/lib/auditor/policy";
-import { planAllows } from "@/lib/auditor/catalog";
+import { depthAllows } from "@/lib/auditor/catalog";
 import { collectChannelVideos } from "@/lib/auditor/youtube";
 import { cookies } from "next/headers";
 export const runtime = "nodejs";
@@ -16,7 +16,7 @@ const cell = (value: unknown) => {
 };
 /**
  * Server-authoritative CSV export. The client sends only a signed token; the
- * rows are re-fetched here so a paid export cannot be forged from the browser.
+ * rows are re-fetched here so an export cannot be forged from the browser.
  */
 export async function POST(req: Request) {
   const origin = req.headers.get("origin");
@@ -30,13 +30,13 @@ export async function POST(req: Request) {
   if (!token) return NextResponse.json({ error: "This export link has expired. Run the audit again." }, { status: 422, headers });
   if (!launchMode()) {
     const store = await cookies();
-    const entitlement = readEntitlement(store.get("ytcpm_audit_plan")?.value);
-    if (!entitlement || !planAllows(entitlement.plan, "export")) {
-      return NextResponse.json({ error: "CSV download is included with a Half or Full Audit.", code: "premium_required" }, { status: 402, headers });
+    const entitlement = readEntitlement(store.get("ytcpm_audit_depth")?.value);
+    if (!entitlement || !depthAllows(entitlement.depth, "export")) {
+      return NextResponse.json({ error: "CSV download is not included with this access.", code: "premium_required" }, { status: 402, headers });
     }
   }
   try {
-    const videos = await collectChannelVideos(token.channelId, token.level === "full" ? 1000 : token.level === "half" ? 200 : 12);
+    const videos = await collectChannelVideos(token.channelId, token.level === "complete" ? 1000 : token.level === "deep" ? 300 : 50);
     const rows = [["title", "published_at", "views", "likes", "comments", "duration", "category_id", "tags"].join(",")];
     for (const video of videos) rows.push([cell(video.title), cell(video.publishedAt), cell(video.views), cell(video.likes ?? ""), cell(video.comments ?? ""), cell(video.duration), cell(video.categoryId), cell(video.tags.join(" | "))].join(","));
     return new NextResponse(`${rows.join("\n")}\n`, { headers: { ...headers, "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="channel-audit-${token.channelId.slice(-6)}.csv"` } });

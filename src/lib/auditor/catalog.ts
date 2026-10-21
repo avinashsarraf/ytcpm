@@ -1,20 +1,25 @@
-export type AuditPlan = "free" | "half" | "full";
-export type PremiumFeature = "copy" | "export" | "half" | "full";
-export type PlanDefinition = {
-  id: AuditPlan; name: string; priceInr: number; tagline: string; features: string[]; limits: string; highlight?: boolean;
+/**
+ * Audit depth catalogue. The public site runs every depth free during the
+ * launch period, so no price, plan name or tier is exposed to visitors yet.
+ * Depths are internal capability levels used by the server and the API.
+ */
+export type AuditDepth = "standard" | "deep" | "complete";
+export type DepthFeature = "export" | "copy" | "deep" | "complete";
+
+export type DepthDefinition = {
+  id: AuditDepth; videos: number; playlists: number; pages: number;
 };
-/** Client-safe plan catalog. Prices are display values; the server owns billing. */
-export const PLANS: PlanDefinition[] = [
-  { id: "free", name: "Free Overview", priceInr: 0, tagline: "A quick public snapshot of any channel.", limits: "12 videos · 8 playlists · on-screen report", features: ["Channel snapshot and public stats", "Top and weakest content signals", "Keyword and tag analysis", "Modeled CPM/RPM scenarios"] },
-  { id: "half", name: "Half Audit", priceInr: 499, tagline: "The deep read for one channel.", limits: "Up to 200 videos · 50 playlists · full keyword table", highlight: true, features: ["Everything in Free Overview", "Full video catalogue with sorting", "Complete keyword and tag table", "Copyable report summary", "CSV download of the video table"] },
-  { id: "full", name: "Full Audit", priceInr: 1499, tagline: "Complete channel intelligence.", limits: "Up to 1,000 videos · every playlist · priority processing", features: ["Everything in Half Audit", "Entire upload history with pagination", "Per-video scenario revenue ranges", "Channel-vs-benchmark comparison", "Priority re-runs and re-exports"] },
+
+export const DEPTHS: DepthDefinition[] = [
+  { id: "standard", videos: 50, playlists: 20, pages: 1 },
+  { id: "deep", videos: 300, playlists: 100, pages: 6 },
+  { id: "complete", videos: 1000, playlists: 500, pages: 20 },
 ];
-export const FREE_VIDEO_LIMIT = 12;
-export const FREE_PLAYLIST_LIMIT = 8;
-export const HALF_VIDEO_LIMIT = 200;
-export const FULL_VIDEO_LIMIT = 1000;
-export function planAllows(plan: AuditPlan, feature: PremiumFeature): boolean {
-  if (plan === "full") return true;
-  if (plan === "half") return feature !== "full";
+
+export const DEPTH_BY_ID = new Map(DEPTHS.map(depth => [depth.id, depth]));
+
+export function depthAllows(depth: AuditDepth, feature: DepthFeature): boolean {
+  if (depth === "complete") return true;
+  if (depth === "deep") return feature !== "complete";
   return false;
 }

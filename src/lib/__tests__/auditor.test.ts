@@ -6,7 +6,7 @@ import { buildInsights } from "../auditor/insights";
 import { buildScenario, isShort, parseDuration } from "../auditor/estimate";
 import { buildSummaryText } from "../auditor/report";
 import { sampleReport } from "../auditor/sample";
-import { planAllows } from "../auditor/catalog";
+import { depthAllows } from "../auditor/catalog";
 import { categoryName } from "../auditor/categories";
 
 process.env.AUDIT_SIGNING_SECRET = "test-secret-that-is-long-enough-0000000000";
@@ -33,14 +33,14 @@ describe("channel input parsing", () => {
 
 describe("signed audit tokens", () => {
   it("round-trips a cursor and rejects tampering", () => {
-    const token = signCursor({ channelId: "UCabcdefghijklmnopqrstuv", collection: "videos", playlistId: "PL123", level: "full", pageToken: "abc" });
+    const token = signCursor({ channelId: "UCabcdefghijklmnopqrstuv", collection: "videos", playlistId: "PL123", level: "complete", pageToken: "abc" });
     expect(readCursor(token)?.pageToken).toBe("abc");
     expect(readCursor(token.replace(/.$/, "x"))).toBeNull();
     expect(readCursor("not-a-token")).toBeNull();
   });
   it("round-trips an export token and rejects a foreign channel", () => {
-    const token = signExport("UCabcdefghijklmnopqrstuv", "half");
-    expect(readExport(token)?.level).toBe("half");
+    const token = signExport("UCabcdefghijklmnopqrstuv", "deep");
+    expect(readExport(token)?.level).toBe("deep");
     const [body, signature] = token.split(".");
     const tampered = `${body.replace(/.$/, body.endsWith("a") ? "b" : "a")}.${signature}`;
     expect(readExport(tampered)).toBeNull();
@@ -104,13 +104,13 @@ describe("revenue scenarios", () => {
   });
 });
 
-describe("plan gating", () => {
-  it("keeps half and full features behind the right plan", () => {
-    expect(planAllows("free", "half")).toBe(false);
-    expect(planAllows("free", "copy")).toBe(false);
-    expect(planAllows("half", "copy")).toBe(true);
-    expect(planAllows("half", "full")).toBe(false);
-    expect(planAllows("full", "full")).toBe(true);
+describe("audit depth gating", () => {
+  it("keeps deeper features behind the right depth", () => {
+    expect(depthAllows("standard", "deep")).toBe(false);
+    expect(depthAllows("standard", "export")).toBe(false);
+    expect(depthAllows("deep", "export")).toBe(true);
+    expect(depthAllows("deep", "complete")).toBe(false);
+    expect(depthAllows("complete", "complete")).toBe(true);
   });
 });
 

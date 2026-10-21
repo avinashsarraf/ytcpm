@@ -205,10 +205,15 @@ scenario with a visitor-controlled market assumption.
 
 User input is parsed rather than fetched, so a submitted string can never become a request target.
 Pagination cursors and export tokens are HMAC-signed and expire; CSV exports are re-fetched
-server-side from the signed token instead of trusting browser-supplied rows. Razorpay order
-amounts come from the server plan table and a captured payment is verified before a signed,
-HttpOnly entitlement cookie is issued. Checkout stays closed until credentials are configured, so
-no payment can be taken during the free launch period.
+server-side from the signed token instead of trusting browser-supplied rows. Any optional payment
+amount comes from a server-side depth table and a captured payment is verified before a signed,
+HttpOnly access cookie is issued. Checkout stays closed until credentials are configured, so no
+payment can be taken right now.
+
+Because every audit is currently free, the page, the component and the API responses carry no
+price, plan name or paid-tier wording anywhere; the browser suite asserts that no pricing string is
+visible. A free audit already runs at the deepest internal depth, so it covers the whole public
+channel rather than a shortened preview.
 
 Credentials (`YOUTUBE_API_KEY`, `AUDIT_SIGNING_SECRET`, `RAZORPAY_*`, `AUDIT_BILLING_MODE`) live
 only in environment variables and are documented in `.env.example` and

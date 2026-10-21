@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, BarChart3, Crown, FileSearch, Hash, ListVideo, Lock, Search, ShieldCheck, TrendingUp } from "lucide-react";
+import { ArrowRight, BadgeCheck, BarChart3, FileSearch, Hash, ListVideo, Search, ShieldCheck, TrendingUp } from "lucide-react";
 import ChannelAuditor from "@/components/channel-auditor";
 import Faq from "@/components/faq";
 import { pageMetadata, breadcrumbs, serializeJsonLd } from "@/lib/seo";
-import { PLANS } from "@/lib/auditor/catalog";
 
 export const metadata: Metadata = {
   ...pageMetadata(
     "YouTube Channel Auditor — Audit Any Public Channel",
-    "Audit any public YouTube channel: category, videos, playlists, tags, keywords, best and worst performing content plus clearly labeled CPM, RPM and revenue scenarios. Free during launch.",
+    "Audit any public YouTube channel: category, videos, playlists, tags, keywords, best and worst performing content plus clearly labeled CPM, RPM and revenue scenarios. Completely free, no signup.",
     "/channel-auditor",
   ),
   keywords: ["youtube channel auditor", "youtube channel analysis", "channel audit tool", "youtube keyword analysis", "youtube channel revenue estimate", "best performing videos"],
@@ -21,7 +20,7 @@ const FAQS = [
   { q: "Where do the keywords and best/worst performing content come from?", a: "Phrases are inferred from public titles and public tags on the videos that were analysed, ranked by the views associated with them. Best and worst performers are ranked by views and by views per day since publication. These are content signals — they are not verified search volumes, keyword rankings or a verdict on strategy." },
   { q: "Which channels can be audited?", a: "Any public channel that can be resolved from its current @handle, an @handle URL or a /channel/UC… URL. Custom vanity /c/ links, deleted channels and private channels cannot be resolved. You need the YouTube Data API key configured on the server for live audits." },
   { q: "Can I audit my own channel's private analytics?", a: "Not yet. Connecting a channel with Google authorization to read private analytics is a separate flow. Until it exists, this tool never presents owner-only numbers as if they came from a public audit, and a public audit of your own channel still shows public data only." },
-  { q: "Is the audit really free, and what is premium?", a: "Every audit depth is free while we launch. Paid Half and Full audits are planned for later and add deeper video coverage, the complete keyword table, CSV downloads and per-video scenarios. Checkout is not switched on yet, so no payment can be taken today." },
+  { q: "Is the audit really free?", a: "Yes. Every audit is free, with no signup, no card and no limits on how much of a channel is analysed. You can also copy the written summary or download the analysed video table as a CSV." },
 ];
 
 const DIFFERENTIATORS = [
@@ -44,7 +43,7 @@ export default function ChannelAuditorPage() {
         <nav aria-label="Breadcrumb" className="mb-6 text-xs text-fog"><Link href="/" className="underline">Home</Link> / <span aria-current="page">Channel Auditor</span></nav>
         <p className="tag-red w-fit text-[11px]">New · Channel intelligence</p>
         <h1 className="display-2 mt-4 max-w-[24ch]">Audit any public<br /><span className="text-yt-gradient">YouTube channel.</span></h1>
-        <p className="lede mt-4 max-w-3xl">Paste a channel URL or @handle and get the full public picture — category, every video, playlists, tags, keywords, best and worst performers and clearly labeled CPM, RPM and revenue scenarios. Free during launch, no signup.</p>
+        <p className="lede mt-4 max-w-3xl">Paste a channel URL or @handle and get the full public picture — category, every video, playlists, tags, keywords, best and worst performers and clearly labeled CPM, RPM and revenue scenarios. Completely free, no signup.</p>
         <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2.5 text-xs font-semibold text-fog">
           <li className="flex items-center gap-1.5"><Search aria-hidden className="h-3.5 w-3.5 text-mint" />Public data only</li>
           <li className="flex items-center gap-1.5"><ShieldCheck aria-hidden className="h-3.5 w-3.5 text-mint" />No channel login</li>
@@ -69,12 +68,13 @@ export default function ChannelAuditorPage() {
             <Link href="/tools" className="mt-4 inline-flex min-h-11 items-center gap-2 text-xs font-bold text-yt-red">Other creator tools <ArrowRight aria-hidden className="h-3.5 w-3.5" /></Link>
           </div>
           <div className="rounded-2xl border border-mint/25 bg-mint-bg/60 p-5">
-            <h2 className="flex items-center gap-2 text-sm font-bold text-heading"><Crown aria-hidden className="h-4 w-4 text-gold" />Launch pricing</h2>
-            <p className="mt-2 text-xs leading-6 text-fog">Every depth is free right now. Paid plans arrive later with a Half Audit and a Full Audit.</p>
-            <ul className="mt-3 space-y-2">
-              {PLANS.map(plan => <li key={plan.id} className="flex items-baseline justify-between gap-3 text-xs"><span className="font-semibold text-heading">{plan.name}</span><span className="font-mono text-fog">{plan.priceInr === 0 ? "Free" : `₹${plan.priceInr}`}</span></li>)}
+            <h2 className="flex items-center gap-2 text-sm font-bold text-heading"><ShieldCheck aria-hidden className="h-4 w-4 text-mint" />Free, complete and honest</h2>
+            <ul className="mt-3 space-y-2 text-xs leading-6 text-fog">
+              <li>Every public upload the API returns, not a short sample</li>
+              <li>Copy the summary or download the video table as CSV</li>
+              <li>No signup, no card, no checkout step</li>
             </ul>
-            <p className="mt-3 flex items-start gap-1.5 text-[11px] leading-5 text-fog"><Lock aria-hidden className="mt-0.5 h-3 w-3 shrink-0 text-yt-red" />Checkout is off, so nothing can be charged today.</p>
+            <p className="mt-3 text-[11px] leading-5 text-fog">We never ask for your YouTube login and never read private channel data.</p>
           </div>
           <div className="rounded-2xl border border-border bg-white p-5">
             <h2 className="text-sm font-bold text-heading">Read alongside</h2>
