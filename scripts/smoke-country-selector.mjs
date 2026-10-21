@@ -19,13 +19,13 @@ try {
   assert((await result.locator('[aria-live]').textContent()).includes('₹'));
   assert(!(await result.locator('dl').textContent()).includes('$'));
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-  assert((await trigger.boundingBox()).y < (await page.getByRole('combobox',{name:'Channel niche'}).boundingBox()).y);
+  assert((await trigger.boundingBox()).y < (await page.getByRole('button',{name:'Channel niche',exact:true}).boundingBox()).y);
   await trigger.click();await search.fill('United');assert.equal(await page.getByRole('listbox',{name:'Countries',exact:true}).getByRole('option').count(),2);
   await search.press('ArrowDown');await search.press('Enter');
   assert((await trigger.textContent()).includes('United Kingdom'));
   assert((await result.locator('[aria-live]').textContent()).includes('£'));
   await trigger.click();await search.press('Escape');assert.equal(await page.getByRole('dialog').count(),0);
-  await trigger.click();await page.getByRole('textbox',{name:'Total views',exact:true}).click();assert.equal(await page.getByRole('dialog').count(),0);
+  await trigger.click();await page.mouse.click(2,200);assert.equal(await page.getByRole('dialog').count(),0);
  }
  // Each supported local currency updates automatically; no USD toggle exists.
  for(const [name,code,symbol] of [['Japan','JPY','￥'],['Germany','EUR','€'],['Australia','AUD','$'],['South Korea','KRW','₩'],['Indonesia','IDR','Rp'],['United States','USD','$'],['Worldwide','USD','$']]) {

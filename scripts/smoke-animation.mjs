@@ -17,9 +17,12 @@ try {
  const falling=await numeric();assert(falling>82.5 && falling<=1650);
  await settled();assert.equal(await numeric(),82.5);
  await views.fill('1000000');await views.fill('5000');await views.fill('100000');await settled();assert.equal(await numeric(),825);
- const niche=page.getByRole('combobox',{name:'Channel niche'});
- assert.deepEqual(await niche.locator('optgroup').evaluateAll(groups=>groups.map(g=>g.children.length)),[8,10]);
- assert(await niche.locator('option').evaluateAll(options=>options.every(o=>!/[\d$₹€£]/.test(o.textContent))));
+ await page.getByRole('button',{name:'Channel niche',exact:true}).click();
+ const niche=page.getByRole('listbox',{name:'Niches',exact:true});
+ assert.equal(await niche.getByRole('option').count(),18);
+ assert.deepEqual(await niche.getByRole('option').evaluateAll(options=>[options.filter(o=>o.getAttribute('aria-describedby').endsWith('higher')).length,options.filter(o=>o.getAttribute('aria-describedby').endsWith('lower')).length]),[8,10]);
+ assert(await niche.getByRole('option').evaluateAll(options=>options.every(o=>!/[\d$₹€£]/.test(o.textContent))));
+ await page.getByRole('combobox',{name:'Search niches'}).press('Escape');
  await page.getByRole('button',{name:'Audience country',exact:true}).click();
  for(const text of ['Worldwide','Tier 1 — Premium rates','Tier 2 — Strong','Tier 3 — Emerging','Tier 4 — Volume']) assert(await page.getByRole('listbox',{name:'Countries'}).getByText(text,{exact:true}).isVisible());
  const search=page.getByRole('combobox',{name:'Search countries'});await search.fill('INR');await search.press('Enter');

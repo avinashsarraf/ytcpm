@@ -62,7 +62,7 @@ try {
   const nicheLink = app.locator('main a[href^="/cpm-by-niche/"]').first(); const nichePath = await nicheLink.getAttribute('href');
   await nicheLink.click(); await app.waitForURL('**' + nichePath);
   assert.equal(await app.getByRole('textbox', { name: 'Total views', exact: true }).inputValue(), '100,000');
-  assert.equal(await app.getByRole('combobox', { name: 'Channel niche' }).inputValue(), nichePath.split('/').pop());
+  assert.equal(await app.getByRole('button', { name: 'Channel niche', exact: true }).getAttribute('data-picker-value'), nichePath.split('/').pop());
   await app.setViewportSize({ width: 375, height: 900 }); await app.goto(base + '/tools');
   await app.getByRole('button', { name: 'Open menu' }).click(); await app.getByRole('navigation', { name: 'Mobile', exact: true }).getByRole('link', { name: 'Guides', exact: true }).focus();
   await app.keyboard.press('Escape'); assert(await app.getByRole('button', { name: 'Open menu' }).evaluate(n => n === document.activeElement));

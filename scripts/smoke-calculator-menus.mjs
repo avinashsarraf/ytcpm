@@ -1,0 +1,54 @@
+import assert from 'node:assert/strict';
+import { chromium } from 'playwright';
+import AxeBuilder from '@axe-core/playwright';
+const base = process.env.BASE_URL ?? 'http://localhost:3000';
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_EXECUTABLE_PATH, args: ['--no-sandbox'], headless: true });
+try {
+  const context = await browser.newContext({ reducedMotion: 'reduce' }); const page = await context.newPage();
+  const errors = []; page.on('pageerror', error => errors.push(error.message));
+  for (const width of [320, 375, 768, 1024, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 1000 }); await page.goto(base);
+    const country = page.getByRole('button', { name: 'Audience country', exact: true });
+    const niche = page.getByRole('button', { name: 'Channel niche', exact: true });
+    await country.scrollIntoViewIfNeeded();
+    const originalNiche = await niche.boundingBox();
+    await country.click();
+    const search = page.getByRole('combobox', { name: 'Search countries', exact: true });
+    assert(await search.evaluate(n => n === document.activeElement));
+    assert.equal(Math.round((await niche.boundingBox()).y), Math.round(originalNiche.y), 'menu does not push down the next field');
+    const menu = page.getByRole('dialog', { name: 'Choose audience country' });
+    const box = await menu.boundingBox(); assert(box.x >= 0 && box.x + box.width <= width, `menu inside screen ${width}`);
+    const list = page.getByRole('listbox', { name: 'Countries', exact: true });
+    const first = list.getByRole('option').first(); const group = list.getByText('Worldwide', { exact: true });
+    assert((await first.boundingBox()).y >= (await group.boundingBox()).y + (await group.boundingBox()).height - 2, 'first country not under sticky header');
+    await search.fill('INR'); await list.getByRole('option').click();
+    assert.equal(await country.getAttribute('data-picker-value'), 'india');
+    assert.equal(await page.locator('[aria-label="Result currency"]').textContent(), 'INR');
+    await niche.click(); const nicheSearch = page.getByRole('combobox', { name: 'Search niches', exact: true });
+    const niches = page.getByRole('listbox', { name: 'Niches', exact: true }); assert.equal(await niches.getByRole('option').count(), 18);
+    assert(!/[$₹€£\d]/.test(await niches.innerText()), 'niche options have no money ranges');
+    await nicheSearch.fill('gaming'); await nicheSearch.press('Enter');
+    assert.equal(await niche.getAttribute('data-picker-value'), 'gaming'); assert(await niche.evaluate(n => n === document.activeElement));
+    await niche.press('ArrowDown'); await nicheSearch.fill('nothing-matches');
+    assert.equal(await niches.getByRole('option').count(), 0);
+    await page.getByRole('button', { name: 'Clear search', exact: true }).click(); assert.equal(await niches.getByRole('option').count(), 18);
+    await nicheSearch.press('End'); await nicheSearch.press('Home'); await nicheSearch.press('Escape');
+    assert.equal(await page.getByRole('dialog').count(), 0);
+    await country.click(); await page.keyboard.press('Tab'); await page.keyboard.press('Tab');
+    assert.equal(await page.getByRole('dialog').count(), 0, 'tab leaves menu without a focus trap');
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  }
+  await page.setViewportSize({ width: 1440, height: 1100 }); await page.goto(base); const workspace = page.locator('[data-home-calculator]');
+  await workspace.scrollIntoViewIfNeeded();
+  await page.getByRole('button', { name: 'Audience country', exact: true }).click();
+  await workspace.screenshot({ path: '/tmp/calculator-country-premium.png' });
+  let audit = await new AxeBuilder({ page }).include('[data-home-calculator]').withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze();
+  assert.deepEqual(audit.violations.map(v => ({ id: v.id, nodes: v.nodes.map(n => n.html) })), []);
+  await page.goto(base); await page.getByRole('button', { name: 'Channel niche', exact: true }).click();
+  await workspace.screenshot({ path: '/tmp/calculator-niche-premium.png' });
+  audit = await new AxeBuilder({ page }).include('[data-home-calculator]').withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze();
+  assert.deepEqual(audit.violations.map(v => ({ id: v.id, nodes: v.nodes.map(n => n.html) })), []);
+  await page.setViewportSize({ width: 375, height: 1000 }); await page.goto(base); await workspace.screenshot({ path: '/tmp/calculator-mobile-premium.png' });
+  assert.deepEqual(errors, []);
+  console.log('PASS premium country/niche menus: 6 widths, overlay/no reflow, sticky headers, mouse/keyboard/search/empty/reset, currencies and axe checks');
+} finally { await browser.close(); }

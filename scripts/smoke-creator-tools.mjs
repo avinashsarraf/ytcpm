@@ -73,7 +73,7 @@ try {
   await tool.goto(base + '/cpm-by-country/india');
   assert((await tool.getByRole('button', { name: 'Audience country', exact: true }).innerText()).includes('India'));
   await tool.goto(base + '/cpm-by-niche/finance-investing');
-  assert.equal(await tool.getByRole('combobox', { name: 'Channel niche' }).inputValue(), 'finance-investing');
+  assert.equal(await tool.getByRole('button', { name: 'Channel niche', exact: true }).getAttribute('data-picker-value'), 'finance-investing');
   await tool.setViewportSize({ width: 1440, height: 1000 }); await tool.goto(base + '/youtube-shorts-earnings-calculator');
   await tool.screenshot({ path: '/tmp/creator-tool-desktop.png', fullPage: true });
   await tool.setViewportSize({ width: 375, height: 900 }); await tool.screenshot({ path: '/tmp/creator-tool-mobile.png', fullPage: true });

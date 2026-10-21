@@ -19,7 +19,7 @@ if (screenshotDir) await mkdir(screenshotDir, { recursive: true });
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`overflow at ${width}`);
   const box=await page.locator('.shell').first().boundingBox();assert(box.width<=1600);
   assert(await page.getByRole('textbox',{name:'Total views',exact:true}).isVisible());
-  if(width>=1024) { const card=page.locator('[data-home-calculator]'); const grid=card.locator(':scope > div').first(); assert.equal(await grid.evaluate(e=>getComputedStyle(e).gridTemplateColumns.split(' ').length),2); }
+  if(width>=1024) { const card=page.locator('[data-home-calculator]'); const grid=card.locator(':scope > div.grid').first(); assert.equal(await grid.evaluate(e=>getComputedStyle(e).gridTemplateColumns.split(' ').length),2); }
   await page.locator('img').evaluateAll(imgs => Promise.all(imgs.map(async i => { i.loading = 'eager'; try { await i.decode(); } catch { /* reported by the asset assertion below */ } })));
   assert.equal(await page.locator('img').evaluateAll(imgs=>imgs.filter(i=>!i.complete || i.naturalWidth===0).length),0,`broken images ${width}: ${JSON.stringify(await page.locator('img').evaluateAll(imgs=>imgs.filter(i=>!i.naturalWidth).map(i=>i.src)))}`);
   if(screenshotDir && width===375) await page.screenshot({path:join(screenshotDir,'mobile.png'),fullPage:true});

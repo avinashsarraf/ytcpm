@@ -409,3 +409,82 @@ input[type="range"].slider::-moz-range-thumb { width: 18px; height: 18px; border
   .cpm-ticker-group[aria-hidden="true"] { display: none; }
   .marquee-mask { mask-image: none; }
 }
+
+/* Earnings workspace and shared searchable menus. Keep overlays out of document flow. */
+.calculator-workspace {
+  position: relative;
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  background: white;
+  box-shadow: 0 6px 14px -10px rgba(15, 30, 45, .15), 0 24px 70px -35px rgba(15, 30, 45, .24);
+}
+.calculator-toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem;
+  padding: 1.1rem 1.75rem; border-bottom: 1px solid var(--color-border);
+  border-radius: 24px 24px 0 0; background: linear-gradient(100deg, #fff, #fff8fa);
+}
+.calculator-picker { position: relative; min-width: 0; }
+.picker-trigger {
+  display: flex; align-items: center; gap: .75rem; width: 100%; min-height: 58px;
+  padding: .65rem .875rem; border: 1px solid var(--color-border); border-radius: 14px;
+  background: white; color: var(--color-heading); font-size: .875rem;
+  box-shadow: 0 2px 4px rgba(15, 25, 40, .025); transition: border-color .15s, box-shadow .15s;
+}
+.picker-trigger:hover { border-color: #c8c8d2; }
+.picker-trigger-open, .picker-trigger:focus-visible {
+  border-color: var(--color-yt-red); box-shadow: 0 0 0 3px var(--color-yt-red-light);
+}
+.picker-option-icon {
+  display: grid; flex: none; width: 34px; height: 34px; place-items: center;
+  border: 1px solid var(--color-border); border-radius: 10px; background: white;
+}
+.picker-currency {
+  align-items: center; flex-shrink: 0; border-radius: 7px; padding: .35rem .5rem;
+  background: var(--color-surface); color: var(--color-fog); font: 500 10px var(--font-mono);
+}
+.picker-panel {
+  position: absolute; z-index: 35; inset-inline: 0; top: calc(100% + 8px);
+  border: 1px solid #dedee7; border-radius: 18px; background: white;
+  box-shadow: 0 8px 20px -12px rgba(15, 25, 40, .16), 0 24px 50px -18px rgba(15, 25, 40, .24);
+  animation: picker-in .15s ease-out;
+}
+.picker-panel-above { top: auto; bottom: calc(100% + 8px); }
+.picker-search {
+  display: flex; align-items: center; gap: .65rem; padding: 0 .65rem 0 .875rem;
+  border: 1px solid var(--color-border); border-radius: 11px; background: var(--color-surface);
+  transition: border-color .15s, box-shadow .15s;
+}
+.picker-search:focus-within { border-color: var(--color-yt-red); background: white; box-shadow: 0 0 0 3px var(--color-yt-red-light); }
+.picker-search input { min-width: 0; width: 100%; min-height: 44px; background: transparent; color: var(--color-heading); font-size: 14px; }
+/* The visible focus indicator belongs to the whole search field, not a second square input outline. */
+.picker-search input:focus-visible { outline: none; }
+.picker-options {
+  max-height: min(280px, 42svh); overflow-y: auto; overscroll-behavior: contain;
+  scroll-padding-top: 38px; scrollbar-width: thin; padding: 0 .5rem .5rem;
+}
+.picker-group {
+  position: sticky; top: 0; z-index: 1; display: flex; align-items: center; gap: .75rem;
+  min-height: 36px; padding: .5rem .75rem; background: white;
+  color: var(--color-fog); font-size: 10px; font-weight: 700; letter-spacing: .045em;
+}
+.picker-option {
+  display: flex; align-items: center; gap: .7rem; min-height: 52px;
+  padding: .5rem .65rem; border: 1px solid transparent; border-radius: 11px;
+  color: var(--color-heading); font-size: 13px; cursor: pointer;
+}
+.picker-option-active { background: var(--color-surface); }
+.picker-option-selected { border-color: #d1e9df; background: #eff8f3; }
+.picker-option-selected.picker-option-active { background: #e8f4ee; }
+.picker-footer {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem;
+  padding: .75rem 1rem; border-top: 1px solid var(--color-border); border-radius: 0 0 18px 18px;
+  background: #fafafb; color: var(--color-fog); font-size: 10px; line-height: 1.5;
+}
+@keyframes picker-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 639px) {
+  .calculator-toolbar { padding: 1rem; }
+  .picker-panel { border-radius: 14px; }
+  .picker-option { gap: .5rem; padding-inline: .4rem; }
+  .picker-option-icon { width: 30px; height: 32px; }
+}
+@media (prefers-reduced-motion: reduce) { .picker-panel { animation: none; } }
