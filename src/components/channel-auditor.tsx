@@ -115,7 +115,12 @@ export default function ChannelAuditor() {
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-yt-red-light text-yt-red"><FileSearch aria-hidden className="h-5 w-5" /></span>
         <div className="min-w-0"><p className="truncate text-sm font-bold text-heading">Channel Auditor</p><p className="mt-0.5 truncate text-xs leading-5 text-fog">Public channel data · no login needed</p></div>
       </div>
-      <span className="inline-flex shrink-0 items-center gap-2 text-[11px] font-semibold text-mint"><span className="h-1.5 w-1.5 rounded-full bg-mint" />Free · no signup</span>
+      <div className="flex shrink-0 items-center gap-3">
+        <ul aria-label="Data provenance legend" className="hidden items-center gap-2 md:flex">
+          {[["Public", "bg-mint"], ["Inferred", "bg-yt-red"], ["Estimated", "bg-gold"]].map(([label, tone]) => <li key={label} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-wider text-fog"><span className={`h-1.5 w-1.5 rounded-full ${tone}`} />{label}</li>)}
+        </ul>
+        <span className="inline-flex shrink-0 items-center gap-2 text-[11px] font-semibold text-mint"><span className="h-1.5 w-1.5 rounded-full bg-mint" />Free · no signup</span>
+      </div>
     </div>
 
     <form onSubmit={runAudit} className="auditor-inputs border-b border-border p-4 sm:p-6 lg:p-7">
@@ -137,10 +142,25 @@ export default function ChannelAuditor() {
       {error && <p role="alert" className="mt-1 flex items-start gap-2 rounded-lg border border-yt-red/25 bg-yt-red-light px-3 py-2 text-xs font-semibold leading-5 text-yt-red"><X aria-hidden className="mt-0.5 h-3.5 w-3.5 shrink-0" />{error}</p>}
     </form>
 
-    {!report ? <div className="auditor-empty px-5 py-12 text-center">
+    {!report ? <div className="auditor-empty px-5 py-10 text-center sm:px-8 sm:py-12">
       <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-surface text-fog"><FileSearch aria-hidden className="h-6 w-6" /></span>
       <p className="mt-4 text-base font-bold text-heading">Paste a channel to start the audit</p>
       <p className="mx-auto mt-2 max-w-[46ch] text-sm leading-7 text-fog">Public videos, playlists, tags, keywords, best and worst performers plus clearly labeled CPM/RPM revenue scenarios. Private analytics stay private.</p>
+      <ul className="mx-auto mt-7 grid max-w-3xl gap-3 text-left sm:grid-cols-2 lg:grid-cols-3">
+        {[
+          { icon: ListVideo, title: "Every public upload", copy: "Titles, tags, categories, views, likes and comments." },
+          { icon: Hash, title: "Keyword intelligence", copy: "Strongest and weakest repeated phrases, ranked by views." },
+          { icon: TrendingUp, title: "Best and worst performers", copy: "Ranked by views and by views per day since publication." },
+          { icon: BarChart3, title: "CPM and RPM scenarios", copy: "Labeled ranges from the ytcpm.online benchmark model." },
+          { icon: CalendarClock, title: "Upload cadence", copy: "Videos published each month and median daily velocity." },
+          { icon: Heart, title: "Engagement rate", copy: "(likes + comments) ÷ views on analysed uploads." },
+        ].map(({ icon: Icon, title, copy }) => <li key={title} className="rounded-xl border border-border/80 bg-white p-4">
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-yt-red-light text-yt-red"><Icon aria-hidden className="h-4 w-4" /></span>
+          <p className="mt-3 text-sm font-bold text-heading">{title}</p>
+          <p className="mt-1 text-xs leading-6 text-fog">{copy}</p>
+        </li>)}
+      </ul>
+      <p className="mt-7 text-xs text-fog">Tip: you can paste <code className="rounded bg-surface px-1 py-0.5 font-mono text-[11px]">youtube.com/@handle</code>, <code className="rounded bg-surface px-1 py-0.5 font-mono text-[11px]">@handle</code> or a <code className="rounded bg-surface px-1 py-0.5 font-mono text-[11px]">/channel/UC…</code> link.</p>
     </div> : <div className="min-w-0">
       <div className="auditor-channel border-b border-border bg-gradient-to-br from-[#f7f8fb] to-white p-4 sm:p-6 lg:p-7">
         <div className="flex flex-wrap items-start justify-between gap-4">

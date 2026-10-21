@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { BenchmarkNotice } from "@/components/source-notice";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowUpRight, Globe2 } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Globe2 } from "lucide-react";
 import { Reveal } from "@/components/motion";
 import { COUNTRIES_BY_CPM, TIER_LABEL, DATA_YEAR, perMillionViews, CREATOR_SHARE, localMoney } from "@/lib/data";
 import { flagUrl } from "@/lib/flags";
@@ -58,6 +58,16 @@ export default function CountryIndex() {
             </div>
           </div>
         </Reveal>
+        <Reveal delay={0.15}>
+          <div className="mt-10 flex flex-col gap-4 rounded-2xl border border-border bg-gradient-to-br from-yt-red-light/70 via-white to-white p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7">
+            <div className="max-w-[62ch]">
+              <h2 className="text-xl font-bold text-heading">Audit a channel, then model its market</h2>
+              <p className="mt-2 text-sm leading-7 text-fog">Run a public channel audit to see a channel&apos;s catalogue, tags, keywords and top performers, then use these audience-market benchmarks to frame a realistic CPM scenario.</p>
+            </div>
+            <Link href="/channel-auditor" className="hot-gradient inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold text-white">Open the Channel Auditor<ArrowRight aria-hidden className="h-4 w-4" /></Link>
+          </div>
+        </Reveal>
+
         <div className="mt-10 grid gap-3 pb-4 sm:grid-cols-2 lg:grid-cols-4">
           {([1,2,3,4] as const).map((t,i) => (
             <Reveal key={t} delay={i * 0.05}>

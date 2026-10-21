@@ -2,7 +2,7 @@ import { pageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import { BenchmarkNotice } from "@/components/source-notice";
 import Link from "next/link";
-import { Layers } from "lucide-react";
+import { ArrowRight, Layers } from "lucide-react";
 import { Reveal } from "@/components/motion";
 import { NicheRangeChart } from "@/components/charts";
 import { NICHE_ICONS } from "@/lib/niche-icons";
@@ -32,6 +32,16 @@ export default function NicheIndex() {
         <Reveal delay={0.1}>
           <div className="mt-8 xl:mt-10">
             <NicheRangeChart niches={NICHES_BY_CPM} />
+          </div>
+        </Reveal>
+
+        <Reveal delay={0.15}>
+          <div className="mt-10 flex flex-col gap-4 rounded-2xl border border-border bg-gradient-to-br from-yt-red-light/70 via-white to-white p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7">
+            <div className="max-w-[62ch]">
+              <h2 className="text-xl font-bold text-heading">Know the channel before you model the niche</h2>
+              <p className="mt-2 text-sm leading-7 text-fog">Audit any public YouTube channel to see its real catalogue, tags, keywords, top performers and upload cadence — then compare those signals against the niche benchmark on this page.</p>
+            </div>
+            <Link href="/channel-auditor" className="hot-gradient inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold text-white">Open the Channel Auditor<ArrowRight aria-hidden className="h-4 w-4" /></Link>
           </div>
         </Reveal>
 

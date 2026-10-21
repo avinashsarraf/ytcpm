@@ -76,6 +76,27 @@ In `free` mode every visitor receives the `complete` depth, so a free audit alre
 whole public channel. The other depths exist only for a future paid path and are not named,
 priced or shown anywhere on the site right now.
 
+## Page SEO and content architecture
+
+The page is the single owner of the "audit a YouTube channel" intent. Variants of that intent
+(auditor, audit tool, analyzer, analysis, stats, competitor research, keyword analysis) are covered
+by sections, headings, FAQ answers and schema on this one page rather than by thin sibling pages.
+
+- Metadata: focus keyword in the title, the full output list in the description, twelve keyword
+  variants, `category: finance`, and a `googleBot` directive with `max-image-preview: large`.
+- Social image: `src/app/channel-auditor/opengraph-image.tsx` renders a 1200×630 card with the
+  tool name and the Public/Inferred/Estimated promise; `og:image` and `twitter:image` point at it.
+- JSON-LD: BreadcrumbList, WebPage, WebApplication (`isAccessibleForFree`, feature list),
+  HowTo (three steps) and FAQPage (ten questions, matching the visible disclosures exactly).
+- Server-rendered body: output panel, three-step "how it works", coverage table with a source
+  column, a public-audit vs. YouTube Studio comparison table, a data-label explainer, four use
+  cases, a limitations block, ten FAQ entries, a next-step panel and a sources list.
+- Internal links: outbound to the niche/country benchmarks, the CPM and RPM calculators, the
+  Studio CPM guide, methodology, sources and the tools index; inbound from the guides, niche and
+  country indexes, methodology, sources, homepage, tools index, header and footer.
+- Editorial copy lives in `src/lib/auditor/content.ts` so the page, the schema and the tests share
+  one source of truth.
+
 ## Tests
 
 - `src/lib/__tests__/auditor.test.ts` — input parsing, signed tokens, phrase analysis, insights,
@@ -84,6 +105,8 @@ priced or shown anywhere on the site right now.
   missing key, tampered cursor, oversized body, cross-origin request, no-store headers.
 - `src/lib/__tests__/auditor-youtube.test.ts` — mocked Data API: channel resolution, pagination,
   quota and missing-channel errors, and the guarantee that only `googleapis.com` is called.
-- `npm run test:channel-auditor` — browser run: sample dashboard, all four tabs, clipboard copy,
-  a check that no pricing or plan wording is visible, the CSV fallback message, five widths and axe
-  checks.
+- `npm run test:channel-auditor` — browser run: title/description/keywords, canonical and OG URL,
+  route-specific OG and Twitter images, the JSON-LD graph (BreadcrumbList, WebPage, WebApplication,
+  HowTo, FAQPage), editorial depth and section headings, primary-source links, sample dashboard,
+  all four tabs, clipboard copy, a check that no pricing or plan wording is visible, the CSV
+  fallback message, the FAQ working without JavaScript, five widths and axe checks.

@@ -33,6 +33,13 @@ Official references:
 | how much does youtube pay per 1000 views, 100000 views, 1 million views | `/guides/youtube-earnings-per-1000-views` | One substantial guide, not thin copies per count |
 | youtube cpm by country, youtube cpm india/us/etc. | Existing country routes | Retained URLs; model scope and payout assumptions clarified |
 | youtube cpm by niche | Existing niche routes | Retained URLs; not marketed as verified national/channel averages |
+| youtube channel auditor, youtube channel audit tool, audit youtube channel, youtube channel analyzer, free youtube channel audit | `/channel-auditor` | Dedicated tool page; public-data audit of any channel with labelled estimates |
+| youtube channel analysis, youtube competitor analysis, youtube channel stats checker | `/channel-auditor` | Same page owns the analysis intent — no separate "analysis" or "stats" pages |
+| youtube keyword analysis tool, youtube tag analyzer, best performing videos finder | `/channel-auditor` | Keyword/tag/ranking panels live inside the audit report, not as standalone tools |
+| youtube channel revenue estimate | `/channel-auditor` (scenarios) + `/youtube-rpm-calculator` (real numbers) | The audit only models scenarios; measured CPM/RPM arithmetic stays on the calculators |
+| audit vs youtube studio analytics, youtube channel audit limitations | `/channel-auditor` | Comparison table and limitations section answer this on the same page |
+
+The auditor cluster is one page with one user task: paste a channel, read the public picture. Keyword variants (auditor / audit tool / analyzer / analysis / stats / competitor) are synonyms of that task and are covered by sections, headings, FAQ answers and JSON-LD on the single page. Do not split them into thin pages, and do not add a page for "audit my own channel's private analytics" — that needs an owner-connected OAuth flow that does not exist.
 
 Do not create separate money/income/revenue pages with identical tools solely for synonyms. Avoid pages for every country × niche × year × view-count permutation. Add a page only when it has a distinct user task and substantive evidence or functionality.
 
@@ -95,6 +102,20 @@ npm run test:seo
 - Removed unsupported niche payout/format guarantees and misleading health/kids policy advice from shared category copy; numerical model defaults remain unchanged. Seasonal descriptions now identify scenarios rather than forecast universal quarterly behavior.
 
 Browser commands used `BASE_URL=http://127.0.0.1:3100` against `next start`, with the available sandbox Chromium executable. This validates the local production build, not a deployed domain, Search Console indexing or actual search/AI visibility. The existing nonblocking Vitest config warning remains.
+
+## Channel Auditor page rebuild — 2026-10-21
+
+`/channel-auditor` was rebuilt around a single intent: audit any public YouTube channel.
+
+- **Metadata.** Title carries the focus keyword plus intent ("YouTube Channel Auditor — Free Channel Audit & Analysis Tool"); description states the full output list (category, every video, playlists, tags, keywords, best/worst performers, labeled CPM/RPM/revenue scenarios) and the no-signup condition. Twelve keyword variants, `category`, and a `googleBot` directive with `max-image-preview: large` / `max-snippet: -1` were added.
+- **Route-specific social image.** `src/app/channel-auditor/opengraph-image.tsx` renders a 1200×630 card with the tool name and the Public/Inferred/Estimated promise, instead of the site-wide default card. `og:image` and `twitter:image` both point at it.
+- **JSON-LD.** BreadcrumbList, WebPage, WebApplication (with `isAccessibleForFree` and a feature list), HowTo (three steps) and FAQPage (ten questions) now sit in one validated graph. The FAQ schema mirrors the visible disclosures exactly, so no markup claims content the page does not show.
+- **Editorial depth.** The page now carries: a "what the report returns" panel, a three-step "how it works" block, a coverage table that names the source of every data class, a public-audit vs. YouTube Studio comparison table, a "how to read the three data labels" explainer, four creator use cases, a five-item limitations block, ten FAQ entries, a next-step panel and a sources list. Server-rendered main text exceeds 6,000 characters, which is what lets the page rank for long-tail questions instead of only the head term.
+- **Internal links.** The page links out to the niche and country benchmarks, the CPM and RPM calculators, the Studio CPM guide, the methodology, the sources page and the tools index. Inbound links were added from the guide pages, the niche index, the country index, the methodology page, the sources page, the homepage, the tools index, the header and the footer.
+- **UI/UX.** Hero rebuilt as a two-column layout with a labelled output panel and trust chips; the dashboard empty state now previews the six report sections instead of showing a placeholder; a Public/Inferred/Estimated legend was added to the dashboard toolbar; data tables became keyboard-scrollable regions.
+- **Honesty preserved.** No price, plan name, upgrade prompt or Half/Full audit wording appears anywhere. Owner-only analytics, search volumes, live rankings and real channel revenue are still stated as unavailable. Estimated figures remain labelled.
+
+Browser checks: `test:channel-auditor` (metadata, schema graph, editorial depth, no-JS FAQ, 5 widths, axe), `test:seo`, `test:creator-tools`, `test:project` (68 pages), `test:ui`, `test:branding` and the full accessibility sweep all pass; the sweep reports 0 rule/page violations.
 
 ## Legal-page follow-up
 

@@ -109,12 +109,21 @@ monthly = (views / 1000) × rpm`}</code></pre>
 
         <SourceLinks ids={["definitions", "metrics", "share", "access"]} />
 
-        <div className="mt-12 rounded-xl border border-border bg-white p-6">
-          <h2 className="font-display text-lg font-bold text-heading">Run your own numbers</h2>
-          <p className="mt-2 text-sm text-fog">Pick your niche, audience country, season and ad-impression rate.</p>
-          <Link href="/#calculator" className="group mt-4 inline-flex items-center gap-2 rounded-full bg-yt-red px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-yt-red-hover">
-            Open the calculator <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </Link>
+        <div className="mt-12 grid gap-4 rounded-xl border border-border bg-white p-6 md:grid-cols-2">
+          <div>
+            <h2 className="font-display text-lg font-bold text-heading">Run your own numbers</h2>
+            <p className="mt-2 text-sm text-fog">Pick your niche, audience country, season and ad-impression rate.</p>
+            <Link href="/#calculator" className="group mt-4 inline-flex items-center gap-2 rounded-full bg-yt-red px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-yt-red-hover">
+              Open the calculator <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          </div>
+          <div className="rounded-xl border border-border bg-surface p-5">
+            <h3 className="font-display text-base font-bold text-heading">Apply the model to a real channel</h3>
+            <p className="mt-2 text-sm leading-6 text-fog">Audit any public channel to see its catalogue, tags, keywords and top performers, then apply this same CPM and RPM model to those public view counts.</p>
+            <Link href="/channel-auditor" className="group mt-4 inline-flex items-center gap-2 rounded-full border border-yt-red/30 px-5 py-2.5 text-sm font-semibold text-yt-red transition-colors hover:bg-yt-red-light">
+              Open the Channel Auditor <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          </div>
         </div>
       </ProsePage>
   );
