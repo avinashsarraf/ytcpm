@@ -13,6 +13,7 @@ A free, data-driven **YouTube CPM & RPM calculator** built with the Next.js App 
 ## Table of contents
 
 - [Features](#features)
+- [CMS](#cms)
 - [Tech stack](#tech-stack)
 - [Architecture](#architecture)
 - [Getting started](#getting-started)
@@ -43,6 +44,31 @@ A free, data-driven **YouTube CPM & RPM calculator** built with the Next.js App 
 - **SEO plumbing** — per-page canonicals + Open Graph, generated sitemap, `robots.txt`, `FAQPage`/`WebApplication`/`BreadcrumbList` JSON-LD, dynamic OG image.
 - **Graceful degradation** — the calculator keeps working if PostgreSQL is unavailable; the monitor shows a fallback state and the API reports `logged: false`.
 - **Production hardening** — CSP + security headers, rate limiting, request-size caps, lazy DB pool, self-hosted fonts, Docker/Coolify image with migrations on boot.
+- **Self-hosted CMS** — a full blog system at `/blog` with an admin at `/cms`: posts, media library, comment moderation, redirects, users, an audit log and a **live SEO panel that blocks publishing** until the page passes the on-page checks.
+
+## CMS
+
+The site ships with its own content system — no third-party service, PostgreSQL only.
+
+| | |
+|---|---|
+| Admin | `/cms` — dashboard, posts, media, comments, redirects, users, activity, settings |
+| Public blog | `/blog`, `/blog/[slug]`, `/blog/tag/[tag]`, `/blog/rss.xml` |
+| Storage | `cms_posts`, `cms_revisions`, `cms_media`, `cms_comments`, `cms_redirects`, `cms_users`, `cms_sessions`, `cms_settings`, `cms_activity` |
+| Auth | scrypt password hashing, server-side sessions (`HttpOnly` cookie, only the SHA-256 hash stored), rate-limited sign-in, role checks on every action |
+| SEO | Per-post SEO title, meta description, focus keyword, keywords, slug, canonical, OG/Twitter image + alt, robots directives, Article/BlogPosting + WebPage + Breadcrumb JSON-LD, publish / schedule / draft states |
+| Publish gate | A post cannot go live while a blocking SEO check fails (title, slug, focus keyword, length, headings, image alt text, internal links) |
+| Media | Local disk storage with magic-byte validation, 5 MB limit, served from `/media/…` |
+| API | `POST /api/cms/posts`, `POST /api/cms/media`, `POST /api/cms/auth/login|logout`, `POST /api/cms/revalidate` (HMAC-signed) |
+
+```bash
+node scripts/migrate.mjs                     # apply the schema
+npm run db:seed-admin -- --email you@ytcpm.online   # create the first admin
+```
+
+Full guide: [`docs/cms.md`](./docs/cms.md).
+
+---
 
 ## Tech stack
 
@@ -131,6 +157,10 @@ npm start              # note: with output:"standalone", prefer `node .next/stan
 | `RUN_MIGRATIONS` | No | `true` | Apply `drizzle/*.sql` on container start |
 | `NEXT_TELEMETRY_DISABLED` | No | `1` | Disable Next.js telemetry |
 | `PORT` | No | `3000` | Server port |
+| `CMS_STORAGE_DIR` | No | `./storage/uploads` | Where the CMS stores uploaded images |
+| `CMS_MAX_UPLOAD_BYTES` | No | `5242880` | Maximum upload size |
+| `CMS_API_KEY` | No | — | Bearer key for the CMS HTTP API |
+| `CMS_REVALIDATE_SECRET` | No | — | HMAC secret for the revalidation webhook |
 
 Templates and the full matrix: [`.env.example`](./.env.example) and [`deployment.md`](./deployment.md#environment-variables).
 
@@ -176,6 +206,8 @@ The Docker entrypoint applies those SQL files exactly once (tracked in `_migrati
 | `npm run db:generate` | Generate a SQL migration from the schema |
 | `npm run db:push` | Push the schema directly (dev only) |
 | `npm run db:studio` | Drizzle Studio |
+| `npm run db:seed-admin` | Create the first CMS administrator |
+| `npm run test:seo-audit` | Crawl every route and report the full SEO surface |
 
 ## Routes
 
@@ -191,6 +223,11 @@ The Docker entrypoint applies those SQL files exactly once (tracked in `_migrati
 | `/monitor` | Server, 60 s cache | Anonymous usage analytics (`noindex`) |
 | `/api/calculate` | Dynamic | `POST` estimate (+ optional logging) |
 | `/api/health` | Dynamic | DB readiness probe (200/503) |
+| `/blog` · `/blog/[slug]` · `/blog/tag/[tag]` | Dynamic | The CMS blog: index, article pages, tag archives |
+| `/blog/rss.xml` | Dynamic | The blog feed |
+| `/cms/*` | Dynamic | The admin area (session required, `noindex`) |
+| `/media/*` | Dynamic | Uploaded images |
+| `/api/cms/*` | Dynamic | CMS HTTP API (bearer key) |
 | `/sitemap.xml` · `/robots.txt` · `/opengraph-image` · `/icon.svg` | Generated | Crawl + social assets |
 
 ## How the estimate is calculated

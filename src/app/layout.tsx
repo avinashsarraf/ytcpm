@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import localFont from "next/font/local";
 import "./globals.css";
-import SiteHeader from "@/components/site-header";
-import SiteFooter from "@/components/site-footer";
+import PublicHeader from "@/components/public-header";
+import PublicFooter from "@/components/public-footer";
 import { SITE_URL } from "@/lib/editorial";
 import { serializeJsonLd } from "@/lib/seo";
 import { DATA_UPDATED_AT, DATA_YEAR } from "@/lib/data";
@@ -87,9 +87,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           { "@type": "Organization", "@id": SITE_URL + "/#organization", name: "YTCPM", url: SITE_URL, logo: SITE_URL + "/icon.svg" },
           { "@type": "WebSite", "@id": SITE_URL + "/#website", name: "YTCPM", alternateName: "ytcpm.online", url: SITE_URL, inLanguage: "en", publisher: { "@id": SITE_URL + "/#organization" } }
         ] }) }} />
-        <SiteHeader />
+        <PublicHeader />
         <main id="main">{children}</main>
-        <SiteFooter />
+        <PublicFooter />
       </body>
     </html>
   );

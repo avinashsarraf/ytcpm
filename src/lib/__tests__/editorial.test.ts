@@ -20,15 +20,15 @@ describe("editorial SEO contract", () => {
       expect(["support.google.com", "developers.google.com"]).toContain(new URL(source.url).hostname);
     }
   });
-  it("adds only canonical public editorial paths to the sitemap", () => {
-    const urls = sitemap().map(s => s.url);
+  it("adds only canonical public editorial paths to the sitemap", async () => {
+    const urls = (await sitemap()).map(s => s.url);
     expect(new Set(urls).size).toBe(urls.length);
     for (const path of ["/youtube-cpm-calculator", "/youtube-rpm-calculator", "/guides", "/sources", "/contact", ...GUIDES.map(g => `/guides/${g.slug}`)]) expect(urls).toContain(SITE_URL + path);
     expect(urls.some(u => /\/monitor|\/api\//.test(u))).toBe(false);
   });
   it("keeps public content crawlable without exposing API paths", () => {
     expect(robots().sitemap).toEqual([SITE_URL + "/sitemap.xml", SITE_URL + "/image-sitemap.xml"]);
-    expect(robots().rules).toEqual(expect.arrayContaining([expect.objectContaining({ allow: "/", disallow: ["/api/"] })]));
+    expect(robots().rules).toEqual(expect.arrayContaining([expect.objectContaining({ allow: "/", disallow: ["/api/", "/cms/"] })]));
   });
   it("creates page-specific canonicals and social URLs", () => {
     const metadata = pageMetadata("CPM tool", "Description", "/youtube-cpm-calculator");

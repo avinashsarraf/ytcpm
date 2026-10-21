@@ -42,7 +42,9 @@ try {
     }
   }
   for (const [slug] of cases) assert(paths.includes('/' + slug), `sitemap ${slug}`);
-  for (const href of hrefs) assert(href === '' || paths.includes(href) || href === '/monitor', `internal target ${href}`);
+  // `/blog/rss.xml` is a real feed, not a page, so it is allowed next to the
+  // sitemap routes and the noindex monitor page.
+  for (const href of hrefs) assert(href === '' || paths.includes(href) || href === '/monitor' || href === '/blog/rss.xml', `internal target ${href}`);
   assert.equal((await page.goto(base + '/not-a-real-tool')).status(), 404);
   assert.equal((await page.goto(base + '/youtube-made-up-calculator')).status(), 404);
   console.log(`PASS site-wide SEO: ${paths.length} indexable routes, unique metadata, H1s, canonicals, OG images, JSON-LD and internal targets`);

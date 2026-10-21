@@ -64,6 +64,10 @@ Production deployment guide for [Coolify](https://coolify.io) using Docker, plus
 | `PORT` | No | `3000` | Server port. Coolify maps this automatically. |
 | `HOSTNAME` | No | `0.0.0.0` | Bind address (must stay `0.0.0.0` inside containers). |
 | `NODE_ENV` | No | `production` | Set by the image. |
+| `CMS_STORAGE_DIR` | No | `./storage/uploads` | Where the CMS stores uploaded images. **Mount a volume here.** |
+| `CMS_MAX_UPLOAD_BYTES` | No | `5242880` | Maximum upload size (5 MB). |
+| `CMS_API_KEY` | No | — | Bearer key for the CMS HTTP API. 32+ random characters. |
+| `CMS_REVALIDATE_SECRET` | No | — | HMAC secret for `POST /api/cms/revalidate`. |
 
 **Copy-paste templates:** [`.env.example`](./.env.example).
 **Never commit** a real `.env` — it is git-ignored.
@@ -192,6 +196,47 @@ DATABASE_URL=... npm run db:studio     # browse data
 - [ ] `RUN_MIGRATIONS=true` on the first deploy
 - [ ] `/api/health` returns `{"ok":true,"database":"up"}`
 - [ ] `calculations` table + 4 indexes exist (`\d calculations` in psql)
+- [ ] The CMS tables exist (`\d cms_posts` in psql)
+- [ ] An administrator exists — run `node scripts/seed-admin.mjs --email you@ytcpm.online` from a Coolify terminal
+- [ ] A volume is mounted at `CMS_STORAGE_DIR` if you intend to upload images
+
+---
+
+## The CMS in production
+
+The CMS is part of the same container — there is no second service to run.
+
+**Uploaded images need a volume.** `CMS_STORAGE_DIR` defaults to
+`./storage/uploads` inside the container filesystem, so uploads are lost on
+every deploy. Mount a persistent volume and point the variable at it:
+
+```yaml
+# Coolify → your app → Volumes
+- /app/storage/uploads  →  /app/storage/uploads
+```
+
+In Coolify the container path is `/app`; in the Docker Compose file the app
+service mounts `./storage/uploads:/app/storage/uploads`.
+
+**Create the first administrator once** — from a Coolify terminal or locally
+against the same database:
+
+```bash
+node scripts/seed-admin.mjs --email you@ytcpm.online
+# → prints a generated password once; store it in a password manager
+```
+
+Running it again for the same email resets the password and reactivates the
+account, so it doubles as a recovery tool.
+
+**The API stays closed until you give it a key.** Without `CMS_API_KEY` the
+`/api/cms/*` endpoints return 503. With one set, send it as
+`Authorization: Bearer <key>`.
+
+**Backups.** The CMS content lives entirely in PostgreSQL, so the database
+backup you already have covers posts, media records, users and settings. The
+only thing outside the database is the uploaded image files, so back up the
+`CMS_STORAGE_DIR` volume as well.
 
 ---
 

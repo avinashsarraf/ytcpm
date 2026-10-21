@@ -6,7 +6,9 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/"],
+        // The CMS is a private area and the API is for the site's own
+        // front-end, so neither belongs in a search index.
+        disallow: ["/api/", "/cms/"],
       },
     ],
     sitemap: ["https://ytcpm.online/sitemap.xml", "https://ytcpm.online/image-sitemap.xml"],

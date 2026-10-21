@@ -17,6 +17,7 @@ const LINKS = [
   { href: "/cpm-by-country", label: "Country CPM" },
   { href: "/cpm-by-niche", label: "Niche CPM" },
   { href: "/guides", label: "Guides" },
+  { href: "/blog", label: "Blog" },
   { href: "/tools", label: "Creator Tools" },
   { href: "/channel-auditor", label: "Channel Auditor" },
 ];
@@ -48,7 +49,7 @@ export default function SiteHeader() {
           </span>
         </Link>
 
-        <nav className="ml-auto hidden items-center gap-5 lg:flex xl:gap-8 2xl:gap-10" aria-label="Primary">
+        <nav className="ml-auto hidden items-center gap-3 lg:flex xl:gap-8 2xl:gap-10" aria-label="Primary">
           {LINKS.map((l) => {
             const active = isActive(l.href, l.exact);
             return (

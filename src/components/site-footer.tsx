@@ -12,6 +12,7 @@ const TOOLS = [
   { label: `CPM by Niche (${NICHES.length})`, href: "/cpm-by-niche", icon: Layers },
   { label: "API Usage Monitor", href: "/monitor", icon: Activity },
   { label: "Guides & Learning", href: "/guides", icon: BookOpen },
+  { label: "Blog & Articles", href: "/blog", icon: BookOpen },
   { label: "Methodology", href: "/methodology", icon: BookOpen },
   { label: "Sources & Editorial Policy", href: "/sources", icon: BookOpen },
 ];
