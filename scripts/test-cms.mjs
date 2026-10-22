@@ -699,7 +699,18 @@ async function main() {
     await page.goto(`${BASE}/cms/posts`, { waitUntil: "domcontentloaded" });
     check("the gate closes again after signing out", page.url().endsWith("/cms/login"), page.url());
 
-    /* 21. No browser errors --------------------------------------------- */
+    /* 21. A wrong id lands on the CMS not-found page ---------------------- */
+    await page.context().clearCookies();
+    await page.goto(`${BASE}/cms/login`, { waitUntil: "domcontentloaded" });
+    await page.fill('input[name="email"]', ADMIN_EMAIL);
+    await page.fill('input[name="password"]', NEW_PASSWORD);
+    await page.click('button:has-text("Sign in")');
+    await page.waitForTimeout(2500);
+    const missing = await page.goto(`${BASE}/cms/posts/999999`, { waitUntil: "domcontentloaded" });
+    const missingText = await page.locator("body").innerText();
+    check("a missing post shows the CMS not-found page", missing?.status() === 404 && missingText.includes("Not found"), `status ${missing?.status()} · ${missingText.slice(0, 60)}`);
+
+    /* 22. No browser errors --------------------------------------------- */
     const noisy = consoleErrors.filter((entry) => !/favicon|404 \(Not Found\)/i.test(entry));
     check("no console errors in the browser", noisy.length === 0, noisy.slice(0, 3).join(" | "));
 

@@ -342,7 +342,7 @@ redirect and an account, and signs out again.
 
 ```bash
 npm run test:cms
-# → 77/77 checks passed
+# → 78/78 checks passed
 ```
 
 The test needs a Chromium binary. Point `CHROMIUM_EXECUTABLE_PATH` at one, or
