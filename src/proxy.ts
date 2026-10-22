@@ -28,7 +28,17 @@ export async function proxy(request: NextRequest) {
     if (pathname === "/cms/login" || pathname.startsWith("/cms/login/")) {
       return NextResponse.next();
     }
-    if (!request.cookies.get(SESSION_COOKIE)?.value) {
+
+    /*
+      Only page loads are redirected. A Server Action is a POST to a /cms URL,
+      and answering it with a redirect turns an expired session into "an
+      unexpected response was received from the server" in the browser — the
+      action never runs, so it cannot return its own message. Actions
+      authenticate themselves and answer inside the form, so they are let
+      through; the layout still guards every page.
+    */
+    const isAction = request.method === "POST";
+    if (!isAction && !request.cookies.get(SESSION_COOKIE)?.value) {
       const target = request.nextUrl.clone();
       target.pathname = "/cms/login";
       target.search = "";

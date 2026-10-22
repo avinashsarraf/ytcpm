@@ -633,7 +633,51 @@ async function main() {
     await Promise.all([page.waitForURL(/\/cms(\?|$)/, { timeout: 30_000 }), page.click('form button[type="submit"]')]);
     check("the new password signs in", /\/cms(\?|$)/.test(page.url()), page.url());
 
-    /* 19. Sign out ------------------------------------------------------ */
+    /* 19. A signed-out action fails politely, not with an error page ------ */
+    // Capture the session cookie, sign out, then put the cookie back. The
+    // browser now holds a token the server no longer recognises.
+    const cookies = await page.context().cookies();
+    const sessionCookie = cookies.find((cookie) => cookie.name === "ytcpm_cms_session");
+    await page.click('button:has-text("Sign out")');
+    await page.waitForTimeout(2000);
+    if (sessionCookie) {
+      await page.context().addCookies([sessionCookie]);
+    }
+
+    // A stale session must produce a message inside the form, not a crash.
+    await page.goto(`${BASE}/cms/posts/${postId}`, { waitUntil: "domcontentloaded" });
+    const staleRedirected = page.url().includes("/cms/login");
+    check("a dead session cannot open an admin page", staleRedirected, page.url());
+
+    // The realistic case: the editor is already open when the session dies in
+    // another tab. Saving must answer inside the form, not with an error page.
+    await page.context().clearCookies();
+    await page.goto(`${BASE}/cms/login`, { waitUntil: "domcontentloaded" });
+    await page.fill('input[name="email"]', ADMIN_EMAIL);
+    await page.fill('input[name="password"]', NEW_PASSWORD);
+    await page.click('button:has-text("Sign in")');
+    await page.waitForTimeout(2500);
+    await page.goto(`${BASE}/cms/posts/${postId}`, { waitUntil: "domcontentloaded" });
+
+    const liveCookies = await page.context().cookies();
+    const liveSession = liveCookies.find((cookie) => cookie.name === "ytcpm_cms_session");
+    await page.context().request.post(`${BASE}/api/cms/auth/logout`, {
+      headers: { cookie: `ytcpm_cms_session=${liveSession?.value ?? ""}` },
+    });
+    await page.click('button:has-text("Save changes")');
+    await page.waitForTimeout(3000);
+    const staleMessage = (await page.locator('[role="status"]').allInnerTexts()).join(" ");
+    const stillOnEditor = !page.url().includes("/cms/login") && !(await page.locator("text=Application error").count());
+    check("a stale session answers inside the form", stillOnEditor && /session has expired/i.test(staleMessage), staleMessage || "no message");
+
+    // Sign in again so the remaining sign-out check starts from a real session.
+    await page.goto(`${BASE}/cms/login`, { waitUntil: "domcontentloaded" });
+    await page.fill('input[name="email"]', ADMIN_EMAIL);
+    await page.fill('input[name="password"]', NEW_PASSWORD);
+    await page.click('button:has-text("Sign in")');
+    await page.waitForTimeout(2500);
+
+    /* 20. Sign out ------------------------------------------------------ */
     await page.goto(`${BASE}/cms`, { waitUntil: "domcontentloaded" });
     const signOut = page.locator('button:has-text("Sign out")').first();
     if (await signOut.count()) {
@@ -642,7 +686,7 @@ async function main() {
     await page.goto(`${BASE}/cms/posts`, { waitUntil: "domcontentloaded" });
     check("the gate closes again after signing out", page.url().endsWith("/cms/login"), page.url());
 
-    /* 20. No browser errors --------------------------------------------- */
+    /* 21. No browser errors --------------------------------------------- */
     const noisy = consoleErrors.filter((entry) => !/favicon|404 \(Not Found\)/i.test(entry));
     check("no console errors in the browser", noisy.length === 0, noisy.slice(0, 3).join(" | "));
 

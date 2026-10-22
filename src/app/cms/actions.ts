@@ -24,7 +24,7 @@ import { recordActivity } from "@/lib/cms/activity";
 import { deleteMedia, updateMedia, uploadMedia } from "@/lib/cms/media";
 import { moderateComment, deleteComment } from "@/lib/cms/comments";
 import { setSettings, type CmsSettingKey } from "@/lib/cms/settings";
-import { createSession, destroySession, destroyUserSessions, requireUserOrThrow } from "@/lib/cms/session";
+import { authMessage, createSession, destroySession, destroyUserSessions, requireUserResult } from "@/lib/cms/session";
 import { clearRedirectCache } from "@/lib/cms/redirects";
 import { hashPassword, verifyPassword } from "@/lib/cms/auth";
 import { sessionCookieOptions } from "@/lib/cms/auth";
@@ -124,7 +124,8 @@ export async function loginAction(_previous: ActionState, formData: FormData): P
 const DUMMY_HASH = "scrypt$16384$8$1$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 
 export async function logoutAction(): Promise<void> {
-  const user = await requireUserOrThrow().catch(() => null);
+  const auth = await requireUserResult();
+  const user = auth.ok ? auth.user : null;
   await destroySession();
   if (user) {
     await recordActivity({ userId: user.id, action: "auth.logout", entity: "user", entityId: user.id, summary: `${user.name} signed out.` });
@@ -137,7 +138,9 @@ export async function logoutAction(): Promise<void> {
    ══════════════════════════════════════════════════════════════════════════ */
 
 export async function savePostAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
-  const user = await requireUserOrThrow();
+  const auth = await requireUserResult();
+  if (!auth.ok) return { ok: false, message: authMessage(auth.reason) };
+  const user = auth.user;
   if (!isDatabaseConfigured()) return { ok: false, message: "The database is not configured." };
 
   const postId = asInt(formData.get("id"), 0);
@@ -250,7 +253,9 @@ export async function savePostAction(_previous: ActionState, formData: FormData)
 }
 
 export async function setPostStatusAction(formData: FormData): Promise<ActionState> {
-  const user = await requireUserOrThrow();
+  const auth = await requireUserResult();
+  if (!auth.ok) return { ok: false, message: authMessage(auth.reason) };
+  const user = auth.user;
   if (!isDatabaseConfigured()) return { ok: false, message: "The database is not configured." };
 
   const postId = asInt(formData.get("id"), 0);
@@ -319,7 +324,9 @@ export async function setPostStatusAction(formData: FormData): Promise<ActionSta
 }
 
 export async function deletePostAction(formData: FormData): Promise<ActionState> {
-  const user = await requireUserOrThrow(["admin"]);
+  const auth = await requireUserResult(["admin"]);
+  if (!auth.ok) return { ok: false, message: authMessage(auth.reason) };
+  const user = auth.user;
   if (!isDatabaseConfigured()) return { ok: false, message: "The database is not configured." };
 
   const postId = asInt(formData.get("id"), 0);
@@ -341,7 +348,9 @@ export async function deletePostAction(formData: FormData): Promise<ActionState>
 }
 
 export async function restoreRevisionAction(formData: FormData): Promise<ActionState> {
-  const user = await requireUserOrThrow();
+  const auth = await requireUserResult();
+  if (!auth.ok) return { ok: false, message: authMessage(auth.reason) };
+  const user = auth.user;
   if (!isDatabaseConfigured()) return { ok: false, message: "The database is not configured." };
 
   const postId = asInt(formData.get("postId"), 0);
@@ -378,7 +387,9 @@ export async function restoreRevisionAction(formData: FormData): Promise<ActionS
    ══════════════════════════════════════════════════════════════════════════ */
 
 export async function uploadMediaAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
-  const user = await requireUserOrThrow();
+  const auth = await requireUserResult();
+  if (!auth.ok) return { ok: false, message: authMessage(auth.reason) };
+  const user = auth.user;
   if (!isDatabaseConfigured()) return { ok: false, message: "The database is not configured." };
 
   const file = formData.get("file");
@@ -399,7 +410,9 @@ export async function uploadMediaAction(_previous: ActionState, formData: FormDa
 }
 
 export async function updateMediaAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
-  const user = await requireUserOrThrow();
+  const auth = await requireUserResult();
+  if (!auth.ok) return { ok: false, message: authMessage(auth.reason) };
+  const user = auth.user;
   const id = asInt(formData.get("id"), 0);
   if (!id) return { ok: false, message: "Unknown media item." };
 
@@ -414,7 +427,9 @@ export async function updateMediaAction(_previous: ActionState, formData: FormDa
 }
 
 export async function deleteMediaAction(formData: FormData): Promise<ActionState> {
-  const user = await requireUserOrThrow();
+  const auth = await requireUserResult();
+  if (!auth.ok) return { ok: false, message: authMessage(auth.reason) };
+  const user = auth.user;
   const id = asInt(formData.get("id"), 0);
   if (!id) return { ok: false, message: "Unknown media item." };
 
@@ -430,7 +445,9 @@ export async function deleteMediaAction(formData: FormData): Promise<ActionState
    ══════════════════════════════════════════════════════════════════════════ */
 
 export async function moderateCommentAction(formData: FormData): Promise<ActionState> {
-  const user = await requireUserOrThrow();
+  const auth = await requireUserResult();
+  if (!auth.ok) return { ok: false, message: authMessage(auth.reason) };
+  const user = auth.user;
   const id = asInt(formData.get("id"), 0);
   const status = asTrimmed(formData.get("status"));
   if (!id || !["approved", "spam", "pending"].includes(status)) {
@@ -445,7 +462,9 @@ export async function moderateCommentAction(formData: FormData): Promise<ActionS
 }
 
 export async function deleteCommentAction(formData: FormData): Promise<ActionState> {
-  const user = await requireUserOrThrow();
+  const auth = await requireUserResult();
+  if (!auth.ok) return { ok: false, message: authMessage(auth.reason) };
+  const user = auth.user;
   const id = asInt(formData.get("id"), 0);
   if (!id) return { ok: false, message: "Unknown comment." };
 
@@ -461,7 +480,9 @@ export async function deleteCommentAction(formData: FormData): Promise<ActionSta
    ══════════════════════════════════════════════════════════════════════════ */
 
 export async function saveRedirectAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
-  const user = await requireUserOrThrow();
+  const auth = await requireUserResult();
+  if (!auth.ok) return { ok: false, message: authMessage(auth.reason) };
+  const user = auth.user;
   if (!isDatabaseConfigured()) return { ok: false, message: "The database is not configured." };
 
   const parsed = validateRedirectInput(formData);
@@ -496,7 +517,9 @@ export async function saveRedirectAction(_previous: ActionState, formData: FormD
 }
 
 export async function deleteRedirectAction(formData: FormData): Promise<ActionState> {
-  const user = await requireUserOrThrow();
+  const auth = await requireUserResult();
+  if (!auth.ok) return { ok: false, message: authMessage(auth.reason) };
+  const user = auth.user;
   const id = asInt(formData.get("id"), 0);
   if (!id) return { ok: false, message: "Unknown redirect." };
 
@@ -513,7 +536,9 @@ export async function deleteRedirectAction(formData: FormData): Promise<ActionSt
    ══════════════════════════════════════════════════════════════════════════ */
 
 export async function saveUserAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
-  const user = await requireUserOrThrow(["admin"]);
+  const auth = await requireUserResult(["admin"]);
+  if (!auth.ok) return { ok: false, message: authMessage(auth.reason) };
+  const user = auth.user;
   if (!isDatabaseConfigured()) return { ok: false, message: "The database is not configured." };
 
   const id = asInt(formData.get("id"), 0);
@@ -565,7 +590,9 @@ export async function saveUserAction(_previous: ActionState, formData: FormData)
 }
 
 export async function deleteUserAction(formData: FormData): Promise<ActionState> {
-  const user = await requireUserOrThrow(["admin"]);
+  const auth = await requireUserResult(["admin"]);
+  if (!auth.ok) return { ok: false, message: authMessage(auth.reason) };
+  const user = auth.user;
   const id = asInt(formData.get("id"), 0);
   if (!id) return { ok: false, message: "Unknown account." };
   if (id === user.id) return { ok: false, message: "You cannot delete the account you are signed in with." };
@@ -590,7 +617,9 @@ export async function deleteUserAction(formData: FormData): Promise<ActionState>
    ══════════════════════════════════════════════════════════════════════════ */
 
 export async function saveSettingsAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
-  const user = await requireUserOrThrow(["admin"]);
+  const auth = await requireUserResult(["admin"]);
+  if (!auth.ok) return { ok: false, message: authMessage(auth.reason) };
+  const user = auth.user;
   if (!isDatabaseConfigured()) return { ok: false, message: "The database is not configured." };
 
   const values: Partial<Record<CmsSettingKey, string>> = {};
@@ -629,7 +658,9 @@ export async function saveSettingsAction(_previous: ActionState, formData: FormD
    ══════════════════════════════════════════════════════════════════════════ */
 
 export async function changePasswordAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
-  const user = await requireUserOrThrow();
+  const auth = await requireUserResult();
+  if (!auth.ok) return { ok: false, message: authMessage(auth.reason) };
+  const user = auth.user;
   if (!isDatabaseConfigured()) return { ok: false, message: "The database is not configured." };
 
   const current = asString(formData.get("currentPassword"));

@@ -93,6 +93,36 @@ export async function requireUser(roles?: ("admin" | "editor")[]): Promise<CmsUs
 }
 
 /** The guard for server actions: throws instead of redirecting so the action can return an error. */
+/**
+ * Like `requireUserOrThrow`, but returns a result instead of throwing.
+ *
+ * A Server Action that throws renders Next's error page, which replaces the
+ * admin screen and shows the user a stack-trace-shaped message they cannot do
+ * anything with. Actions prefer this: they answer with an ordinary error
+ * message inside the form they were submitted from.
+ *
+ * The distinction is deliberate. Being signed out and being signed in without
+ * the right role are different failures, and the caller decides how to phrase
+ * them.
+ */
+export type AuthResult =
+  | { ok: true; user: CmsUserSession }
+  | { ok: false; reason: "signed-out" | "forbidden" };
+
+export async function requireUserResult(roles?: ("admin" | "editor")[]): Promise<AuthResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, reason: "signed-out" };
+  if (roles && !roles.includes(user.role)) return { ok: false, reason: "forbidden" };
+  return { ok: true, user };
+}
+
+/** The message an action returns when `requireUserResult` fails. */
+export function authMessage(reason: "signed-out" | "forbidden"): string {
+  return reason === "signed-out"
+    ? "Your session has expired. Sign in again in another tab, then retry."
+    : "Only an administrator can do that.";
+}
+
 export async function requireUserOrThrow(roles?: ("admin" | "editor")[]): Promise<CmsUserSession> {
   const user = await getCurrentUser();
   if (!user) throw new Error("Not signed in.");

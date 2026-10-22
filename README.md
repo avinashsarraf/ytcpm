@@ -383,7 +383,7 @@ docker run -p 3000:3000 -e DATABASE_URL=postgresql://... ytcpm
 
 ```bash
 npm test             # 422 unit tests
-npm run test:cms     # end-to-end CMS test (real database, real browser, 73 checks)
+npm run test:cms     # end-to-end CMS test (real database, real browser, 75 checks)
 ```
 
 Coverage focuses on what can silently break money math:
