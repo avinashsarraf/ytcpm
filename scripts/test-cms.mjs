@@ -318,6 +318,14 @@ async function main() {
 
     const allSrcs = await page.locator("img").evaluateAll((nodes) => nodes.map((n) => n.getAttribute("src")));
     const uploadedUrls = allSrcs.filter((src) => src && src !== "/media/2026/10/cpm-chart.png");
+    // The fixture image is referenced by the test post, so it must be marked
+    // in use and its delete button disabled.
+    const chartRow = page.locator("li", { hasText: "cpm-chart.png" }).first();
+    const chartText = await chartRow.innerText();
+    check("an image used by a post is marked in use", /Used in \d+ post/.test(chartText), chartText.slice(0, 80));
+    const chartDelete = chartRow.locator('button:has-text("In use")');
+    check("an image in use cannot be deleted", (await chartDelete.count()) === 1 && (await chartDelete.isDisabled()), "delete not disabled");
+
     check("the uploaded image has a public URL", uploadedUrls.length > 0, "no /media URL");
     for (const url of uploadedUrls) {
       const mediaResponse = await publicPost.request.get(`${BASE}${url}`);
@@ -493,6 +501,15 @@ async function main() {
     const afterRepublish = await publicPost.request.get(`${BASE}/blog/${slug}`);
     check("the post can be published again", afterRepublish.status() === 200, `status ${afterRepublish.status()}`);
 
+    /* The blog index declares a per-page canonical and title ---------------- */
+    const indexHtml = await (await publicPost.request.get(`${BASE}/blog`)).text();
+    check("the blog index canonicalises to itself", /rel="canonical" href="https:\/\/ytcpm\.online\/blog"/.test(indexHtml), "canonical missing");
+
+    const pageTwoHtml = await (await publicPost.request.get(`${BASE}/blog?page=2`)).text();
+    const pageTwoCanonical = /rel="canonical" href="([^"]+)"/.exec(pageTwoHtml)?.[1] ?? "";
+    check("page two canonicalises to page two", pageTwoCanonical.includes("page=2"), pageTwoCanonical);
+    check("page two has its own title", /<title>[^<]*Page 2[^<]*<\/title>/.test(pageTwoHtml), "title not distinguished");
+
     /* 14. A scheduled post stays out of the public blog ------------------ */
     await page.goto(`${BASE}/cms/posts/new`, { waitUntil: "domcontentloaded" });
     await page.click('#tab-content');
@@ -558,7 +575,25 @@ async function main() {
     const changedTitle = await page.locator("#title").inputValue();
     check("an edit is saved", changedTitle === "A different title for the same post", changedTitle);
 
+    // The revision just written can be compared with the post as it stands.
+    const compareHref = await page.locator('a:has-text("Compare")').first().getAttribute("href");
+    check("a revision offers a comparison", Boolean(compareHref && compareHref.includes("/revisions/")), String(compareHref));
+    await page.goto(`${BASE}${compareHref}`, { waitUntil: "domcontentloaded" });
+    // The admin shell paints first; the comparison streams in after it.
+    await page.locator('h1:has-text("Compare:")').waitFor({ timeout: 20_000 }).catch(() => {});
+    const compareText = await page.locator("body").innerText();
+    const compareBody = await page.locator("ol li").allInnerTexts();
+    check("the comparison shows the changed line", compareBody.some((line) => line.includes("A different title")), `${compareBody.length} diff lines`);
+    check("the comparison offers a restore", compareText.includes("Restore this version"), "restore missing");
+    await page.screenshot({ path: join(screenshots, "revision-compare.png"), fullPage: false });
+    await page.goto(`${BASE}/cms/posts/${postId}`, { waitUntil: "domcontentloaded" });
+    await page.click("#tab-content");
+
     // The preview tab renders the body with the renderer the public page uses.
+    await page.click("#tab-seo");
+    await page.waitForTimeout(400);
+    const seoPanelText = await page.locator("#panel-seo").innerText();
+    check("the editor suggests internal links", seoPanelText.includes("Internal links"), "suggestions missing");
     await page.click("#tab-preview");
     await page.waitForTimeout(600);
     const previewHeadings = await page.locator("#panel-preview article h2").count();

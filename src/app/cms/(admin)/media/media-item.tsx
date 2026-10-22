@@ -23,6 +23,8 @@ export default function MediaItem({
     size: number;
     width: number | null;
     height: number | null;
+    /** How many posts reference this image right now. */
+    usedIn: number;
   };
 }) {
   const router = useRouter();
@@ -54,6 +56,9 @@ export default function MediaItem({
       <p className="mt-3 truncate text-sm font-semibold text-heading" title={item.filename}>{item.filename}</p>
       <p className="mt-0.5 text-xs text-fog">
         {item.width && item.height ? `${item.width}×${item.height} · ` : ""}{kb} · {item.mimeType.replace("image/", "")}
+      </p>
+      <p className={`mt-1.5 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold ${item.usedIn ? "bg-mint-bg text-mint" : "bg-surface text-fog"}`}>
+        {item.usedIn ? `Used in ${item.usedIn} post${item.usedIn === 1 ? "" : "s"}` : "Not used yet"}
       </p>
 
       {item.altText ? (
@@ -115,8 +120,13 @@ export default function MediaItem({
 
       <form action={deleteAction} className="mt-2">
         <input type="hidden" name="id" value={item.id} />
-        <button type="submit" disabled={deleting} className="inline-flex min-h-9 items-center rounded-lg px-2 text-xs font-bold text-yt-red underline underline-offset-4 hover:bg-yt-red-bg disabled:opacity-60">
-          {deleting ? "Deleting…" : "Delete file"}
+        <button
+          type="submit"
+          disabled={deleting || item.usedIn > 0}
+          title={item.usedIn > 0 ? "Remove it from those posts before deleting it." : undefined}
+          className="inline-flex min-h-9 items-center rounded-lg px-2 text-xs font-bold text-yt-red underline underline-offset-4 hover:bg-yt-red-bg disabled:opacity-40 disabled:no-underline"
+        >
+          {deleting ? "Deleting…" : item.usedIn > 0 ? "In use" : "Delete file"}
         </button>
         {deleteState.message ? (
           <p role="status" className={`mt-2 rounded-lg px-3 py-2 text-xs ${deleteState.ok ? "bg-mint-bg text-mint" : "bg-yt-red-bg text-yt-red"}`}>{deleteState.message}</p>

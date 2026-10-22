@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPostById, listRevisions } from "@/lib/cms/posts";
+import { getPostById, listPosts, listRevisions } from "@/lib/cms/posts";
 import { previewPath } from "@/lib/cms/preview";
 import CmsPageHeader from "../../../page-header";
 import PostEditor from "../post-editor";
@@ -20,7 +20,15 @@ export default async function EditPostPage({ params }: { params: Params }) {
   const post = await getPostById(postId);
   if (!post) notFound();
 
-  const revisions = await listRevisions(postId);
+  const [revisions, published] = await Promise.all([
+    listRevisions(postId),
+    // Every other published post is a candidate internal link.
+    listPosts({ status: "published", limit: 24, order: "updated" }),
+  ]);
+  const linkTargets = published
+    .filter((entry) => entry.id !== postId)
+    .slice(0, 12)
+    .map((entry) => ({ title: entry.title, slug: entry.slug }));
   // A draft has no public URL; a signed link lets the author see the real page.
   const preview = post.status === "published" ? null : previewPath(post.slug);
 
@@ -78,7 +86,7 @@ export default async function EditPostPage({ params }: { params: Params }) {
 
       {/* The key changes with the post, so the editor picks up a restored or
           reloaded version instead of keeping the state it started with. */}
-      <PostEditor key={editorPost.updatedAt} post={editorPost} mode="edit" />
+      <PostEditor key={editorPost.updatedAt} post={editorPost} mode="edit" linkTargets={linkTargets} />
 
       <section className="mt-8 max-w-[680px] rounded-xl border border-border bg-white p-5">
         <h2 className="text-base font-bold text-heading">Publishing controls</h2>

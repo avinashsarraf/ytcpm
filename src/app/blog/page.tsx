@@ -27,15 +27,42 @@ function fitTitle(value: string, max = 43): string {
   return `${(lastSpace > 20 ? cut.slice(0, lastSpace) : cut).replace(/[\s,–—-]+$/, "")}`;
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getSettings();
+/**
+ * Every page of the index declares itself as the canonical page.
+ *
+ * A blog that canonicalises pages 2, 3 and 4 back to page 1 tells a search
+ * engine that the older articles live somewhere they do not — and those are
+ * exactly the posts that need the help. A `?tag=` URL canonicalises to the
+ * path-based archive instead, because that is the form the site links to and
+ * the one that appears in the sitemap.
+ */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; tag?: string; category?: string }>;
+}): Promise<Metadata> {
+  const [settings, params] = await Promise.all([getSettings(), searchParams]);
   const seo = blogPageSeo;
-  const title = fitTitle(settings["blog.title"] || "YouTube CPM & RPM Blog");
-  const description = fitTitle(settings["blog.description"], 158);
-  return pageMetadata(title, description, "/blog", {
+
+  const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
+  const tag = params.tag?.trim().toLowerCase() || null;
+  const category = params.category?.trim() || null;
+  const canonical = tag ? `/blog/tag/${encodeURIComponent(tag)}` : blogPageHref({ category }, page);
+
+  const baseTitle = fitTitle(settings["blog.title"] || "YouTube CPM & RPM Blog");
+  const title = page > 1 ? fitTitle(`${baseTitle} — Page ${page}`) : baseTitle;
+  const description =
+    page > 1
+      ? fitTitle(`Page ${page} of the ${settings["blog.title"] || "YouTube CPM & RPM blog"}: ${settings["blog.description"]}`, 158)
+      : fitTitle(settings["blog.description"], 158);
+
+  return pageMetadata(title, description, canonical, {
     focus: seo.focus,
     keywords: seo.keywords,
     category: "finance",
+    // A filtered view is a slice of the archive, not a page that should
+    // compete with it for the same query.
+    robots: tag || category ? { index: false, follow: true } : undefined,
   });
 }
 

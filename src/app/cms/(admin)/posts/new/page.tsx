@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import CmsPageHeader from "../../../page-header";
+import { listPosts } from "@/lib/cms/posts";
 import PostEditor from "../post-editor";
 
 export const metadata: Metadata = { title: "New post" };
 export const dynamic = "force-dynamic";
 
-export default function NewPostPage() {
+export default async function NewPostPage() {
+  // Suggestions for internal links: every published post is a legitimate
+  // destination, and a missing internal link blocks publishing.
+  const published = await listPosts({ status: "published", limit: 12, order: "updated" });
+  const linkTargets = published.map((post) => ({ title: post.title, slug: post.slug }));
+
   return (
     <div className="px-5 py-7 sm:px-8 sm:py-9">
       <CmsPageHeader
@@ -18,7 +24,7 @@ export default function NewPostPage() {
           </Link>
         }
       />
-      <PostEditor post={null} mode="create" />
+      <PostEditor post={null} mode="create" linkTargets={linkTargets} />
     </div>
   );
 }

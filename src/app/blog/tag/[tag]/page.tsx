@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 const PER_PAGE = 9;
 
-type Params = { params: Promise<{ tag: string }> };
+type Params = { params: Promise<{ tag: string }>; searchParams?: Promise<{ page?: string }> };
 
 function titleCase(value: string): string {
   return value
@@ -32,17 +32,22 @@ async function loadTag(rawTag: string) {
   return { tag, count: match.count };
 }
 
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const { tag: rawTag } = await params;
+export async function generateMetadata({ params, searchParams }: Params): Promise<Metadata> {
+  const [{ tag: rawTag }, query] = await Promise.all([params, searchParams ?? Promise.resolve({} as { page?: string })]);
   const match = await loadTag(rawTag);
   if (!match) return { title: "Tag not found", robots: { index: false, follow: false } };
 
   const seo = blogTagPageSeo(match.tag);
   const label = titleCase(match.tag);
+  const page = Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1);
+
   return pageMetadata(
-    `YouTube ${label} Articles — CPM & RPM Guides | ytcpm.online`,
+    page > 1
+      ? `YouTube ${label} Articles — Page ${page} | ytcpm.online`
+      : `YouTube ${label} Articles — CPM & RPM Guides | ytcpm.online`,
     `${seo.shortDescription} ${match.count} post${match.count === 1 ? "" : "s"} covering ${label}, with worked examples and stated sources.`,
-    `/blog/tag/${match.tag}`,
+    // Each page of the archive is its own canonical page.
+    tagPageHref(match.tag, page),
     { focus: seo.focus, keywords: seo.keywords, category: "finance" },
   );
 }

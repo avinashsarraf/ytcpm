@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { deletePostAction, restoreRevisionAction, setPostStatusAction, type ActionState } from "../../actions";
 
@@ -132,7 +133,14 @@ export default function PostActions({
                 <p className="mt-0.5 text-xs text-fog">
                   {revision.reason} · {new Date(revision.createdAt).toLocaleString("en-GB")}
                 </p>
-                <form action={formAction} className="mt-2">
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <Link
+                    href={`/cms/posts/${postId}/revisions/${revision.id}`}
+                    className="inline-flex min-h-9 items-center rounded-lg border border-border px-3 text-xs font-bold text-heading hover:bg-surface"
+                  >
+                    Compare
+                  </Link>
+                <form action={formAction}>
                   <input type="hidden" name="postId" value={postId} />
                   <input type="hidden" name="revisionId" value={revision.id} />
                   <button
@@ -145,6 +153,7 @@ export default function PostActions({
                     Restore this version
                   </button>
                 </form>
+                </div>
               </li>
             ))}
           </ul>

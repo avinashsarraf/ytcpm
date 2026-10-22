@@ -1,6 +1,6 @@
 import { desc, eq, sql } from "drizzle-orm";
 import { db, isDatabaseConfigured } from "@/db";
-import { cmsMedia, type CmsMedia } from "@/db/schema";
+import { cmsMedia, cmsPosts, type CmsMedia } from "@/db/schema";
 import { logOnce } from "@/lib/log";
 import {
   ALLOWED_IMAGE_TYPES,
@@ -169,6 +169,41 @@ export async function deleteMedia(id: number): Promise<boolean> {
   }
   await deleteFileFromStorage(media.storageKey);
   return true;
+}
+
+/**
+ * How many posts reference each image.
+ *
+ * Deleting an image that a live post still points at leaves a broken picture
+ * on a published page, and nothing on the site would ever report it. The
+ * library shows the count and the delete action refuses while it is non-zero.
+ *
+ * The match is deliberately generous — the URL anywhere in the Markdown body,
+ * or as the post's social image — because a false "in use" only costs an
+ * editor a moment, while a false "unused" costs a broken page.
+ */
+export async function mediaUsage(): Promise<Map<string, number>> {
+  if (!isDatabaseConfigured()) return new Map();
+  try {
+    const result = await db.execute(sql`
+      select m.url as url, count(distinct p.id)::int as posts
+      from ${cmsMedia} m
+      join ${cmsPosts} p
+        on p.og_image_url = m.url
+        or position(m.url in p.content_md) > 0
+      group by m.url
+    `);
+    const rows = (result as unknown as { rows?: { url: string; posts: number }[] }).rows ?? [];
+    return new Map(rows.map((row) => [row.url, Number(row.posts)]));
+  } catch (error) {
+    logOnce("cms", "media usage failed", error);
+    return new Map();
+  }
+}
+
+/** The usage count for one image, used by the delete guard. */
+export async function mediaUsageCount(url: string): Promise<number> {
+  return (await mediaUsage()).get(url) ?? 0;
 }
 
 /** Media items that are missing alt text — the editor's reminder list. */

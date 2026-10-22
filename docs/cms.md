@@ -47,7 +47,24 @@ In production the migration step runs automatically on container start
 
 ---
 
-## 3. Roles
+## 3. Editing safely
+
+- **Version history.** Every save, publish, schedule, archive and restore
+  writes a revision first. The editor keeps the 20 most recent, so a bad edit
+  is recoverable even after it has been published.
+- **Compare before restoring.** Each revision has a **Compare** link that shows
+  a unified diff of that version against the post as it stands now — title and
+  body. The diff is computed on the server (`src/lib/cms/diff.ts`), trims the
+  identical head and tail before comparing, and collapses long unchanged runs.
+- **Internal link suggestions.** A missing internal link blocks publishing, so
+  the SEO tab lists the published posts this article could link to. The link is
+  inserted at the cursor, ready to be rewritten into a sentence.
+- **Nothing is lost on a rejected save.** Every editor field is controlled, so
+  a save the server refuses keeps exactly what was typed.
+
+---
+
+## 4. Roles
 
 | Role | Can do |
 |---|---|
@@ -59,7 +76,7 @@ button in the interface is never the protection.
 
 ---
 
-## 4. Sessions and sign-in
+## 5. Sessions and sign-in
 
 - Passwords are hashed with **scrypt** (N=16384, r=8, p=1, 64-byte key). The
   plaintext is never stored and the hash is never reversible.
@@ -75,7 +92,7 @@ button in the interface is never the protection.
 
 ---
 
-## 5. The SEO panel
+## 6. The SEO panel
 
 The editor shows a live SEO score (0–100) computed by the same analyzer the
 server uses to gate publishing, so what the author sees is exactly what will
@@ -108,9 +125,19 @@ Per-post SEO controls stored in the database:
 `slug` · `canonical_url` · `og_image_url` · `og_image_alt` · `noindex` ·
 `allow_index` (sitemap listing) · `category` · `tags[]` · `template`
 
+### Canonicals on the blog index
+
+Each page of the blog index canonically **declares itself** — page 2 is not
+canonicalised back to page 1, because that would tell a search engine the
+older articles live somewhere they do not, and those are the posts that need
+the help. Page 2 also gets its own title and description.
+
+A `?tag=` or `?category=` view canonicalises to the archive it duplicates and
+is `noindex, follow`, so filtered slices never compete with the archive itself.
+
 ---
 
-## 6. Markdown
+## 7. Markdown
 
 The renderer in `src/lib/cms/markdown.ts` is a deliberately small, safe
 subset:
@@ -129,7 +156,7 @@ subset:
 
 ---
 
-## 7. Previews
+## 8. Previews
 
 An unpublished post has no public URL, but the author still needs to see the
 real page — the actual layout, table of contents and typography, not a
@@ -159,7 +186,7 @@ answered exactly like a real one and stored nowhere.
 
 ---
 
-## 8. Media
+## 9. Media
 
 - Uploads are validated by **magic bytes**, not by the browser's content type.
   Allowed: JPEG, PNG, WebP, GIF, AVIF. SVG is excluded by default.
@@ -168,12 +195,16 @@ answered exactly like a real one and stored nowhere.
   `./storage/uploads`) and served by `GET /media/<year>/<month>/<file>`.
 - In production, point `CMS_STORAGE_DIR` at a mounted volume — otherwise
   uploads disappear on the next deploy.
+- **Usage tracking.** Each card shows how many posts reference the image, and
+  an image a live post still points at cannot be deleted: the delete button is
+  disabled and the action refuses. Deleting it would otherwise leave a broken
+  picture on a published page, and nothing on the site would report it.
 - The storage path is resolved through a single guard that refuses anything
   escaping the storage directory (path traversal).
 
 ---
 
-## 9. HTTP API
+## 10. HTTP API
 
 All endpoints need `Authorization: Bearer <CMS_API_KEY>` (or
 `x-cms-api-key`). The key lives in the environment and is compared in
@@ -243,7 +274,7 @@ replayed.
 
 ---
 
-## 10. Redirects
+## 11. Redirects
 
 Redirect rules live in `cms_redirects` and are applied by `src/proxy.ts`
 (Next 16's Node-runtime proxy). The rule set is cached in-process for 60
@@ -257,7 +288,7 @@ in every Server Action.
 
 ---
 
-## 11. Caching
+## 12. Caching
 
 `cacheComponents` is not enabled, so the CMS uses the explicit APIs:
 
@@ -270,7 +301,7 @@ in every Server Action.
 
 ---
 
-## 12. Comments
+## 13. Comments
 
 Reader comments start as `pending` and never appear until an editor approves
 them. Submission is rate-limited to five per hour per client. The public form
@@ -278,7 +309,7 @@ posts to `src/app/blog/actions.ts`; the moderation queue is `/cms/comments`.
 
 ---
 
-## 13. Database
+## 14. Database
 
 Nine tables, all prefixed `cms_` so the existing `calculations` table and its
 migration history stay untouched.
@@ -304,7 +335,7 @@ npm run db:generate    # writes drizzle/000N_*.sql — commit it
 
 ---
 
-## 14. Environment variables
+## 15. Environment variables
 
 | Variable | Required | Default | Purpose |
 |---|---|---|---|
@@ -318,7 +349,7 @@ npm run db:generate    # writes drizzle/000N_*.sql — commit it
 
 ---
 
-## 15. Testing
+## 16. Testing
 
 ```bash
 npm test                          # 422 unit tests, no database needed
@@ -342,7 +373,7 @@ redirect and an account, and signs out again.
 
 ```bash
 npm run test:cms
-# → 78/78 checks passed
+# → 87/87 checks passed
 ```
 
 The test needs a Chromium binary. Point `CHROMIUM_EXECUTABLE_PATH` at one, or

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { analyzePost, type SeoReport } from "@/lib/cms/seo";
 import { renderMarkdown, safeUrl } from "@/lib/cms/markdown";
@@ -39,7 +39,18 @@ export type EditorPost = {
  * uses to block a publish, so what the author sees is exactly what will be
  * checked. The panel is a live aid, not the gate — the gate is on the server.
  */
-export default function PostEditor({ post, mode }: { post: EditorPost | null; mode: "create" | "edit" }) {
+export type LinkTarget = { title: string; slug: string };
+
+export default function PostEditor({
+  post,
+  mode,
+  linkTargets = [],
+}: {
+  post: EditorPost | null;
+  mode: "create" | "edit";
+  /** Published posts this article could link to. */
+  linkTargets?: LinkTarget[];
+}) {
   const router = useRouter();
   const [title, setTitle] = useState(post?.title ?? "");
   const [slug, setSlug] = useState(post?.slug ?? "");
@@ -110,6 +121,30 @@ export default function PostEditor({ post, mode }: { post: EditorPost | null; mo
     what a reader will actually see.
   */
   const rendered = useMemo(() => renderMarkdown(contentMd), [contentMd]);
+
+  const contentRef = useRef<HTMLTextAreaElement | null>(null);
+
+  /*
+    Internal links are a blocking SEO check, so the editor offers the ones it
+    already knows about. A suggestion that is already in the body is not
+    offered again, and insertion happens at the cursor so the link lands where
+    the author is writing.
+  */
+  const suggestions = linkTargets.filter((target) => !contentMd.includes(`/blog/${target.slug}`));
+
+  const insertLink = (target: LinkTarget) => {
+    const snippet = `[${target.title}](/blog/${target.slug})`;
+    const element = contentRef.current;
+    const start = element?.selectionStart ?? contentMd.length;
+    const end = element?.selectionEnd ?? start;
+    const next = `${contentMd.slice(0, start)}${snippet}${contentMd.slice(end)}`;
+    setContentMd(next);
+    requestAnimationFrame(() => {
+      element?.focus();
+      const caret = start + snippet.length;
+      element?.setSelectionRange(caret, caret);
+    });
+  };
 
   const errors = state.fieldErrors ?? {};
   const autoSlug = (value: string) =>
@@ -211,6 +246,7 @@ export default function PostEditor({ post, mode }: { post: EditorPost | null; mo
               <textarea
                 id="contentMd"
                 name="contentMd"
+                ref={contentRef}
                 required={tab === "content"}
                 rows={22}
                 value={contentMd}
@@ -299,6 +335,46 @@ export default function PostEditor({ post, mode }: { post: EditorPost | null; mo
                   <option value="landing">Landing page</option>
                 </select>
               </div>
+            </div>
+
+            <div className="rounded-xl border border-border bg-white p-5">
+              <div className="flex items-baseline justify-between gap-3">
+                <h2 className="text-base font-bold text-heading">Internal links</h2>
+                <span className="text-xs font-semibold text-fog">{report.internalLinks} in the article</span>
+              </div>
+              <p className="mt-1 text-sm text-fog">
+                One internal link is required before publishing. Insert one at the cursor — it lands wherever you were writing.
+              </p>
+              {report.internalLinks === 0 ? (
+                <p className="mt-3 rounded-lg bg-yt-red-bg px-3 py-2 text-xs font-semibold text-yt-red">
+                  No internal link yet, so publishing is blocked.
+                </p>
+              ) : null}
+              {suggestions.length === 0 ? (
+                <p className="mt-3 text-xs text-fog">
+                  {linkTargets.length === 0
+                    ? "Publish another post first, and it will appear here as a link suggestion."
+                    : "Every published post is already linked from this article."}
+                </p>
+              ) : (
+                <ul className="mt-3 space-y-1.5">
+                  {suggestions.slice(0, 6).map((target) => (
+                    <li key={target.slug} className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2">
+                      <span className="min-w-0">
+                        <span className="block truncate text-xs font-semibold text-heading">{target.title}</span>
+                        <span className="block truncate font-mono text-[11px] text-fog">/blog/{target.slug}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => insertLink(target)}
+                        className="inline-flex min-h-8 shrink-0 items-center rounded-md border border-border px-2.5 text-[11px] font-bold text-heading hover:bg-surface"
+                      >
+                        Insert
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
 

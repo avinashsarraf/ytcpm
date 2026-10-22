@@ -21,7 +21,7 @@ import {
 } from "@/lib/cms/validation";
 import { createRevision, getRevision, slugExists, uniqueSlug } from "@/lib/cms/posts";
 import { recordActivity } from "@/lib/cms/activity";
-import { deleteMedia, updateMedia, uploadMedia } from "@/lib/cms/media";
+import { deleteMedia, getMedia, mediaUsageCount, updateMedia, uploadMedia } from "@/lib/cms/media";
 import { moderateComment, deleteComment } from "@/lib/cms/comments";
 import { setSettings, type CmsSettingKey } from "@/lib/cms/settings";
 import { authMessage, createSession, destroySession, destroyUserSessions, requireUserResult } from "@/lib/cms/session";
@@ -382,6 +382,21 @@ export async function restoreRevisionAction(formData: FormData): Promise<ActionS
   }
 }
 
+/**
+ * The restore button on the version-comparison screen.
+ *
+ * A form inside a Server Component needs an action that returns nothing, so
+ * this wraps the real one and redirects: to the editor when the restore
+ * worked, back to the comparison when it did not.
+ */
+export async function restoreRevisionPageAction(formData: FormData): Promise<void> {
+  const result = await restoreRevisionAction(formData);
+  if (result.ok && result.redirectTo) redirect(result.redirectTo);
+  const postId = asInt(formData.get("postId"), 0);
+  const revisionId = asInt(formData.get("revisionId"), 0);
+  redirect(`/cms/posts/${postId}/revisions/${revisionId}?failed=1`);
+}
+
 /* ══════════════════════════════════════════════════════════════════════════
    Media
    ══════════════════════════════════════════════════════════════════════════ */
@@ -432,6 +447,18 @@ export async function deleteMediaAction(formData: FormData): Promise<ActionState
   const user = auth.user;
   const id = asInt(formData.get("id"), 0);
   if (!id) return { ok: false, message: "Unknown media item." };
+
+  // Deleting an image a post still points at would leave a broken picture on a
+  // published page, and nothing would report it.
+  const media = await getMedia(id);
+  if (!media) return { ok: false, message: "That media item no longer exists." };
+  const usedIn = await mediaUsageCount(media.url);
+  if (usedIn > 0) {
+    return {
+      ok: false,
+      message: `That image is used in ${usedIn} post${usedIn === 1 ? "" : "s"}. Remove it from ${usedIn === 1 ? "that post" : "those posts"} before deleting it.`,
+    };
+  }
 
   const deleted = await deleteMedia(id);
   if (!deleted) return { ok: false, message: "That media item no longer exists." };

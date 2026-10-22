@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { countMedia, listMedia, mediaWithoutAlt } from "@/lib/cms/media";
+import { countMedia, listMedia, mediaUsage, mediaWithoutAlt } from "@/lib/cms/media";
 import CmsPageHeader from "../../page-header";
 import MediaUploader from "./media-uploader";
 import MediaItem from "./media-item";
@@ -8,13 +8,19 @@ export const metadata: Metadata = { title: "Media" };
 export const dynamic = "force-dynamic";
 
 export default async function CmsMediaPage() {
-  const [items, total, missingAlt] = await Promise.all([listMedia(120), countMedia(), mediaWithoutAlt(20)]);
+  const [items, total, missingAlt, usage] = await Promise.all([
+    listMedia(120),
+    countMedia(),
+    mediaWithoutAlt(20),
+    mediaUsage(),
+  ]);
+  const inUse = [...usage.values()].filter((count) => count > 0).length;
 
   return (
     <div className="px-5 py-7 sm:px-8 sm:py-9">
       <CmsPageHeader
         title="Media library"
-        description={`${total} file${total === 1 ? "" : "s"} stored. Every image needs alt text before it is used on a page.`}
+        description={`${total} file${total === 1 ? "" : "s"} stored · ${inUse} in use. An image that a post references cannot be deleted until it is removed from that post.`}
       />
 
       <div className="mt-6">
@@ -53,6 +59,7 @@ export default async function CmsMediaPage() {
                 size: item.size,
                 width: item.width,
                 height: item.height,
+                usedIn: usage.get(item.url) ?? 0,
               }}
             />
           ))}
