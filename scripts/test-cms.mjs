@@ -451,6 +451,26 @@ async function main() {
     const afterUnpublish = await publicPost.request.get(`${BASE}/blog/${slug}`);
     check("an unpublished post leaves the public blog", afterUnpublish.status() === 404, `status ${afterUnpublish.status()} — ${JSON.stringify(statusMessage)}`);
 
+    /* Draft preview links ------------------------------------------------- */
+    await page.goto(`${BASE}/cms/posts/${postId}`, { waitUntil: "domcontentloaded" });
+    const previewHref = await page.locator('a:has-text("Preview the real page")').getAttribute("href");
+    check("a draft offers a preview link", Boolean(previewHref && previewHref.includes("?preview=")), String(previewHref));
+
+    const previewResponse = await publicPost.request.get(`${BASE}${previewHref}`);
+    check("the preview link opens the draft", previewResponse.status() === 200, `status ${previewResponse.status()}`);
+    const previewHtml = await previewResponse.text();
+    check("the preview marks itself private", /noindex/i.test(previewHtml) && previewHtml.includes("Preview"), "no noindex or banner");
+    check("the preview does not publish structured data", !previewHtml.includes("BlogPosting"), "BlogPosting present");
+
+    await publicPost.goto(`${BASE}${previewHref}`, { waitUntil: "domcontentloaded" });
+    await publicPost.screenshot({ path: join(screenshots, "draft-preview.png") });
+    await publicPost.setViewportSize({ width: 390, height: 844 });
+    await publicPost.screenshot({ path: join(screenshots, "draft-preview-mobile.png") });
+    await publicPost.setViewportSize({ width: 1440, height: 900 });
+
+    const forgedPreview = await publicPost.request.get(`${BASE}/blog/${slug}?preview=1900000000.forged-signature`);
+    check("a forged preview token is refused", forgedPreview.status() === 404, `status ${forgedPreview.status()}`);
+
     const publishNow = page.locator('button:has-text("Publish now")');
     if (await publishNow.count()) {
       await publishNow.click();
@@ -488,6 +508,16 @@ async function main() {
     await page.waitForTimeout(2500);
     const changedTitle = await page.locator("#title").inputValue();
     check("an edit is saved", changedTitle === "A different title for the same post", changedTitle);
+
+    // The preview tab renders the body with the renderer the public page uses.
+    await page.click("#tab-preview");
+    await page.waitForTimeout(600);
+    const previewHeadings = await page.locator("#panel-preview article h2").count();
+    const previewText = await page.locator("#panel-preview").innerText();
+    check("the preview tab renders the article", previewHeadings >= 2 && previewText.includes("How the estimate is built"), `${previewHeadings} headings`);
+    await page.screenshot({ path: join(screenshots, "editor-preview.png"), fullPage: false });
+    await page.click("#tab-content");
+    await page.waitForTimeout(300);
 
     const restore = page.locator('button:has-text("Restore this version")').first();
     if (await restore.count()) {

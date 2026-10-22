@@ -68,6 +68,7 @@ Production deployment guide for [Coolify](https://coolify.io) using Docker, plus
 | `CMS_MAX_UPLOAD_BYTES` | No | `5242880` | Maximum upload size (5 MB). |
 | `CMS_API_KEY` | No | — | Bearer key for the CMS HTTP API. 32+ random characters. |
 | `CMS_REVALIDATE_SECRET` | No | — | HMAC secret for `POST /api/cms/revalidate`. |
+| `CMS_PREVIEW_SECRET` | No | — | Signs draft preview links; falls back to the revalidation secret, then the API key. |
 
 **Copy-paste templates:** [`.env.example`](./.env.example).
 **Never commit** a real `.env` — it is git-ignored.

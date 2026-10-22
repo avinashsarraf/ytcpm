@@ -10,16 +10,45 @@ import { effectiveDescription, effectiveTitle } from "@/lib/cms/seo";
 import { absoluteMediaUrl, defaultOgImage, OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from "@/lib/cms/media-config";
 import { renderMarkdown } from "@/lib/cms/markdown";
 import { listComments } from "@/lib/cms/comments";
+import { verifyPreviewToken } from "@/lib/cms/preview";
 import CommentForm from "./comment-form";
 
 export const dynamic = "force-dynamic";
 
-type Params = { params: Promise<{ slug: string }> };
+type Params = { params: Promise<{ slug: string }>; searchParams?: Promise<{ preview?: string }> };
 
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
+/**
+ * Loads a post for the public page.
+ *
+ * A published post is found the normal way. Anything else needs a valid
+ * preview token, which the editor generates: the page then renders in full
+ * but stays `noindex` and is never listed anywhere.
+ */
+async function loadPost(slug: string, searchParams?: Promise<{ preview?: string }>) {
+  const published = await getPostBySlug(slug);
+  if (published) return { post: published, preview: false };
+
+  const token = (await searchParams)?.preview;
+  if (!token || !verifyPreviewToken(slug, token)) return null;
+  const draft = await getPostBySlug(slug, { includeUnpublished: true });
+  if (!draft) return null;
+  return { post: draft, preview: true };
+}
+
+export async function generateMetadata({ params, searchParams }: Params): Promise<Metadata> {
   const { slug } = await params;
-  const post = await getPostBySlug(slug);
-  if (!post) return { title: "Post not found", robots: { index: false, follow: false } };
+  const found = await loadPost(slug, searchParams);
+  if (!found) return { title: "Post not found", robots: { index: false, follow: false } };
+
+  const { post, preview } = found;
+  if (preview) {
+    // A draft is never indexed, and never claims a canonical of its own.
+    return {
+      title: `${post.title} — preview`,
+      description: post.excerpt,
+      robots: { index: false, follow: false, nocache: true },
+    };
+  }
 
   const title = effectiveTitle({ title: post.title, seoTitle: post.seoTitle });
   const description = effectiveDescription({ excerpt: post.excerpt, seoDescription: post.seoDescription, contentMd: post.contentMd });
@@ -55,10 +84,11 @@ function socialImageFor(ogImageUrl: string | null, slug: string): string {
   return defaultOgImage;
 }
 
-export default async function BlogPostPage({ params }: Params) {
+export default async function BlogPostPage({ params, searchParams }: Params) {
   const { slug } = await params;
-  const post = await getPostBySlug(slug);
-  if (!post) notFound();
+  const found = await loadPost(slug, searchParams);
+  if (!found) notFound();
+  const { post, preview } = found;
 
   const settings = await getSettings();
   const rendered = renderMarkdown(post.contentMd);
@@ -99,11 +129,27 @@ export default async function BlogPostPage({ params }: Params) {
   };
 
   return <>
+    {preview ? null : (
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd([
       blogPosting,
       webPageSchema({ path: `/blog/${post.slug}`, name: post.title, description, image, dateModified: post.updatedAt.toISOString(), section: post.category ?? "Blog", about: post.focusKeyword ? [post.focusKeyword] : [] }),
       breadcrumbs([{ name: "Home", path: "/" }, { name: "Blog", path: "/blog" }, { name: post.title, path: `/blog/${post.slug}` }]),
     ]) }} />
+    )}
+
+    {preview ? (
+      <div className="border-b border-amber/40 bg-amber-bg">
+        <div className="shell flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5 text-sm">
+          <span className="font-bold text-heading">Preview</span>
+          <span className="text-fog">
+            This post is <strong className="font-semibold text-heading">{post.status}</strong> and not public. Only a signed link like this one can open it, and search engines are told to ignore it.
+          </span>
+          <Link href={`/cms/posts/${post.id}`} className="font-semibold text-yt-red underline underline-offset-4">
+            Back to the editor
+          </Link>
+        </div>
+      </div>
+    ) : null}
 
     <article className="relative overflow-hidden">
       <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 blob-pink" aria-hidden />
@@ -171,7 +217,7 @@ export default async function BlogPostPage({ params }: Params) {
               </section>
             ) : null}
 
-            {commentsEnabled ? (
+            {commentsEnabled && !preview ? (
               <section id="comments" className="mt-12 scroll-mt-24 border-t border-border pt-8">
                 <h2 className="text-xl font-bold text-heading">Comments</h2>
                 <p className="mt-2 text-sm text-fog">Comments are moderated before they appear. Keep it about the numbers, not the person.</p>

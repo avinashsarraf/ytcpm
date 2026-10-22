@@ -3,7 +3,7 @@
 import { useActionState, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { analyzePost, type SeoReport } from "@/lib/cms/seo";
-import { safeUrl } from "@/lib/cms/markdown";
+import { renderMarkdown, safeUrl } from "@/lib/cms/markdown";
 import { savePostAction, type ActionState } from "../../actions";
 
 export type EditorPost = {
@@ -104,6 +104,12 @@ export default function PostEditor({ post, mode }: { post: EditorPost | null; mo
       }),
     [title, slug, excerpt, contentMd, focusKeyword, seoTitle, seoDescription, seoKeywords, ogImageUrl, ogImageAlt, canonicalUrl, noindex],
   );
+
+  /*
+    The same renderer the public page uses, so the preview cannot drift from
+    what a reader will actually see.
+  */
+  const rendered = useMemo(() => renderMarkdown(contentMd), [contentMd]);
 
   const errors = state.fieldErrors ?? {};
   const autoSlug = (value: string) =>
@@ -302,6 +308,22 @@ export default function PostEditor({ post, mode }: { post: EditorPost | null; mo
               <p className="text-xs text-fog">ytcpm.online › blog › {slug || "your-post"}</p>
               <p className="mt-1.5 text-lg font-medium leading-snug text-[#1a0dab]">{seoTitle || title || "Your title appears here"}</p>
               <p className="mt-1.5 text-sm leading-6 text-fog">{seoDescription || excerpt || "Your meta description appears here. Write one that makes the click worth it."}</p>
+            </div>
+
+            <h3 className="mt-6 text-base font-bold text-heading">The article as it will appear</h3>
+            <p className="mt-1 text-xs text-fog">
+              {rendered.wordCount} words · about {rendered.readingMinutes} min read · rendered with the same rules as the live page.
+            </p>
+            <div className="mt-3 max-h-[560px] overflow-y-auto rounded-lg border border-border bg-white px-5 py-4">
+              {contentMd.trim() ? (
+                <article
+                  className="prose-post text-[15px]"
+                  // The renderer escapes all author input, so this is inert markup.
+                  dangerouslySetInnerHTML={{ __html: rendered.html }}
+                />
+              ) : (
+                <p className="text-sm text-fog">Nothing to preview yet. Write the article on the Content tab.</p>
+              )}
             </div>
 
             <h3 className="mt-6 text-base font-bold text-heading">Article outline</h3>

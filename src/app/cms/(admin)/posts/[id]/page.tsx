@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPostById, listRevisions } from "@/lib/cms/posts";
+import { previewPath } from "@/lib/cms/preview";
 import CmsPageHeader from "../../../page-header";
 import PostEditor from "../post-editor";
 import PostActions from "../post-actions";
@@ -20,6 +21,8 @@ export default async function EditPostPage({ params }: { params: Params }) {
   if (!post) notFound();
 
   const revisions = await listRevisions(postId);
+  // A draft has no public URL; a signed link lets the author see the real page.
+  const preview = post.status === "published" ? null : previewPath(post.slug);
 
   const editorPost = {
     id: post.id,
@@ -58,6 +61,11 @@ export default async function EditPostPage({ params }: { params: Params }) {
               <Link href={`/blog/${post.slug}`} className="font-semibold text-yt-red underline underline-offset-4">
                 View the live page
               </Link>
+            ) : null}
+            {preview ? (
+              <a href={preview} target="_blank" rel="noreferrer" className="font-semibold text-yt-red underline underline-offset-4">
+                Preview the real page
+              </a>
             ) : null}
           </span>
         }

@@ -161,6 +161,7 @@ npm start              # note: with output:"standalone", prefer `node .next/stan
 | `CMS_MAX_UPLOAD_BYTES` | No | `5242880` | Maximum upload size |
 | `CMS_API_KEY` | No | — | Bearer key for the CMS HTTP API |
 | `CMS_REVALIDATE_SECRET` | No | — | HMAC secret for the revalidation webhook |
+| `CMS_PREVIEW_SECRET` | No | — | Signs draft preview links (falls back to the revalidation secret) |
 
 Templates and the full matrix: [`.env.example`](./.env.example) and [`deployment.md`](./deployment.md#environment-variables).
 
@@ -382,7 +383,7 @@ docker run -p 3000:3000 -e DATABASE_URL=postgresql://... ytcpm
 
 ```bash
 npm test             # 422 unit tests
-npm run test:cms     # end-to-end CMS test (real database, real browser, 63 checks)
+npm run test:cms     # end-to-end CMS test (real database, real browser, 69 checks)
 ```
 
 Coverage focuses on what can silently break money math:

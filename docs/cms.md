@@ -129,7 +129,33 @@ subset:
 
 ---
 
-## 7. Media
+## 7. Previews
+
+An unpublished post has no public URL, but the author still needs to see the
+real page — the actual layout, table of contents and typography, not a
+lookalike inside the admin.
+
+The editor's **Preview the real page** link carries a signed token:
+
+- `/blog/<slug>?preview=<expiry>.<signature>`, an HMAC-SHA256 over
+  `"<slug>.<expiry>"` with `CMS_PREVIEW_SECRET` (falling back to
+  `CMS_REVALIDATE_SECRET`, then `CMS_API_KEY`).
+- Valid for seven days, bound to one slug and tamper-proof. An edited expiry,
+  a token for another post and a forged signature are all refused, and an
+  expired link stops working on its own.
+- The page renders in full but is `noindex, nofollow, nocache`, carries a
+  visible preview banner, and emits no `BlogPosting` structured data. It never
+  appears in the sitemap, the feed or the blog index.
+- With no secret configured the link is not offered at all — the CMS turns the
+  feature off instead of guessing at a weak key.
+
+The editor's **Preview** tab renders the body with the same renderer, so the
+preview cannot drift from the published page. Article typography lives in one
+place, the `.prose-post` block in `src/app/globals.css`.
+
+---
+
+## 8. Media
 
 - Uploads are validated by **magic bytes**, not by the browser's content type.
   Allowed: JPEG, PNG, WebP, GIF, AVIF. SVG is excluded by default.
@@ -143,7 +169,7 @@ subset:
 
 ---
 
-## 8. HTTP API
+## 9. HTTP API
 
 All endpoints need `Authorization: Bearer <CMS_API_KEY>` (or
 `x-cms-api-key`). The key lives in the environment and is compared in
@@ -179,7 +205,7 @@ replayed.
 
 ---
 
-## 9. Redirects
+## 10. Redirects
 
 Redirect rules live in `cms_redirects` and are applied by `src/proxy.ts`
 (Next 16's Node-runtime proxy). The rule set is cached in-process for 60
@@ -193,7 +219,7 @@ in every Server Action.
 
 ---
 
-## 10. Caching
+## 11. Caching
 
 `cacheComponents` is not enabled, so the CMS uses the explicit APIs:
 
@@ -206,7 +232,7 @@ in every Server Action.
 
 ---
 
-## 11. Comments
+## 12. Comments
 
 Reader comments start as `pending` and never appear until an editor approves
 them. Submission is rate-limited to five per hour per client. The public form
@@ -214,7 +240,7 @@ posts to `src/app/blog/actions.ts`; the moderation queue is `/cms/comments`.
 
 ---
 
-## 12. Database
+## 13. Database
 
 Nine tables, all prefixed `cms_` so the existing `calculations` table and its
 migration history stay untouched.
@@ -240,7 +266,7 @@ npm run db:generate    # writes drizzle/000N_*.sql — commit it
 
 ---
 
-## 13. Environment variables
+## 14. Environment variables
 
 | Variable | Required | Default | Purpose |
 |---|---|---|---|
@@ -248,12 +274,13 @@ npm run db:generate    # writes drizzle/000N_*.sql — commit it
 | `CMS_MAX_UPLOAD_BYTES` | No | `5242880` | Maximum upload size |
 | `CMS_API_KEY` | No | — | Bearer key for the HTTP API (32+ characters) |
 | `CMS_REVALIDATE_SECRET` | No | — | HMAC secret for the revalidation webhook |
+| `CMS_PREVIEW_SECRET` | No | — | Signs draft preview links; falls back to the revalidation secret |
 | `CMS_ADMIN_EMAIL` | No | — | Used by `npm run db:seed-admin` |
 | `CMS_ADMIN_PASSWORD` | No | — | Used by `npm run db:seed-admin` |
 
 ---
 
-## 14. Testing
+## 15. Testing
 
 ```bash
 npm test                          # 422 unit tests, no database needed
@@ -277,7 +304,7 @@ redirect and an account, and signs out again.
 
 ```bash
 npm run test:cms
-# → 63/63 checks passed
+# → 69/69 checks passed
 ```
 
 The test needs a Chromium binary. Point `CHROMIUM_EXECUTABLE_PATH` at one, or
