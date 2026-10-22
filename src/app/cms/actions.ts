@@ -148,8 +148,9 @@ export async function savePostAction(_previous: ActionState, formData: FormData)
 
   const input = parsed.data;
 
-  // SEO guard: a post cannot be published while a blocking check fails.
-  const wantsPublish = input.status === "published";
+  // SEO guard: a post cannot go public while a blocking check fails. A
+  // scheduled post counts, because the scheduler will publish it unattended.
+  const wantsPublish = input.status === "published" || input.status === "scheduled";
   if (wantsPublish) {
     const report = analyzePost({
       title: input.title,
@@ -270,8 +271,20 @@ export async function setPostStatusAction(formData: FormData): Promise<ActionSta
     if (status === "published" && !post.publishedAt) patch.publishedAt = now;
     if (status === "draft") patch.publishedAt = null;
 
-    // Publishing re-runs the blocking SEO checks.
-    if (status === "published") {
+    // Scheduling without a future date would hide the post forever, because
+    // nothing would ever promote it.
+    if (status === "scheduled") {
+      const raw = asTrimmed(formData.get("scheduledFor"));
+      const when = raw ? new Date(raw) : post.scheduledFor;
+      if (!when || Number.isNaN(when.getTime())) {
+        return { ok: false, message: "Pick a publish date before scheduling this post." };
+      }
+      patch.scheduledFor = when;
+      patch.publishedAt = null;
+    }
+
+    // Publishing — now or on a schedule — re-runs the blocking SEO checks.
+    if (status === "published" || status === "scheduled") {
       const report = analyzePost({
         title: post.title,
         slug: post.slug,

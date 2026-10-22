@@ -471,6 +471,7 @@ async function main() {
     const forgedPreview = await publicPost.request.get(`${BASE}/blog/${slug}?preview=1900000000.forged-signature`);
     check("a forged preview token is refused", forgedPreview.status() === 404, `status ${forgedPreview.status()}`);
 
+    await page.screenshot({ path: join(screenshots, "post-actions.png"), fullPage: false });
     const publishNow = page.locator('button:has-text("Publish now")');
     if (await publishNow.count()) {
       await publishNow.click();
@@ -482,11 +483,13 @@ async function main() {
     /* 14. A scheduled post stays out of the public blog ------------------ */
     await page.goto(`${BASE}/cms/posts/new`, { waitUntil: "domcontentloaded" });
     await page.click('#tab-content');
-    await page.fill("#title", "A post scheduled for next year");
-    await page.fill("#excerpt", "A scheduled post proves the scheduling state is kept out of the public blog until its date.");
-    await page.fill("#contentMd", "## Scheduled\n\nThis article is scheduled and must not be public before its date.");
+    await page.fill("#title", "A YouTube RPM post scheduled for next year");
+    await page.fill("#excerpt", "A scheduled post proves the scheduling state is kept out of the public blog until its date arrives.");
+    await page.fill("#contentMd", longBody);
     await page.click('#tab-seo');
-    await page.fill("#focusKeyword", "scheduled post");
+    await page.fill("#focusKeyword", "youtube rpm");
+    await page.fill("#seoTitle", "YouTube RPM: a scheduled post");
+    await page.fill("#seoDescription", "A YouTube RPM article held back until its scheduled date, proving scheduling keeps a post out of the public blog.");
     await page.selectOption("#status", "scheduled");
     await page.fill("#scheduledFor", "2030-01-01T09:00");
     await page.click('button:has-text("Create post")');
@@ -497,8 +500,41 @@ async function main() {
       scheduledCreated = false;
     }
     check("a scheduled post is created", scheduledCreated, page.url());
-    const scheduledPublic = await publicPost.request.get(`${BASE}/blog/a-post-scheduled-for-next-year`);
+    const scheduledPublic = await publicPost.request.get(`${BASE}/blog/a-youtube-rpm-post-scheduled-for-next-year`);
     check("a scheduled post is not public yet", scheduledPublic.status() === 404, `status ${scheduledPublic.status()}`);
+
+    /* Scheduling: a post whose date has passed goes live on its own -------- */
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
+    await page.goto(`${BASE}/cms/posts/new`, { waitUntil: "domcontentloaded" });
+    await page.click('#tab-content');
+    await page.fill("#title", "How to read a YouTube RPM figure on a schedule");
+    await page.fill("#excerpt", "A scheduled article that becomes public on its own once its publish date has passed, without a cron job.");
+    await page.fill("#contentMd", longBody);
+    await page.click('#tab-seo');
+    await page.fill("#focusKeyword", "youtube rpm");
+    await page.fill("#seoTitle", "YouTube RPM: a scheduled article");
+    await page.fill("#seoDescription", "A scheduled YouTube RPM article that goes public on its own once the publish date has passed.");
+    await page.selectOption("#status", "scheduled");
+    await page.fill("#scheduledFor", yesterday);
+    await page.click('button:has-text("Create post")');
+    let dueCreated = true;
+    try {
+      await page.waitForURL(/\/cms\/posts\/\d+/, { timeout: 30_000 });
+    } catch {
+      dueCreated = false;
+    }
+    check("a post can be scheduled for a date that has passed", dueCreated, page.url());
+
+    const duePublic = await publicPost.request.get(`${BASE}/blog/how-to-read-a-youtube-rpm-figure-on-a-schedule`);
+    check("a due scheduled post publishes itself", duePublic.status() === 200, `status ${duePublic.status()}`);
+
+    const cronAnon = await publicPost.request.post(`${BASE}/api/cms/cron/publish`);
+    check("the publish cron requires a key", cronAnon.status() === 401, `status ${cronAnon.status()}`);
+    const cron = await publicPost.request.post(`${BASE}/api/cms/cron/publish`, {
+      headers: { authorization: `Bearer ${API_KEY}` },
+    });
+    const cronBody = await cron.json().catch(() => ({}));
+    check("the publish cron runs idempotently", cron.status() === 200 && cronBody.ok === true, `status ${cron.status()}`);
 
     /* 15. Restoring an earlier version ----------------------------------- */
     await page.goto(`${BASE}/cms/posts/${postId}`, { waitUntil: "domcontentloaded" });

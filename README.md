@@ -59,7 +59,7 @@ The site ships with its own content system — no third-party service, PostgreSQ
 | SEO | Per-post SEO title, meta description, focus keyword, keywords, slug, canonical, OG/Twitter image + alt, robots directives, Article/BlogPosting + WebPage + Breadcrumb JSON-LD, publish / schedule / draft states |
 | Publish gate | A post cannot go live while a blocking SEO check fails (title, slug, focus keyword, length, headings, image alt text, internal links) |
 | Media | Local disk storage with magic-byte validation, 5 MB limit, served from `/media/…` |
-| API | `POST /api/cms/posts`, `POST /api/cms/media`, `POST /api/cms/auth/login|logout`, `POST /api/cms/revalidate` (HMAC-signed) |
+| API | `POST /api/cms/posts`, `POST /api/cms/media`, `POST /api/cms/auth/login|logout`, `POST /api/cms/revalidate` (HMAC-signed), `POST /api/cms/cron/publish` |
 
 ```bash
 npm run db:migrate                        # apply the schema
@@ -383,7 +383,7 @@ docker run -p 3000:3000 -e DATABASE_URL=postgresql://... ytcpm
 
 ```bash
 npm test             # 422 unit tests
-npm run test:cms     # end-to-end CMS test (real database, real browser, 69 checks)
+npm run test:cms     # end-to-end CMS test (real database, real browser, 73 checks)
 ```
 
 Coverage focuses on what can silently break money math:

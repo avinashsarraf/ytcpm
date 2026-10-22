@@ -234,6 +234,19 @@ account, so it doubles as a recovery tool.
 `/api/cms/*` endpoints return 503. With one set, send it as
 `Authorization: Bearer <key>`.
 
+**Scheduled posts publish themselves.** A post is public as soon as its
+scheduled date passes — the visibility rule does not need a cron job, so a
+missed scheduler never leaves an article stranded. If you want the admin list
+and the caches to update the instant a post goes live, call the sweep from your
+scheduler:
+
+```bash
+curl -X POST https://your-domain/api/cms/cron/publish \
+  -H "Authorization: Bearer $CMS_API_KEY"
+```
+
+It is idempotent and safe to run every minute.
+
 **Backups.** The CMS content lives entirely in PostgreSQL, so the database
 backup you already have covers posts, media records, users and settings. The
 only thing outside the database is the uploaded image files, so back up the

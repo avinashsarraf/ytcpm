@@ -14,10 +14,13 @@ const INITIAL: ActionState = { ok: false, message: "" };
 export default function PostActions({
   postId,
   status,
+  scheduledFor,
   revisions,
 }: {
   postId: number;
   status: string;
+  /** The date the post is (or was) scheduled for, as a datetime-local value. */
+  scheduledFor: string | null;
   revisions: { id: number; title: string; reason: string; createdAt: string }[];
 }) {
   const router = useRouter();
@@ -39,6 +42,7 @@ export default function PostActions({
   }, INITIAL);
 
   const [confirming, setConfirming] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState(scheduledFor ?? "");
 
   return (
     <div>
@@ -53,6 +57,24 @@ export default function PostActions({
 
       <form action={formAction} className="space-y-2">
         <input type="hidden" name="id" value={postId} />
+        <div>
+          <label htmlFor="post-scheduled-for" className="text-xs font-semibold text-heading">
+            Publish date <span className="font-normal text-fog">(required to schedule)</span>
+          </label>
+          <input
+            id="post-scheduled-for"
+            name="scheduledFor"
+            type="datetime-local"
+            value={scheduleDate}
+            onChange={(event) => setScheduleDate(event.target.value)}
+            className="mt-1 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-heading outline-none focus:border-yt-red sm:max-w-xs"
+          />
+          {status === "scheduled" ? (
+            <p className="mt-1 text-xs text-fog">
+              The post becomes public the moment this date passes. A date in the past publishes it on the next visit.
+            </p>
+          ) : null}
+        </div>
         <div className="flex flex-wrap gap-2">
           {status !== "published" ? (
             <button

@@ -1,8 +1,10 @@
-import { and, asc, desc, eq, ilike, inArray, lte, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, isNotNull, lte, or, sql } from "drizzle-orm";
 import { db, isDatabaseConfigured } from "@/db";
 import { cmsComments, cmsPosts, cmsRevisions, type CmsPost, type CmsPostStatus } from "@/db/schema";
 import { logOnce } from "@/lib/log";
+import { recordActivity } from "./activity";
 import { renderMarkdown, markdownExcerpt } from "./markdown";
+import { isPostLive } from "./visibility";
 import { slugify } from "./markdown";
 
 /**
@@ -33,7 +35,87 @@ export type PostQuery = {
   order?: "newest" | "oldest" | "updated";
 };
 
-const LIVE_STATUSES: CmsPostStatus[] = ["published"];
+/**
+ * The definition of "public": a published post whose date has arrived, or a
+ * scheduled post whose scheduled date has arrived.
+ *
+ * The second half matters because scheduling must not depend on a cron job
+ * having run. A post scheduled for 09:00 becomes readable at 09:00 on the next
+ * request, and `promoteScheduledPosts` tidies the row into "published"
+ * afterwards.
+ */
+function liveClause(now = new Date()) {
+  return or(
+    and(eq(cmsPosts.status, "published"), lte(cmsPosts.publishedAt, now)),
+    and(eq(cmsPosts.status, "scheduled"), lte(cmsPosts.scheduledFor, now)),
+  )!;
+}
+
+/* ── Scheduled publishing ──────────────────────────────────────────────────
+   A post can be scheduled for a date in the future. Nothing in a self-hosted
+   deployment guarantees that a cron job runs, so the promotion from
+   "scheduled" to "published" happens lazily: the first public read after the
+   date passes flips the row. It is throttled to one small UPDATE per process
+   per interval, and `POST /api/cms/cron/publish` exposes the same work for
+   deployments that do run a scheduler. */
+
+const PROMOTION_INTERVAL_MS = 30_000;
+let lastPromotionCheck = 0;
+
+/**
+ * Publishes every scheduled post whose date has arrived.
+ *
+ * The published date becomes the date it was scheduled for, not the moment
+ * the promotion happened to run, so a late scheduler does not shift the
+ * article. Returns the posts that went live.
+ *
+ * Deliberately does **no** cache revalidation: this runs from page renders as
+ * well as from the cron endpoint, and Next only allows revalidation from an
+ * action or a route handler. The cron endpoint handles that itself, and the
+ * public blog is rendered dynamically anyway.
+ */
+export async function promoteScheduledPosts(): Promise<{ id: number; slug: string; title: string }[]> {
+  if (!isDatabaseConfigured()) return [];
+  try {
+    const now = new Date();
+    const due = await db
+      .update(cmsPosts)
+      .set({
+        status: "published",
+        publishedAt: sql`coalesce(${cmsPosts.scheduledFor}, ${now})`,
+        updatedAt: now,
+      })
+      .where(
+        and(
+          eq(cmsPosts.status, "scheduled"),
+          isNotNull(cmsPosts.scheduledFor),
+          lte(cmsPosts.scheduledFor, now),
+        ),
+      )
+      .returning({ id: cmsPosts.id, slug: cmsPosts.slug, title: cmsPosts.title });
+
+    for (const post of due) {
+      await recordActivity({
+        userId: null,
+        action: "post.published",
+        entity: "post",
+        entityId: post.id,
+        summary: `Published the scheduled post “${post.title}”.`,
+      });
+    }
+    return due;
+  } catch (error) {
+    logOnce("cms", "scheduled publish failed", error);
+    return [];
+  }
+}
+
+/** The same work, rate-limited so a busy blog does not run an UPDATE per request. */
+export async function promoteScheduledPostsThrottled(): Promise<{ id: number; slug: string; title: string }[]> {
+  if (Date.now() - lastPromotionCheck < PROMOTION_INTERVAL_MS) return [];
+  lastPromotionCheck = Date.now();
+  return promoteScheduledPosts();
+}
 
 function buildWhere(query: PostQuery) {
   const clauses = [];
@@ -44,12 +126,7 @@ function buildWhere(query: PostQuery) {
         : eq(cmsPosts.status, query.status),
     );
   }
-  if (query.onlyLive) {
-    clauses.push(
-      inArray(cmsPosts.status, LIVE_STATUSES),
-      lte(cmsPosts.publishedAt, new Date()),
-    );
-  }
+  if (query.onlyLive) clauses.push(liveClause());
   if (query.category) clauses.push(eq(cmsPosts.category, query.category));
   if (query.authorId) clauses.push(eq(cmsPosts.authorId, query.authorId));
   if (query.search) {
@@ -70,12 +147,15 @@ function buildWhere(query: PostQuery) {
 /** Reads posts, newest first by default. Returns [] when the database is down. */
 export async function listPosts(query: PostQuery = {}): Promise<PostWithMeta[]> {
   if (!isDatabaseConfigured()) return [];
+  // A scheduled post goes live the first time the public asks for the blog.
+  if (query.onlyLive) await promoteScheduledPostsThrottled();
+  const publicDate = sql`coalesce(${cmsPosts.publishedAt}, ${cmsPosts.scheduledFor})`;
   const order =
     query.order === "oldest"
-      ? asc(cmsPosts.publishedAt)
+      ? asc(publicDate)
       : query.order === "updated"
         ? desc(cmsPosts.updatedAt)
-        : desc(cmsPosts.publishedAt);
+        : desc(publicDate);
 
   try {
     const rows = await db
@@ -121,14 +201,12 @@ function decorate(post: CmsPost): PostWithMeta {
 /** Reads a single post by slug. Only live posts are returned to the public. */
 export async function getPostBySlug(slug: string, options: { includeUnpublished?: boolean } = {}): Promise<PostWithMeta | null> {
   if (!isDatabaseConfigured()) return null;
+  if (!options.includeUnpublished) await promoteScheduledPostsThrottled();
   try {
     const rows = await db.select().from(cmsPosts).where(eq(cmsPosts.slug, slug)).limit(1);
     const post = rows[0];
     if (!post) return null;
-    if (!options.includeUnpublished) {
-      if (post.status !== "published") return null;
-      if (post.publishedAt && post.publishedAt.getTime() > Date.now()) return null;
-    }
+    if (!options.includeUnpublished && !isPostLive(post)) return null;
     return decorate(post);
   } catch (error) {
     logOnce("cms", "post lookup failed", error);
@@ -182,7 +260,7 @@ export async function listTags(): Promise<{ tag: string; count: number }[]> {
     const rows = await db
       .select({ tag: sql<string>`unnest(${cmsPosts.tags})`, count: sql<number>`count(*)` })
       .from(cmsPosts)
-      .where(inArray(cmsPosts.status, LIVE_STATUSES))
+      .where(liveClause())
       .groupBy(sql`unnest(${cmsPosts.tags})`)
       .orderBy(desc(sql`count(*)`));
     return rows.map((row) => ({ tag: row.tag, count: Number(row.count) }));
@@ -199,7 +277,7 @@ export async function listCategories(): Promise<{ category: string; count: numbe
     const rows = await db
       .select({ category: cmsPosts.category, count: sql<number>`count(*)` })
       .from(cmsPosts)
-      .where(and(inArray(cmsPosts.status, LIVE_STATUSES), sql`${cmsPosts.category} is not null`))
+      .where(and(liveClause(), sql`${cmsPosts.category} is not null`))
       .groupBy(cmsPosts.category)
       .orderBy(desc(sql`count(*)`));
     return rows.map((row) => ({ category: row.category ?? "", count: Number(row.count) }));

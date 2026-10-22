@@ -89,6 +89,7 @@ export default async function EditPostPage({ params }: { params: Params }) {
           <PostActions
             postId={post.id}
             status={post.status}
+            scheduledFor={post.scheduledFor ? new Date(post.scheduledFor).toISOString().slice(0, 16) : null}
             revisions={revisions.map((revision) => ({
               id: revision.id,
               title: revision.title,

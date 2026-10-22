@@ -184,6 +184,40 @@ constant time. Without `CMS_API_KEY` the API returns 503 and stays closed.
 | `GET` | `/api/cms/media` | List the media library |
 | `POST` | `/api/cms/media` | Upload an image (multipart) |
 | `POST` | `/api/cms/revalidate` | Signed cache-invalidation webhook |
+| `POST` | `/api/cms/cron/publish` | Publish every scheduled post whose date has passed |
+
+### Scheduled publishing
+
+A post can be scheduled for a date instead of being published immediately.
+Nothing in a self-hosted deployment guarantees that a cron job runs, so the
+visibility rule itself is what makes scheduling work:
+
+- A post is public when it is **published and its date has arrived**, or when
+  it is **scheduled and its scheduled date has arrived**. The rule lives in
+  `src/lib/cms/visibility.ts` and is mirrored in SQL by `liveClause()`, so the
+  blog, the feed, the sitemap and the tag archives all agree.
+- The first public request after the date promotes the row from `scheduled` to
+  `published` and records the activity. That sweep runs at most every 30
+  seconds per process, so it costs one small `UPDATE` and never blocks a read.
+- The published date becomes the **scheduled** date, not the moment the sweep
+  ran, so a late job never shifts an article.
+- `POST /api/cms/cron/publish` does the same sweep on demand, with the API key,
+  and refreshes the blog caches. Wire it to a scheduler if you want the admin
+  list to update the instant a post goes live:
+
+```bash
+curl -X POST https://ytcpm.online/api/cms/cron/publish \
+  -H "Authorization: Bearer $CMS_API_KEY"
+# → { "ok": true, "published": ["my-post"], "checkedAt": "..." }
+```
+
+The endpoint is idempotent and returns an empty list when nothing is due. It
+answers 401 without a key and 503 when the API or the database is not
+configured.
+
+Scheduling runs the same blocking SEO gate as publishing, because the
+scheduler will publish the post unattended. Scheduling without a date is
+refused rather than leaving a post that could never go live.
 
 ### The revalidation webhook
 
@@ -304,7 +338,7 @@ redirect and an account, and signs out again.
 
 ```bash
 npm run test:cms
-# → 69/69 checks passed
+# → 73/73 checks passed
 ```
 
 The test needs a Chromium binary. Point `CHROMIUM_EXECUTABLE_PATH` at one, or
