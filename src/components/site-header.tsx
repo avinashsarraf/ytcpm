@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Menu, X, Play } from "lucide-react";
 
 /**
@@ -12,27 +12,30 @@ import { Menu, X, Play } from "lucide-react";
  */
 const LINKS = [
   { href: "/", label: "Home", exact: true },
-  { href: "/#calculator", label: "CPM Calculator", exact: false },
-  { href: "/monitor", label: "YouTube Stats" },
+  { href: "/youtube-cpm-calculator", label: "CPM Calculator", exact: false },
+  { href: "/youtube-rpm-calculator", label: "RPM Calculator" },
   { href: "/cpm-by-country", label: "Country CPM" },
   { href: "/cpm-by-niche", label: "Niche CPM" },
-  { href: "/methodology", label: "Blog" },
-  { href: "/about", label: "About" },
+  { href: "/guides", label: "Guides" },
+  { href: "/blog", label: "Blog" },
+  { href: "/tools", label: "Creator Tools" },
+  { href: "/channel-auditor", label: "Channel Auditor" },
 ];
 
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const menuButton = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpen(false); menuButton.current?.focus(); } };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
   const isActive = (href: string, exact?: boolean) =>
-    href.startsWith("/#") ? false : exact ? pathname === href : pathname.startsWith(href);
+    href === "/tools" && pathname.startsWith("/youtube-") && !["/youtube-cpm-calculator", "/youtube-rpm-calculator"].includes(pathname) ? true : href.startsWith("/#") ? false : exact ? pathname === href : pathname.startsWith(href);
 
   return (
     <header className="sticky top-0 inset-x-0 z-40 border-b border-border/70 bg-white/95 backdrop-blur-xl">
@@ -46,7 +49,7 @@ export default function SiteHeader() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-5 lg:flex xl:gap-8 2xl:gap-10" aria-label="Primary">
+        <nav className="ml-auto hidden items-center gap-3 lg:flex xl:gap-8 2xl:gap-10" aria-label="Primary">
           {LINKS.map((l) => {
             const active = isActive(l.href, l.exact);
             return (
@@ -54,8 +57,8 @@ export default function SiteHeader() {
                 key={l.href}
                 href={l.href}
                 aria-current={active ? "page" : undefined}
-                className={`relative whitespace-nowrap py-5 text-[13px] font-semibold transition-colors xl:text-[13.5px] ${
-                  active ? "text-yt-red" : "text-[#4a5a6e] hover:text-heading"
+                className={`relative whitespace-nowrap py-5 text-[14px] font-semibold transition-colors xl:text-[14px] ${
+                  active ? "text-yt-red" : "text-fog hover:text-heading"
                 }`}
               >
                 {l.label}
@@ -67,8 +70,9 @@ export default function SiteHeader() {
           })}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex items-center gap-2 lg:hidden">
           <button
+            ref={menuButton}
             className="grid h-11 w-11 place-items-center rounded-lg border border-border text-heading lg:hidden"
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? "Close menu" : "Open menu"}
@@ -81,14 +85,15 @@ export default function SiteHeader() {
       </div>
 
       {open && (
-        <nav id="mobile-nav" className="border-t border-border bg-white p-3 lg:hidden" aria-label="Mobile">
+        <nav id="mobile-nav" className="max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-t border-border bg-white p-3 lg:hidden" aria-label="Mobile">
           {LINKS.map((l) => (
             <Link
               key={l.href}
               href={l.href}
               onClick={() => setOpen(false)}
+              aria-current={isActive(l.href, l.exact) ? "page" : undefined}
               className={`block rounded-xl px-4 py-3.5 text-sm font-semibold transition-colors ${
-                isActive(l.href, l.exact) ? "bg-yt-red-light text-yt-red" : "text-[#4a5a6e] hover:bg-surface"
+                isActive(l.href, l.exact) ? "bg-yt-red-light text-yt-red" : "text-fog hover:bg-surface"
               }`}
             >
               {l.label}

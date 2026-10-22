@@ -3,12 +3,15 @@ import type { NextConfig } from "next";
 /**
  * Security headers. `unsafe-inline` for styles is required by Next's injected
  * style tags and the inline CSS custom property on the calculator slider.
- * Scripts are locked to same-origin plus Next's inline bootstrap hashes; JSON-LD
+ * Scripts allow same-origin and Next's inline bootstrap; JSON-LD
  * blocks are data (application/ld+json) and are not executed.
  */
+const preview = process.env.ARENA_PREVIEW === "true" && process.env.NODE_ENV !== "production";
+const development = process.env.NODE_ENV === "development";
+
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "X-Frame-Options", value: "DENY" },
+  ...(!preview ? [{ key: "X-Frame-Options", value: "DENY" }] : []),
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
@@ -17,12 +20,12 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       // Next.js hydration bootstrap + framer-motion need inline scripts.
-      "script-src 'self' 'unsafe-inline'",
+      `script-src 'self' 'unsafe-inline'${development ? " 'unsafe-eval'" : ""}`,
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://flagcdn.com",
+      "img-src 'self' data: blob:",
       "font-src 'self' data:",
-      "connect-src 'self'",
-      "frame-ancestors 'none'",
+      development ? "connect-src 'self' ws: wss:" : "connect-src 'self'",
+      ...(!preview ? ["frame-ancestors 'none'"] : []),
       "base-uri 'self'",
       "form-action 'self'",
       "object-src 'none'",
@@ -33,11 +36,9 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   // Produces .next/standalone for the multi-stage Dockerfile (see deployment.md).
   output: "standalone",
+  allowedDevOrigins: ["*.e2b.app"],
   poweredByHeader: false,
   compress: true,
-  images: {
-    remotePatterns: [{ protocol: "https", hostname: "flagcdn.com" }],
-  },
   async headers() {
     return [
       { source: "/(.*)", headers: securityHeaders },

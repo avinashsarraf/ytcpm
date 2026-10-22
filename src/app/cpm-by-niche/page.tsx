@@ -1,38 +1,56 @@
+import { breadcrumbs, pageMetadata, serializeJsonLd, webPageSchema } from "@/lib/seo";
 import type { Metadata } from "next";
+import { BenchmarkNotice } from "@/components/source-notice";
 import Link from "next/link";
-import { Layers } from "lucide-react";
+import { ArrowRight, Layers } from "lucide-react";
 import { Reveal } from "@/components/motion";
 import { NicheRangeChart } from "@/components/charts";
 import { NICHE_ICONS } from "@/lib/niche-icons";
-import { NICHES_BY_CPM, CREATOR_SHARE, DATA_YEAR, money, perMillionViews } from "@/lib/data";
+import { NICHES_BY_CPM, CREATOR_SHARE, DATA_YEAR, DATA_UPDATED_AT, money, perMillionViews } from "@/lib/data";
 
-export const metadata: Metadata = {
-  title: `Highest CPM YouTube Niches ${DATA_YEAR} — All 18 Categories Ranked`,
-  description: `The highest-paying YouTube niches by CPM in ${DATA_YEAR}: finance ($15–$50), insurance, business, tech and 14 more.`,
-  alternates: { canonical: "/cpm-by-niche" },
-};
+import { STATIC_PAGE_SEO } from "@/lib/seo-keywords";
+const seo = STATIC_PAGE_SEO["/cpm-by-niche"];
+export const metadata: Metadata = pageMetadata(
+  `YouTube CPM by Niche — ${DATA_YEAR} Scenarios`,
+  "Compare indicative YouTube CPM scenarios across 18 niches. See model assumptions, ad-only RPM projections and why actual channel earnings differ.",
+  "/cpm-by-niche",
+  { focus: seo.focus, keywords: seo.keywords, category: "finance", modifiedTime: DATA_UPDATED_AT },
+);
 
 export default function NicheIndex() {
   return (
-    <section className="relative overflow-hidden pt-24 sm:pt-28 lg:pt-32">
+    <section className="relative overflow-hidden pt-10 sm:pt-14 lg:pt-16">
       <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 blob-pink" aria-hidden />
       <div className="relative shell">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(webPageSchema({ path: "/cpm-by-niche", name: `YouTube CPM by Niche ${DATA_YEAR} — Compare Scenarios`, description: "Compare indicative YouTube CPM scenarios across 18 niches. See model assumptions, ad-only RPM projections and why actual channel earnings differ.", dateModified: DATA_UPDATED_AT, section: "Niche benchmarks", about: ["YouTube CPM by niche", "YouTube RPM by niche", "Niche ad-rate benchmarks"] })) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbs([{ name: "Home", path: "/" }, { name: "YouTube CPM by niche", path: "/cpm-by-niche" }])) }} />
+        <BenchmarkNotice />
         <Reveal>
           <div className="flex items-center gap-3">
             <span className="grid h-9 w-9 place-items-center rounded-full bg-yt-red-bg"><Layers className="h-4 w-4 text-yt-red" /></span>
             <span className="tag-red text-[11px]">Niche benchmarks · {DATA_YEAR}</span>
           </div>
           <h1 className="mt-5 display-2">
-            Highest CPM YouTube <span className="text-yt-gradient">Niches</span>
+            YouTube CPM by <span className="text-yt-gradient">Niches</span>
           </h1>
           <p className="lede mt-4">
-            Advertisers don&apos;t pay for views — they pay for what viewers are likely to buy. Here&apos;s every major YouTube niche in {DATA_YEAR}.
+            Advertisers don&apos;t pay for views — they pay for what viewers are likely to buy. Compare the niches tracked in our model in {DATA_YEAR}.
           </p>
         </Reveal>
 
         <Reveal delay={0.1}>
           <div className="mt-8 xl:mt-10">
             <NicheRangeChart niches={NICHES_BY_CPM} />
+          </div>
+        </Reveal>
+
+        <Reveal delay={0.15}>
+          <div className="mt-10 flex flex-col gap-4 rounded-2xl border border-border bg-gradient-to-br from-yt-red-light/70 via-white to-white p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7">
+            <div className="max-w-[62ch]">
+              <h2 className="text-xl font-bold text-heading">Know the channel before you model the niche</h2>
+              <p className="mt-2 text-sm leading-7 text-fog">Audit any public YouTube channel to see its real catalogue, tags, keywords, top performers and upload cadence — then compare those signals against the niche benchmark on this page.</p>
+            </div>
+            <Link href="/channel-auditor" className="hot-gradient inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold text-white">Open the Channel Auditor<ArrowRight aria-hidden className="h-4 w-4" /></Link>
           </div>
         </Reveal>
 

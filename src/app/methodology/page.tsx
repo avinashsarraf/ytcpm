@@ -1,4 +1,6 @@
+import { pageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
+import { SourceLinks } from "@/components/source-notice";
 import ProsePage from "@/components/prose-page";
 import Link from "next/link";
 import { ArrowRight, Calculator, Database, Globe2, Layers, Percent, TrendingUp } from "lucide-react";
@@ -7,12 +9,15 @@ import {
   US_BLENDED_CPM, SEASONS, money,
 } from "@/lib/data";
 
-export const metadata: Metadata = {
-  title: `Methodology — How we estimate ${DATA_YEAR} CPM & RPM`,
-  description:
-    `How ytcpm.online builds its ${DATA_YEAR} YouTube CPM/RPM benchmarks: sources, formulas, seasonality, FX handling and limitations.`,
-  alternates: { canonical: "/methodology" },
-};
+import { STATIC_PAGE_SEO } from "@/lib/seo-keywords";
+import { breadcrumbs, serializeJsonLd, webPageSchema } from "@/lib/seo";
+const seo = STATIC_PAGE_SEO["/methodology"];
+export const metadata: Metadata = pageMetadata(
+  `Methodology — How We Estimate YouTube CPM`,
+  `How ytcpm.online builds its ${DATA_YEAR} YouTube CPM and RPM benchmarks: sources, formulas, seasonality, FX handling and the limitations every estimate carries.`,
+  "/methodology",
+  { focus: seo.focus, keywords: seo.keywords, modifiedTime: DATA_UPDATED_AT },
+);
 
 const Section = ({ icon: Icon, title, children }: { icon: typeof Globe2; title: string; children: React.ReactNode }) => (
   <section className="mt-10">
@@ -27,29 +32,29 @@ const Section = ({ icon: Icon, title, children }: { icon: typeof Globe2; title: 
 export default function MethodologyPage() {
   return (
     <ProsePage
-      eyebrow={<>Transparency · reviewed {DATA_UPDATED_AT}</>}
-      title={<>How we calculate <span className="text-yt-gradient">CPM &amp; RPM</span></>}
+      eyebrow={<>Transparency · snapshot {DATA_UPDATED_AT}</>}
+      title={<>How we calculate <span className="text-yt-gradient">YouTube CPM &amp; RPM</span></>}
       lede={<>Every number on this site comes from a single published dataset and one formula module.
           This page documents both, so you can judge — and challenge — the estimates.</>}
     >
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(webPageSchema({ path: "/methodology", name: `Methodology — How we estimate ${DATA_YEAR} CPM & RPM`, description: `How ytcpm.online builds its ${DATA_YEAR} YouTube CPM and RPM benchmarks: sources, formulas, seasonality, FX handling and limitations.`, dateModified: DATA_UPDATED_AT, section: "Methodology", about: ["YouTube CPM calculation", "YouTube RPM calculation", "Benchmark assumptions"] })) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbs([{ name: "Home", path: "/" }, { name: "Methodology", path: "/methodology" }])) }} />
 
         <Section icon={Database} title="Where the numbers come from">
           <p>
             The benchmark table covers <strong className="text-heading">{COUNTRIES.length} countries</strong> and{" "}
-            <strong className="text-heading">{NICHES.length} niches</strong> for {DATA_YEAR}. Ranges are compiled from
-            publicly disclosed creator earnings, creator-economy survey reports, third-party CPM trackers, and
-            published ad-spend forecasts. We publish ranges instead of single points because real CPMs vary by
+            <strong className="text-heading">{NICHES.length} niches</strong> for {DATA_YEAR}. Ranges are manually maintained planning assumptions. A per-record first-party source ledger and independently verified national averages are not currently available. We publish ranges instead of single points because real CPMs vary by
             advertiser demand, audience intent, device mix, and ad placement.
           </p>
           <p className="rounded-lg border border-border bg-white p-4 text-[13px]">
-            <strong className="text-heading">Known gap:</strong> the current dataset is a manually reviewed snapshot,
+            <strong className="text-heading">Known gap:</strong> the current dataset is a manually maintained model snapshot,
             not a live feed. Each range is directional and should be treated as a starting hypothesis, not a payout
-            guarantee. We publish the review date ({DATA_UPDATED_AT}) on every page.
+            guarantee. We publish the dataset snapshot date ({DATA_UPDATED_AT}) on every page.
           </p>
         </Section>
 
-        <Section icon={Percent} title="Long-form formula">
-          <pre className="overflow-x-auto rounded-lg bg-surface p-4 text-[12px] leading-relaxed text-heading"><code>{`countryMultiplier = (countryLow + countryHigh) / (USLow + USHigh)
+        <Section icon={Percent} title="Simplified long-form ad forecast (not Studio RPM)">
+          <pre tabIndex={0} role="region" aria-label="Long-form earnings formula" className="overflow-x-auto rounded-lg bg-surface p-4 text-[12px] leading-relaxed text-heading"><code>{`countryMultiplier = (countryLow + countryHigh) / (USLow + USHigh)
 
 cpmLow  = nicheCpmLow  × countryMultiplier × seasonMultiplier
 cpmHigh = nicheCpmHigh × countryMultiplier × seasonMultiplier
@@ -62,24 +67,23 @@ monthly = (views / 1000) × rpm`}</code></pre>
             <strong className="text-heading">{CREATOR_SHARE * 100}% creator share</strong> reflects YouTube&apos;s
             long-form revenue split. The <strong className="text-heading">ad-impression rate</strong> is the share of
             views that actually served an ad — the calculator defaults to 100% (an optimistic upper bound) and lets you
-            lower it for ad-blocking, non-monetized views, and limited-ads status.
+            lower it for non-monetized views. This model assumes one ad impression per monetized view. Multiple ads per playback and non-ad revenue are not modeled, so the output is an ad-only RPM estimate, not a universal conversion from CPM to Studio RPM.
           </p>
         </Section>
 
         <Section icon={TrendingUp} title="Shorts formula">
           <p>
-            Shorts revenue is pooled, so there is no classic CPM. We model a base range of{" "}
-            <strong className="text-heading">$0.02–$0.08 RPM per 1,000 views</strong> for a Tier-1 audience,
+            The homepage and API offer a separate, unverified Shorts scenario with a base range of{" "}
+            <strong className="text-heading">$0.02–$0.08 RPM per 1,000 views</strong> for the configured view-count input (not a guaranteed payout),
             scaled by a country factor (floored at 25% of US rates) and a modest niche tier factor
-            (S 1.25×, A 1.15×, B 1.00×, C 0.85×). Seasonality applies the same way as long-form.
+            (S 1.25×, A 1.15×, B 1.00×, C 0.85×). These parameters are model assumptions, not official benchmarks. The homepage Shorts input is labeled engaged views; no extra long-form 55% deduction or ad-fill factor is applied. YouTube describes Studio Shorts RPM using engaged views; use matching engaged views and creator revenue in the dedicated RPM tool for a report-based calculation.
           </p>
         </Section>
 
         <Section icon={Globe2} title="Country scaling & currency">
           <p>
             A country&apos;s multiplier is its blended CPM divided by the US blended CPM ({money(US_BLENDED_CPM)}).
-            This assumes the country premium is similar across niches — a simplification. For example, the US premium
-            is typically larger for finance and B2B than for gaming or vlogs.
+            This assumes the country premium is similar across niches — an unverified simplification, not an empirical relationship for every channel. Worldwide is an unweighted average of the tracked model defaults.
           </p>
           <p>
             Local-currency values use indicative FX rates captured {FX_UPDATED_AT}. They are for display only;
@@ -89,8 +93,7 @@ monthly = (views / 1000) × rpm`}</code></pre>
 
         <Section icon={Calculator} title="Seasonality">
           <p>
-            Ad auctions peak in Q4 and reset in January. Seasonality is expressed as a multiplier against the annual
-            baseline and can be applied in the calculator:
+            Seasonality is modeled as a selectable multiplier against an annual baseline. These are scenarios for sensitivity testing, not a promise that Q4 will pay more on your channel:
           </p>
           <ul className="grid gap-2 sm:grid-cols-2">
             {SEASONS.map((s) => (
@@ -114,12 +117,23 @@ monthly = (views / 1000) × rpm`}</code></pre>
           </ul>
         </Section>
 
-        <div className="mt-12 rounded-xl border border-border bg-white p-6">
-          <h2 className="font-display text-lg font-bold text-heading">Run your own numbers</h2>
-          <p className="mt-2 text-sm text-fog">Pick your niche, audience country, season and ad-impression rate.</p>
-          <Link href="/#calculator" className="group mt-4 inline-flex items-center gap-2 rounded-full bg-yt-red px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-yt-red-hover">
-            Open the calculator <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </Link>
+        <SourceLinks ids={["definitions", "metrics", "share", "access"]} />
+
+        <div className="mt-12 grid gap-4 rounded-xl border border-border bg-white p-6 md:grid-cols-2">
+          <div>
+            <h2 className="font-display text-lg font-bold text-heading">Run your own numbers</h2>
+            <p className="mt-2 text-sm text-fog">Pick your niche, audience country, season and ad-impression rate.</p>
+            <Link href="/#calculator" className="group mt-4 inline-flex items-center gap-2 rounded-full bg-yt-red px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-yt-red-hover">
+              Open the calculator <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          </div>
+          <div className="rounded-xl border border-border bg-surface p-5">
+            <h3 className="font-display text-base font-bold text-heading">Apply the model to a real channel</h3>
+            <p className="mt-2 text-sm leading-6 text-fog">Audit any public channel to see its catalogue, tags, keywords and top performers, then apply this same CPM and RPM model to those public view counts.</p>
+            <Link href="/channel-auditor" className="group mt-4 inline-flex items-center gap-2 rounded-full border border-yt-red/30 px-5 py-2.5 text-sm font-semibold text-yt-red transition-colors hover:bg-yt-red-light">
+              Open the Channel Auditor <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          </div>
         </div>
       </ProsePage>
   );

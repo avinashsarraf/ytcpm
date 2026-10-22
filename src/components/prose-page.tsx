@@ -15,17 +15,19 @@ export default function ProsePage({
   title,
   lede,
   children,
+  wide = false,
 }: {
   eyebrow: ReactNode;
   title: ReactNode;
   lede?: ReactNode;
   children: ReactNode;
+  wide?: boolean;
 }) {
   return (
     <article className="relative overflow-hidden">
       <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 blob-pink" aria-hidden />
 
-      <header className="relative border-b border-border bg-gradient-to-b from-yt-red-light/70 via-white to-white pb-9 pt-24 sm:pb-10 lg:pt-28">
+      <header className="relative border-b border-border bg-gradient-to-b from-yt-red-light/70 via-white to-white pb-9 pt-10 sm:pb-10 sm:pt-14 lg:pt-16">
         <div className="shell">
           <p className="tag-red w-fit text-[11px]">{eyebrow}</p>
           <h1 className="display-2 mt-4 max-w-[26ch]">{title}</h1>
@@ -34,7 +36,7 @@ export default function ProsePage({
       </header>
 
       <div className="shell py-10 lg:py-12">
-        <div className="mx-auto w-full max-w-[82ch]">{children}</div>
+        <div className={wide ? "w-full" : "mx-auto w-full max-w-[82ch]"}>{children}</div>
       </div>
     </article>
   );

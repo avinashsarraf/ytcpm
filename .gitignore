@@ -44,3 +44,6 @@ Thumbs.db
 
 # Misc
 *.pem
+
+# CMS media storage (uploads live outside public/ and are served by the app)
+storage/

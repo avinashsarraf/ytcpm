@@ -57,6 +57,31 @@ jobs:
       - name: Production build
         run: npm run build
 
+  cms:
+    name: CMS end-to-end
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Production build
+        run: npm run build
+
+      - name: CMS end-to-end test
+        run: npm run test:cms
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
   audit:
     name: Dependency audit
     runs-on: ubuntu-latest

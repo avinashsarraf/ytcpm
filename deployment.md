@@ -44,9 +44,9 @@ Production deployment guide for [Coolify](https://coolify.io) using Docker, plus
    Use the database's **internal** URL (Coolify shows it on the DB page), not a public one.
 5. **Set the domain** (e.g. `ytcpm.online`), enable HTTPS, and deploy.
 6. Open `/api/health` — expect `{"ok":true,"database":"up"}`.
-7. Open `/monitor`, run the calculator once, and confirm the row appears.
+7. Open `/monitor`, send a valid `POST /api/calculate` request, and confirm the API activity appears after the cache expires. Browser-only calculator edits are not logged.
 
-> The app builds and boots **without** a database — pages and the calculator work, while `/monitor` and calculation logging return a graceful 503. That makes a missing `DATABASE_URL` a soft failure, not an outage.
+> The app builds and boots **without** a database — pages and the calculator work, while `/monitor` shows a fallback, calculation requests still return an unlogged estimate, and `/api/health` returns a readiness 503. That makes a missing `DATABASE_URL` a soft failure, not an outage.
 
 ---
 
@@ -64,6 +64,11 @@ Production deployment guide for [Coolify](https://coolify.io) using Docker, plus
 | `PORT` | No | `3000` | Server port. Coolify maps this automatically. |
 | `HOSTNAME` | No | `0.0.0.0` | Bind address (must stay `0.0.0.0` inside containers). |
 | `NODE_ENV` | No | `production` | Set by the image. |
+| `CMS_STORAGE_DIR` | No | `./storage/uploads` | Where the CMS stores uploaded images. **Mount a volume here.** |
+| `CMS_MAX_UPLOAD_BYTES` | No | `5242880` | Maximum upload size (5 MB). |
+| `CMS_API_KEY` | No | — | Bearer key for the CMS HTTP API. 32+ random characters. |
+| `CMS_REVALIDATE_SECRET` | No | — | HMAC secret for `POST /api/cms/revalidate`. |
+| `CMS_PREVIEW_SECRET` | No | — | Signs draft preview links; falls back to the revalidation secret, then the API key. |
 
 **Copy-paste templates:** [`.env.example`](./.env.example).
 **Never commit** a real `.env` — it is git-ignored.
@@ -176,7 +181,7 @@ git add drizzle && git commit -m "db: add ..."
 Manual run (e.g. from a Coolify terminal):
 
 ```bash
-DATABASE_URL=... node scripts/migrate.mjs
+DATABASE_URL=... npm run db:migrate
 ```
 
 Alternative — Drizzle CLI (needs dev dependencies, useful locally):
@@ -192,6 +197,60 @@ DATABASE_URL=... npm run db:studio     # browse data
 - [ ] `RUN_MIGRATIONS=true` on the first deploy
 - [ ] `/api/health` returns `{"ok":true,"database":"up"}`
 - [ ] `calculations` table + 4 indexes exist (`\d calculations` in psql)
+- [ ] The CMS tables exist (`\d cms_posts` in psql)
+- [ ] An administrator exists — run `npm run db:seed-admin -- --email you@ytcpm.online` from a Coolify terminal
+- [ ] A volume is mounted at `CMS_STORAGE_DIR` if you intend to upload images
+
+---
+
+## The CMS in production
+
+The CMS is part of the same container — there is no second service to run.
+
+**Uploaded images need a volume.** `CMS_STORAGE_DIR` defaults to
+`./storage/uploads` inside the container filesystem, so uploads are lost on
+every deploy. Mount a persistent volume and point the variable at it:
+
+```yaml
+# Coolify → your app → Volumes
+- /app/storage/uploads  →  /app/storage/uploads
+```
+
+In Coolify the container path is `/app`; in the Docker Compose file the app
+service mounts `./storage/uploads:/app/storage/uploads`.
+
+**Create the first administrator once** — from a Coolify terminal or locally
+against the same database:
+
+```bash
+npm run db:seed-admin -- --email you@ytcpm.online
+# → prints a generated password once; store it in a password manager
+```
+
+Running it again for the same email resets the password and reactivates the
+account, so it doubles as a recovery tool.
+
+**The API stays closed until you give it a key.** Without `CMS_API_KEY` the
+`/api/cms/*` endpoints return 503. With one set, send it as
+`Authorization: Bearer <key>`.
+
+**Scheduled posts publish themselves.** A post is public as soon as its
+scheduled date passes — the visibility rule does not need a cron job, so a
+missed scheduler never leaves an article stranded. If you want the admin list
+and the caches to update the instant a post goes live, call the sweep from your
+scheduler:
+
+```bash
+curl -X POST https://your-domain/api/cms/cron/publish \
+  -H "Authorization: Bearer $CMS_API_KEY"
+```
+
+It is idempotent and safe to run every minute.
+
+**Backups.** The CMS content lives entirely in PostgreSQL, so the database
+backup you already have covers posts, media records, users and settings. The
+only thing outside the database is the uploaded image files, so back up the
+`CMS_STORAGE_DIR` volume as well.
 
 ---
 
@@ -382,7 +441,7 @@ Useful commands:
 
 ```bash
 docker compose logs -f web
-docker compose exec web node scripts/migrate.mjs
+docker compose exec web npm run db:migrate
 docker compose exec db psql -U ytcpm -d ytcpm -c '\dt'
 curl -s localhost:3000/api/health
 ```

@@ -8,6 +8,13 @@
       "when": 1792503727939,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792592078556,
+      "tag": "0001_chunky_frog_thor",
+      "breakpoints": true
     }
   ]
 }
