@@ -15,6 +15,16 @@ import type { CommentFormState } from "./[slug]/comment-form";
  * result object the client renders as a status message.
  */
 export async function submitCommentAction(formData: FormData): Promise<CommentFormState> {
+  /*
+    A filled honeypot means a bot. Report success and store nothing: a bot that
+    is told it failed tries again, and the comment would never be approved
+    anyway. The reply is deliberately identical to the real one.
+  */
+  const honeypot = String(formData.get("website") ?? "").trim();
+  if (honeypot) {
+    return { ok: true, message: "Thanks — your comment was submitted and will appear once it is approved." };
+  }
+
   const parsed = validateCommentInput(formData);
   if (!parsed.ok) {
     return { ok: false, message: "Please fix the highlighted fields.", fieldErrors: parsed.errors };

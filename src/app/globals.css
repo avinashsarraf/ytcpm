@@ -185,6 +185,17 @@ p, li, figcaption { text-wrap: pretty; }
   overflow-wrap: break-word;
 }
 .prose-post > :first-child { margin-top: 0; }
+
+/* A honeypot field: invisible to people, irresistible to bots. Off-screen
+   rather than `display: none`, because some bots skip fields that are hidden
+   outright. */
+.comment-honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
 .prose-post > :last-child { margin-bottom: 0; }
 .prose-post h2 {
   margin: 2.25rem 0 0.85rem;

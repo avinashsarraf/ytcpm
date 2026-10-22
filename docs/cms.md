@@ -153,6 +153,10 @@ The editor's **Preview** tab renders the body with the same renderer, so the
 preview cannot drift from the published page. Article typography lives in one
 place, the `.prose-post` block in `src/app/globals.css`.
 
+Comments on a post are only accepted while the post is public, and the form
+carries a honeypot field that people never see: a submission that fills it is
+answered exactly like a real one and stored nowhere.
+
 ---
 
 ## 8. Media
@@ -338,7 +342,7 @@ redirect and an account, and signs out again.
 
 ```bash
 npm run test:cms
-# → 75/75 checks passed
+# → 77/77 checks passed
 ```
 
 The test needs a Chromium binary. Point `CHROMIUM_EXECUTABLE_PATH` at one, or

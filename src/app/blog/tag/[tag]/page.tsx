@@ -6,6 +6,7 @@ import ProsePage from "@/components/prose-page";
 import { breadcrumbs, pageMetadata, serializeJsonLd, webPageSchema } from "@/lib/seo";
 import { SITE_URL } from "@/lib/editorial";
 import { countPosts, listPosts, listTags } from "@/lib/cms/posts";
+import { pageCount, tagPageHref } from "@/lib/cms/pagination";
 import { blogTagPageSeo } from "@/lib/cms/seo-registry";
 
 export const dynamic = "force-dynamic";
@@ -64,7 +65,7 @@ export default async function BlogTagPage({ params, searchParams }: Params & { s
   ]);
 
   const label = titleCase(match.tag);
-  const pages = Math.max(1, Math.ceil(total / PER_PAGE));
+  const pages = pageCount(total, PER_PAGE);
   const seo = blogTagPageSeo(match.tag);
 
   return <ProsePage wide eyebrow="YTCPM blog" title={`YouTube ${label} articles`} lede={seo.shortDescription}>
@@ -115,11 +116,11 @@ export default async function BlogTagPage({ params, searchParams }: Params & { s
     {pages > 1 ? (
       <nav aria-label="Pagination" className="mt-10 flex items-center justify-between gap-4 border-t border-border pt-6">
         {page > 1 ? (
-          <Link href={`/blog/tag/${match.tag}?page=${page - 1}`} className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-semibold text-heading hover:border-yt-red/40">← Newer posts</Link>
+          <Link href={tagPageHref(match.tag, page - 1)} className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-semibold text-heading hover:border-yt-red/40">← Newer posts</Link>
         ) : <span />}
         <span className="text-sm text-fog">Page {page} of {pages}</span>
         {page < pages ? (
-          <Link href={`/blog/tag/${match.tag}?page=${page + 1}`} className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-semibold text-heading hover:border-yt-red/40">Older posts →</Link>
+          <Link href={tagPageHref(match.tag, page + 1)} className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-semibold text-heading hover:border-yt-red/40">Older posts →</Link>
         ) : <span />}
       </nav>
     ) : null}

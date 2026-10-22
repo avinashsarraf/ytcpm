@@ -3,6 +3,8 @@ import { db, isDatabaseConfigured } from "@/db";
 import { cmsComments, type CmsComment } from "@/db/schema";
 import { logOnce } from "@/lib/log";
 import { rateLimit } from "@/lib/rate-limit";
+import { getPostById } from "./posts";
+import { isPostLive } from "./visibility";
 
 /**
  * Reader comments.
@@ -31,6 +33,16 @@ export async function listComments(postId: number, status: "pending" | "approved
 
 export type CommentSubmitResult = { ok: true } | { ok: false; error: string };
 
+/** True when the post exists and is public right now. */
+async function isPostOpenForComments(postId: number): Promise<boolean> {
+  try {
+    const post = await getPostById(postId);
+    return post !== null && isPostLive(post);
+  } catch {
+    return false;
+  }
+}
+
 export async function submitComment(input: {
   postId: number;
   authorName: string;
@@ -43,6 +55,12 @@ export async function submitComment(input: {
   const limit = rateLimit(`cms-comment:${input.clientKey}`, SUBMIT_LIMIT, SUBMIT_WINDOW_MS);
   if (!limit.ok) {
     return { ok: false, error: "You have posted several comments already. Try again later." };
+  }
+
+  // A comment on a post nobody can read is invisible forever, and a crafted
+  // request could otherwise use the form to probe post ids.
+  if (!(await isPostOpenForComments(input.postId))) {
+    return { ok: false, error: "That post is no longer open for comments." };
   }
 
   try {

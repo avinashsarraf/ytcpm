@@ -4,6 +4,7 @@ import { ArrowRight, CalendarDays, Clock3, Rss, Tag } from "lucide-react";
 import ProsePage from "@/components/prose-page";
 import { breadcrumbs, pageMetadata, serializeJsonLd, webPageSchema } from "@/lib/seo";
 import { listPosts, listTags, listCategories, countPosts } from "@/lib/cms/posts";
+import { blogPageHref, pageCount } from "@/lib/cms/pagination";
 import { getSettings } from "@/lib/cms/settings";
 import { SITE_URL } from "@/lib/editorial";
 import { blogPageSeo } from "@/lib/cms/seo-registry";
@@ -11,6 +12,7 @@ import { blogPageSeo } from "@/lib/cms/seo-registry";
 export const dynamic = "force-dynamic";
 
 const PER_PAGE = 9;
+
 
 /**
  * The blog index title has to survive the " | ytcpm.online" suffix and still
@@ -63,7 +65,7 @@ export default async function BlogIndexPage({ searchParams }: { searchParams: Pr
     offset: (page - 1) * PER_PAGE,
   });
 
-  const pages = Math.max(1, Math.ceil(total / PER_PAGE));
+  const pages = pageCount(total, PER_PAGE);
   const hasFilter = Boolean(tag || category);
 
   return <ProsePage wide eyebrow="YTCPM blog" title={settings["blog.title"]} lede={settings["blog.description"]}>
@@ -198,11 +200,11 @@ export default async function BlogIndexPage({ searchParams }: { searchParams: Pr
     {pages > 1 ? (
       <nav aria-label="Pagination" className="mt-10 flex items-center justify-between gap-4 border-t border-border pt-6">
         {page > 1 ? (
-          <Link href={`/blog${tag ? `?tag=${encodeURIComponent(tag)}` : ""}${page > 2 ? `&page=${page - 1}` : ""}`} className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-semibold text-heading hover:border-yt-red/40">← Newer posts</Link>
+          <Link href={blogPageHref({ tag, category }, page - 1)} className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-semibold text-heading hover:border-yt-red/40">← Newer posts</Link>
         ) : <span />}
         <span className="text-sm text-fog">Page {page} of {pages}</span>
         {page < pages ? (
-          <Link href={`/blog${tag ? `?tag=${encodeURIComponent(tag)}` : ""}&page=${page + 1}`} className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-semibold text-heading hover:border-yt-red/40">Older posts →</Link>
+          <Link href={blogPageHref({ tag, category }, page + 1)} className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-semibold text-heading hover:border-yt-red/40">Older posts →</Link>
         ) : <span />}
       </nav>
     ) : null}

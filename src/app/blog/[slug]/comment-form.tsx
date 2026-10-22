@@ -22,6 +22,16 @@ export default function CommentForm({ postId }: { postId: number }) {
   return (
     <form action={formAction} className="mt-6 rounded-2xl border border-border bg-white p-5 sm:p-6">
       <input type="hidden" name="postId" value={postId} />
+      {/*
+        A honeypot. People never see it — it is pulled off the page with CSS,
+        not hidden with a style attribute, and is marked aria-hidden so a screen
+        reader skips it too. Comment bots fill every field they find, so a value
+        here means the submission is not from a person.
+      */}
+      <div className="comment-honeypot" aria-hidden="true">
+        <label htmlFor="comment-website">Website</label>
+        <input id="comment-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+      </div>
       <h3 className="text-base font-bold text-heading">Leave a comment</h3>
       <p className="mt-1 text-sm text-fog">Your email address is never published. Comments are reviewed before they appear.</p>
 

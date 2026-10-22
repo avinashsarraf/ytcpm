@@ -347,9 +347,22 @@ async function main() {
       await publicPost.waitForTimeout(2000);
     }
 
+    // The honeypot: a submission that fills the invisible field is accepted
+    // politely and never stored.
+    await publicPost.goto(`${BASE}/blog/${slug}`, { waitUntil: "domcontentloaded" });
+    const honeypotPresent = await publicPost.locator('input[name="website"]').count();
+    check("the comment form carries a honeypot", honeypotPresent === 1, `${honeypotPresent} honeypot fields`);
+    await publicPost.fill('input[name="authorName"]', "Spam Bot");
+    await publicPost.fill('input[name="authorEmail"]', "bot@example.com");
+    await publicPost.fill('textarea[name="body"]', "Buy cheap followers, honeypot submission.");
+    await publicPost.fill('input[name="website"]', "https://spam.example.com");
+    await publicPost.click('form button[type="submit"]');
+    await publicPost.waitForTimeout(2000);
+
     await page.goto(`${BASE}/cms/comments`, { waitUntil: "domcontentloaded" });
     const commentsText = await page.locator("body").innerText();
     check("the public comment reaches the moderation queue", commentsText.includes("moderated comment from the end-to-end test"), "comment missing");
+    check("a honeypot submission is not stored", !commentsText.includes("honeypot submission"), "spam reached the queue");
 
     const approve = page.locator('button:has-text("Approve")').first();
     if (await approve.count()) {
