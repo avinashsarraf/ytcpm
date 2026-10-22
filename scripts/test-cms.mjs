@@ -33,6 +33,7 @@ const PORT = Number(process.env.CMS_TEST_PORT ?? 3131);
 const BASE = `http://127.0.0.1:${PORT}`;
 const API_KEY = "cms-e2e-test-key-0123456789";
 const NEW_PASSWORD = "Ytc!RotatedOwner2026";
+const REVALIDATE_SECRET = "cms-e2e-revalidate-secret-0123456789";
 
 const results = [];
 let failures = 0;
@@ -111,7 +112,7 @@ async function main() {
       CMS_STORAGE_DIR: storageDir,
       CMS_MAX_UPLOAD_BYTES: String(2 * 1024 * 1024),
       CMS_API_KEY: API_KEY,
-      CMS_REVALIDATE_SECRET: "cms-e2e-revalidate-secret-0123456789",
+      CMS_REVALIDATE_SECRET: REVALIDATE_SECRET,
       NEXT_TELEMETRY_DISABLED: "1",
     },
     stdio: ["ignore", "pipe", "pipe"],
@@ -224,6 +225,8 @@ async function main() {
     await page.fill("#focusKeyword", "youtube rpm");
     await page.fill("#seoTitle", "YouTube RPM: how to read the figure");
     await page.fill("#seoDescription", "A YouTube RPM figure only means something next to watch time, audience country and Shorts share. Here is how to read one properly.");
+    await page.fill("#category", "CPM & RPM");
+    await page.fill("#tags", "rpm, earnings");
 
     const seoScore = await page.locator("aside h2", { hasText: "SEO check" }).locator("xpath=../span").first().innerText();
     check("the editor shows a live SEO score", /\d+/.test(seoScore), seoScore);
@@ -356,7 +359,43 @@ async function main() {
     const approvedText = await page.locator("body").innerText();
     check("the comment can be approved", !approvedText.includes("Publishing is blocked"), "approve failed");
 
-    /* 9. The HTTP API --------------------------------------------------- */
+    /* 9. The image sitemap and the tag archive -------------------------- */
+    const imageSitemap = await (await publicPost.request.get(`${BASE}/image-sitemap.xml`)).text();
+    check("the image sitemap lists the published post", imageSitemap.includes(`/blog/${slug}/opengraph-image`), "post image missing");
+
+    const tagArchive = await publicPost.goto(`${BASE}/blog/tag/rpm`, { waitUntil: "domcontentloaded" });
+    const tagText = await publicPost.locator("body").innerText();
+    check("the tag archive lists the post", tagArchive.status() === 200 && tagText.includes(title), `status ${tagArchive.status()}`);
+
+    /* 10. The signed revalidation webhook ------------------------------- */
+    const { createHmac } = await import("node:crypto");
+    const webhookBody = JSON.stringify({ slug, paths: ["/blog"] });
+    const webhookTimestamp = String(Math.floor(Date.now() / 1000));
+    const webhookSignature = createHmac("sha256", REVALIDATE_SECRET)
+      .update(`${webhookTimestamp}.${webhookBody}`)
+      .digest("base64url");
+    const webhook = await publicPost.request.post(`${BASE}/api/cms/revalidate`, {
+      headers: {
+        "content-type": "application/json",
+        "x-cms-timestamp": webhookTimestamp,
+        "x-cms-signature": webhookSignature,
+      },
+      data: webhookBody,
+    });
+    check("the signed webhook revalidates the cache", webhook.status() === 200, `status ${webhook.status()}`);
+
+    const badWebhook = await publicPost.request.post(`${BASE}/api/cms/revalidate`, {
+      headers: {
+        "content-type": "application/json",
+        "x-cms-timestamp": webhookTimestamp,
+        "x-cms-signature": "not-a-valid-signature",
+      },
+      data: webhookBody,
+    });
+    check("the webhook refuses a bad signature", badWebhook.status() === 401, `status ${badWebhook.status()}`);
+
+    /* 11. The HTTP API --------------------------------------------------- */
+
     const apiCreate = await publicPost.request.post(`${BASE}/api/cms/posts`, {
       headers: { "content-type": "application/json", "x-cms-api-key": API_KEY },
       data: {

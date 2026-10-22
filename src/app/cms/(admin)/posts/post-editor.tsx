@@ -51,6 +51,26 @@ export default function PostEditor({ post, mode }: { post: EditorPost | null; mo
   const [status, setStatus] = useState(post?.status ?? "draft");
   const [tab, setTab] = useState<"content" | "seo" | "preview">("content");
 
+  /*
+    Every field is controlled. An uncontrolled input is reset to the value it
+    was first rendered with whenever a form submission completes, so a save
+    that the server rejected (a blocking SEO issue, a taken slug) used to wipe
+    whatever the author had typed into the fields that were not controlled.
+  */
+  const [subtitle, setSubtitle] = useState(post?.subtitle ?? "");
+  const [seoKeywords, setSeoKeywords] = useState(post?.seoKeywords?.join(", ") ?? "");
+  const [ogImageUrl, setOgImageUrl] = useState(post?.ogImageUrl ?? "");
+  const [ogImageAlt, setOgImageAlt] = useState(post?.ogImageAlt ?? "");
+  const [canonicalUrl, setCanonicalUrl] = useState(post?.canonicalUrl ?? "");
+  const [noindex, setNoindex] = useState(post?.noindex ?? false);
+  const [allowIndex, setAllowIndex] = useState(post?.allowIndex ?? true);
+  const [category, setCategory] = useState(post?.category ?? "");
+  const [tags, setTags] = useState(post?.tags?.join(", ") ?? "");
+  const [template, setTemplate] = useState(post?.template ?? "article");
+  const [scheduledFor, setScheduledFor] = useState(
+    post?.scheduledFor ? new Date(post.scheduledFor).toISOString().slice(0, 16) : "",
+  );
+
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
     async (previous, formData) => {
       const result = await savePostAction(previous, formData);
@@ -73,13 +93,16 @@ export default function PostEditor({ post, mode }: { post: EditorPost | null; mo
         focusKeyword,
         seoTitle,
         seoDescription,
-        seoKeywords: [],
-        ogImageUrl: post?.ogImageUrl ?? null,
-        ogImageAlt: post?.ogImageAlt ?? null,
-        canonicalUrl: post?.canonicalUrl ?? null,
-        noindex: post?.noindex ?? false,
+        seoKeywords: seoKeywords
+          .split(",")
+          .map((value) => value.trim())
+          .filter(Boolean),
+        ogImageUrl: ogImageUrl || null,
+        ogImageAlt: ogImageAlt || null,
+        canonicalUrl: canonicalUrl || null,
+        noindex,
       }),
-    [title, slug, excerpt, contentMd, focusKeyword, seoTitle, seoDescription, post],
+    [title, slug, excerpt, contentMd, focusKeyword, seoTitle, seoDescription, seoKeywords, ogImageUrl, ogImageAlt, canonicalUrl, noindex],
   );
 
   const errors = state.fieldErrors ?? {};
@@ -148,7 +171,7 @@ export default function PostEditor({ post, mode }: { post: EditorPost | null; mo
 
               <div className="mt-4">
                 <label htmlFor="subtitle" className={labelClass}>Subtitle <span className="font-normal text-fog">(optional)</span></label>
-                <input id="subtitle" name="subtitle" maxLength={200} defaultValue={post?.subtitle ?? ""} className={inputClass} placeholder="One sentence that expands on the title" />
+                <input id="subtitle" name="subtitle" maxLength={200} value={subtitle} onChange={(event) => setSubtitle(event.target.value)} className={inputClass} placeholder="One sentence that expands on the title" />
               </div>
 
               <div className="mt-4">
@@ -219,33 +242,33 @@ export default function PostEditor({ post, mode }: { post: EditorPost | null; mo
 
               <div className="mt-4">
                 <label htmlFor="seoKeywords" className={labelClass}>Keyword variants</label>
-                <input id="seoKeywords" name="seoKeywords" defaultValue={post?.seoKeywords?.join(", ") ?? ""} className={inputClass} placeholder="youtube cpm vs rpm, cpm or rpm, youtube monetization metrics" />
+                <input id="seoKeywords" name="seoKeywords" value={seoKeywords} onChange={(event) => setSeoKeywords(event.target.value)} className={inputClass} placeholder="youtube cpm vs rpm, cpm or rpm, youtube monetization metrics" />
                 <p className="mt-1.5 text-xs text-fog">Comma separated. These are the phrases the page should also match.</p>
               </div>
 
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <div>
                   <label htmlFor="ogImageUrl" className={labelClass}>Social image URL</label>
-                  <input id="ogImageUrl" name="ogImageUrl" defaultValue={post?.ogImageUrl ?? ""} className={inputClass} placeholder="/media/2026/10/abc.png" />
+                  <input id="ogImageUrl" name="ogImageUrl" value={ogImageUrl} onChange={(event) => setOgImageUrl(event.target.value)} className={inputClass} placeholder="/media/2026/10/abc.png" />
                 </div>
                 <div>
                   <label htmlFor="ogImageAlt" className={labelClass}>Social image alt text</label>
-                  <input id="ogImageAlt" name="ogImageAlt" defaultValue={post?.ogImageAlt ?? ""} className={inputClass} placeholder="What the image shows" />
+                  <input id="ogImageAlt" name="ogImageAlt" value={ogImageAlt} onChange={(event) => setOgImageAlt(event.target.value)} className={inputClass} placeholder="What the image shows" />
                 </div>
               </div>
 
               <div className="mt-4">
                 <label htmlFor="canonicalUrl" className={labelClass}>Canonical URL <span className="font-normal text-fog">(optional)</span></label>
-                <input id="canonicalUrl" name="canonicalUrl" defaultValue={post?.canonicalUrl ?? ""} className={inputClass} placeholder="Leave empty — this page owns its URL" />
+                <input id="canonicalUrl" name="canonicalUrl" value={canonicalUrl} onChange={(event) => setCanonicalUrl(event.target.value)} className={inputClass} placeholder="Leave empty — this page owns its URL" />
               </div>
 
               <div className="mt-5 flex flex-wrap gap-5 border-t border-border pt-4">
                 <label className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-heading">
-                  <input type="checkbox" name="noindex" defaultChecked={post?.noindex ?? false} className="h-4 w-4 rounded border-border" />
+                  <input type="checkbox" name="noindex" checked={noindex} onChange={(event) => setNoindex(event.target.checked)} className="h-4 w-4 rounded border-border" />
                   noindex this page
                 </label>
                 <label className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-heading">
-                  <input type="checkbox" name="allowIndex" defaultChecked={post?.allowIndex ?? true} className="h-4 w-4 rounded border-border" />
+                  <input type="checkbox" name="allowIndex" checked={allowIndex} onChange={(event) => setAllowIndex(event.target.checked)} className="h-4 w-4 rounded border-border" />
                   list in sitemap.xml
                 </label>
               </div>
@@ -256,16 +279,16 @@ export default function PostEditor({ post, mode }: { post: EditorPost | null; mo
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <div>
                   <label htmlFor="category" className={labelClass}>Category</label>
-                  <input id="category" name="category" defaultValue={post?.category ?? ""} className={inputClass} placeholder="CPM & RPM" />
+                  <input id="category" name="category" value={category} onChange={(event) => setCategory(event.target.value)} className={inputClass} placeholder="CPM & RPM" />
                 </div>
                 <div>
                   <label htmlFor="tags" className={labelClass}>Tags</label>
-                  <input id="tags" name="tags" defaultValue={post?.tags?.join(", ") ?? ""} className={inputClass} placeholder="cpm, rpm, monetization" />
+                  <input id="tags" name="tags" value={tags} onChange={(event) => setTags(event.target.value)} className={inputClass} placeholder="cpm, rpm, monetization" />
                 </div>
               </div>
               <div className="mt-4">
                 <label htmlFor="template" className={labelClass}>Template</label>
-                <select id="template" name="template" defaultValue={post?.template ?? "article"} className={inputClass}>
+                <select id="template" name="template" value={template} onChange={(event) => setTemplate(event.target.value)} className={inputClass}>
                   <option value="article">Article</option>
                   <option value="landing">Landing page</option>
                 </select>
@@ -325,7 +348,7 @@ export default function PostEditor({ post, mode }: { post: EditorPost | null; mo
             </div>
             <div className="mt-3">
               <label htmlFor="scheduledFor" className="text-sm font-semibold text-heading">Publish date <span className="font-normal text-fog">(for scheduled posts)</span></label>
-              <input id="scheduledFor" name="scheduledFor" type="datetime-local" defaultValue={post?.scheduledFor ? new Date(post.scheduledFor).toISOString().slice(0, 16) : ""} className={inputClass} />
+              <input id="scheduledFor" name="scheduledFor" type="datetime-local" value={scheduledFor} onChange={(event) => setScheduledFor(event.target.value)} className={inputClass} />
               {errors.scheduledFor ? <p className="mt-1.5 text-xs font-semibold text-yt-red">{errors.scheduledFor}</p> : null}
             </div>
             {post?.publishedAt ? <input type="hidden" name="publishedAt" value={post.publishedAt} /> : null}

@@ -1,5 +1,7 @@
 import { COUNTRIES, NICHES, DATA_YEAR } from "@/lib/data";
 import { CREATOR_TOOLS } from "@/lib/creator-tools";
+import { listPosts } from "@/lib/cms/posts";
+import { absoluteMediaUrl } from "@/lib/cms/media-config";
 
 /**
  * Image sitemap.
@@ -59,10 +61,28 @@ function buildImages(): ImageEntry[] {
   return images;
 }
 
-export const dynamic = "force-static";
+/**
+ * The published blog posts, with the image that represents each one. A post
+ * without a database simply contributes nothing — the site keeps working.
+ */
+async function buildBlogImages(): Promise<ImageEntry[]> {
+  const posts = await listPosts({ status: "published", limit: 200 });
+  return posts.map((post) => {
+    const image = post.ogImageUrl
+      ? absoluteMediaUrl(BASE, post.ogImageUrl)
+      : `${BASE}/blog/${post.slug}/opengraph-image`;
+    return {
+      loc: image,
+      title: post.seoTitle ?? post.title,
+      caption: post.excerpt || `Social card for “${post.title}”.`,
+    };
+  });
+}
 
-export function GET() {
-  const images = buildImages();
+export const dynamic = "force-dynamic";
+
+export async function GET() {
+  const images = [...buildImages(), ...(await buildBlogImages())];
   const body = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${images
