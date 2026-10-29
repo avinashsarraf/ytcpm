@@ -48,8 +48,11 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      # The default reporter for a human reading the log, the GitHub Actions
+      # reporter so a failing test is also an annotation on the pull request
+      # instead of a line buried in a log download.
       - name: Unit tests
-        run: npm test
+        run: npm test -- --reporter=default --reporter=github-actions
 
       - name: Apply migrations
         run: node scripts/migrate.mjs
