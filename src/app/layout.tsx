@@ -7,6 +7,7 @@ import PublicFooter from "@/components/public-footer";
 import { SITE_URL } from "@/lib/editorial";
 import { serializeJsonLd } from "@/lib/seo";
 import { DATA_UPDATED_AT, DATA_YEAR } from "@/lib/data";
+import { AHREFS_ANALYTICS, analyticsEnabled } from "@/lib/analytics";
 
 /**
  * Plus Jakarta Sans drives the whole interface (display + body), matching the
@@ -83,6 +84,34 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style>
         </noscript>
         <div className="bg-noise" aria-hidden />
+        {/*
+          Ahrefs Web Analytics, exactly as Ahrefs issue it: one async script in
+          the head. React 19 hoists an async <script> out of the tree and into
+          <head> during server rendering, so the tag is in the HTML a crawler or
+          Ahrefs' own installer check receives — `next/script` with
+          afterInteractive only injected it from JavaScript, and with
+          beforeInteractive only preloaded it.
+
+          `async` means it downloads in parallel and runs whenever it is ready,
+          so it never blocks parsing or hydration.
+
+          The CSP in next.config.ts allows the same origin in script-src and
+          connect-src; see src/lib/analytics.ts for why both are required and
+          for the post-deploy check.
+
+          It records which page was viewed, so a draft's preview URL (which
+          carries a short-lived token) would be recorded if somebody opened it
+          in a browser. Preview URLs are noindex and unguessable and the token
+          expires in seven days, but that is why preview links should not be
+          pasted into public places.
+        */}
+        {analyticsEnabled() && (
+          <script
+            async
+            src={AHREFS_ANALYTICS.scriptSrc}
+            data-key={AHREFS_ANALYTICS.key}
+          />
+        )}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd({ "@context": "https://schema.org", "@graph": [
           { "@type": "Organization", "@id": SITE_URL + "/#organization", name: "YTCPM", url: SITE_URL, logo: SITE_URL + "/icon.svg" },
           { "@type": "WebSite", "@id": SITE_URL + "/#website", name: "YTCPM", alternateName: "ytcpm.online", url: SITE_URL, inLanguage: "en", publisher: { "@id": SITE_URL + "/#organization" } }

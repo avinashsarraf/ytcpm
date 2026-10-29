@@ -44,6 +44,7 @@ A free, data-driven **YouTube CPM & RPM calculator** built with the Next.js App 
 - **SEO plumbing** — per-page canonicals + Open Graph, generated sitemap, `robots.txt`, `FAQPage`/`WebApplication`/`BreadcrumbList` JSON-LD, dynamic OG image.
 - **Graceful degradation** — the calculator keeps working if PostgreSQL is unavailable; the monitor shows a fallback state and the API reports `logged: false`.
 - **Production hardening** — CSP + security headers, rate limiting, request-size caps, lazy DB pool, self-hosted fonts, Docker/Coolify image with migrations on boot.
+- **Analytics** — Ahrefs Web Analytics, one async tag in the head of every page, allowed in the CSP in both `script-src` and `connect-src`. `NEXT_PUBLIC_AHREFS_ANALYTICS=off` builds without it. See `src/lib/analytics.ts`.
 - **Self-hosted CMS** — a full blog system at `/blog` with an admin at `/cms`: posts, media library, comment moderation, redirects, users, an audit log and a **live SEO panel that blocks publishing** until the page passes the on-page checks.
 
 ## CMS

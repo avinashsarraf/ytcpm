@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { AHREFS_ANALYTICS } from "./src/lib/analytics";
 
 /**
  * Security headers. `unsafe-inline` for styles is required by Next's injected
@@ -32,11 +33,16 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       // Next.js hydration bootstrap + framer-motion need inline scripts.
-      `script-src 'self' 'unsafe-inline'${development ? " 'unsafe-eval'" : ""}`,
+      // analytics.ahrefs.com is the one third-party script (src/lib/analytics.ts).
+      `script-src 'self' 'unsafe-inline' ${AHREFS_ANALYTICS.origin}${development ? " 'unsafe-eval'" : ""}`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob:",
       "font-src 'self' data:",
-      development ? "connect-src 'self' ws: wss:" : "connect-src 'self'",
+      // The analytics script posts its measurements back to the same origin it
+      // was loaded from; without this it loads and reports nothing.
+      development
+        ? `connect-src 'self' ws: wss: ${AHREFS_ANALYTICS.origin}`
+        : `connect-src 'self' ${AHREFS_ANALYTICS.origin}`,
       ...(!preview ? ["frame-ancestors 'none'"] : []),
       "base-uri 'self'",
       "form-action 'self'",

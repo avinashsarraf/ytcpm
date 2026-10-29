@@ -131,8 +131,20 @@ async function main() {
 
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     const page = await context.newPage();
+    /*
+      A third-party analytics beacon failing is not a defect in this application:
+      the response is refused, the page is unaffected, and a test that goes red
+      because a CDN was unreachable teaches people to ignore the suite. Every
+      other console error still fails, including one from our own scripts. The
+      origin is checked rather than the message text because "Failed to load
+      resource" carries the URL in the message location, not the message.
+    */
+    const ANALYTICS_ORIGIN = "https://analytics.ahrefs.com";
     page.on("console", (message) => {
-      if (message.type() === "error") consoleErrors.push(`${page.url()} :: ${message.text()}`);
+      if (message.type() !== "error") return;
+      const fromAnalytics = message.location()?.url?.startsWith(ANALYTICS_ORIGIN) ?? false;
+      if (fromAnalytics) return;
+      consoleErrors.push(`${page.url()} :: ${message.text()}`);
     });
     page.on("pageerror", (error) => consoleErrors.push(`${page.url()} :: ${error.message}`));
 
