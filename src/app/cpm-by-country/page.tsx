@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, ArrowUpRight, Globe2 } from "lucide-react";
 import { Reveal } from "@/components/motion";
-import { COUNTRIES_BY_CPM, TIER_LABEL, DATA_YEAR, DATA_UPDATED_AT, perMillionViews, CREATOR_SHARE, localMoney } from "@/lib/data";
+import { usdRange, COUNTRIES_BY_CPM, TIER_LABEL, DATA_YEAR, DATA_UPDATED_AT, perMillionViews, CREATOR_SHARE, localMoney } from "@/lib/data";
 import { flagUrl } from "@/lib/flags";
 
 import { STATIC_PAGE_SEO } from "@/lib/seo-keywords";
@@ -51,14 +51,14 @@ export default function CountryIndex() {
                       <span className="truncate text-sm font-semibold text-heading">{c.name}</span>
                     </span>
                     <span className="hidden md:block"><Image src={flagUrl(c.code)} alt={`${c.name} flag`} width={24} height={16} className="flag-img !h-4 !w-6" unoptimized /></span>
-                    <span className="num-mono hidden text-right text-sm text-fog md:block">${c.cpmLow}–${c.cpmHigh}</span>
+                    <span className="num-mono hidden text-right text-sm text-fog md:block">{usdRange(c.cpmLow, c.cpmHigh)}</span>
                     <span className="num-mono hidden text-right text-sm font-semibold text-mint md:block">${rpmLow.toFixed(2)}–${rpmHigh.toFixed(2)}</span>
                     <span className="num-mono hidden text-right text-sm text-heading md:block">{localMoney(per1m.low, c)}–{localMoney(per1m.high, c)}</span>
                     <span className="hidden text-right md:block"><span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${c.tier === 1 ? "bg-mint-bg text-mint" : "bg-surface text-fog"}`}>T{c.tier}</span></span>
                     <span className="hidden md:block"><ArrowUpRight className="h-3.5 w-3.5 text-fog/30 transition-all group-hover:text-yt-red group-hover:translate-x-0.5" /></span>
                     {/* Compact readout for phones: one stacked CPM/RPM column */}
                     <span className="text-right md:hidden">
-                      <span className="num-mono block text-[13px] font-bold leading-tight text-heading">${c.cpmLow}–${c.cpmHigh}</span>
+                      <span className="num-mono block text-[13px] font-bold leading-tight text-heading">{usdRange(c.cpmLow, c.cpmHigh)}</span>
                       <span className="num-mono block text-[11px] leading-tight text-mint">RPM ${rpmLow.toFixed(2)}–${rpmHigh.toFixed(2)}</span>
                     </span>
                   </Link>

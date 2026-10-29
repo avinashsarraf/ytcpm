@@ -1,3 +1,5 @@
+import { usdRange } from "@/lib/data";
+
 /**
  * Focus-keyword registry.
  *
@@ -155,6 +157,75 @@ export const LEGAL_PAGE_SEO: Record<string, PageSeo> = {
     shortDescription: "Which cookies, local storage and server-side records this calculator site uses, and which it deliberately avoids.",
   },
 };
+
+/**
+ * The SERP title and description for a country page.
+ *
+ * Search Console showed the old titles — "YouTube CPM in Bangladesh — 2026
+ * Model" — ranking at an average position of 7 on 193 impressions and earning
+ * zero clicks. A searcher who types "bangladesh cpm" wants a number; the word
+ * "Model" told them twice that this page only had an estimate, and they went
+ * somewhere that looked like data.
+ *
+ * So the number leads, the year follows and the word "Model" is gone from the
+ * title. The page is still an honest model — that is what the body and the
+ * methodology page are for — but the title stops apologising before anyone has
+ * read it.
+ *
+ * The final <title> carries a 15-character suffix (" | ytcpm.online"), and the
+ * audit budget is 60, so the page title has 45 characters to work with. The
+ * candidates are tried longest first and the first one that fits wins, which
+ * keeps a long name like "United Kingdom" inside the budget.
+ */
+
+export const SERP_TITLE_BUDGET = 45;
+
+export function countrySerpTitle(
+  country: { name: string; cpmLow: number; cpmHigh: number },
+  year: string | number,
+  budget: number = SERP_TITLE_BUDGET,
+): string {
+  const range = usdRange(country.cpmLow, country.cpmHigh);
+  const candidates = [
+    `YouTube CPM in ${country.name} (${year}): ${range}`,
+    `YouTube CPM in ${country.name}: ${range}`,
+    `${country.name} YouTube CPM ${year}: ${range}`,
+    `${country.name} YouTube CPM: ${range}`,
+    `${country.name} CPM ${year}: ${range}`,
+  ];
+  return candidates.find((value) => value.length <= budget) ?? candidates[candidates.length - 1];
+}
+
+export function nicheSerpTitle(
+  niche: { name: string; cpmLow: number; cpmHigh: number },
+  year: string | number,
+  budget: number = SERP_TITLE_BUDGET,
+): string {
+  const range = usdRange(niche.cpmLow, niche.cpmHigh);
+  const candidates = [
+    `${niche.name} YouTube CPM (${year}): ${range}`,
+    `${niche.name} YouTube CPM: ${range}`,
+    `${niche.name} CPM ${year}: ${range}`,
+  ];
+  return candidates.find((value) => value.length <= budget) ?? candidates[candidates.length - 1];
+}
+
+export function countrySerpDescription(
+  country: { name: string; cpmLow: number; cpmHigh: number },
+  localRange: string | null,
+  year: string | number,
+  budget = 160,
+): string {
+  const range = usdRange(country.cpmLow, country.cpmHigh);
+  const local = localRange ? ` (≈ ${localRange})` : "";
+  const candidates = [
+    `YouTube CPM in ${country.name} is ${range} per 1,000 ad views in ${year}${local}. Compare creator RPM and per-1M-view earnings.`,
+    `YouTube CPM in ${country.name}: ${range} per 1,000 ad views in ${year}${local}. Compare creator RPM and 1M-view earnings.`,
+    `YouTube CPM in ${country.name}: ${range} per 1,000 ad views${local}. Compare creator RPM and 1M-view earnings.`,
+    `YouTube CPM in ${country.name} is ${range} per 1,000 ad views. Compare creator RPM and earnings.`,
+  ];
+  return candidates.find((value) => value.length <= budget) ?? candidates[candidates.length - 1];
+}
 
 export function countrySeo(country: { name: string; slug: string; code: string }): PageSeo {
   return {

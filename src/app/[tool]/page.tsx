@@ -11,6 +11,7 @@ import { SITE_URL } from "@/lib/editorial";
 import CreatorToolCalculator from "@/components/creator-tool-calculator";
 import CreatorToolCards from "@/components/creator-tool-cards";
 import Faq from "@/components/faq";
+import ViewsToMoneyAnswers from "@/components/views-to-money-answers";
 
 export const dynamicParams = false;
 export function generateStaticParams() { return CREATOR_TOOLS.map(t => ({ tool: t.slug })); }
@@ -41,6 +42,7 @@ export default async function ToolPage({ params }: { params: Promise<{ tool: str
       <div className="mt-10 grid items-start gap-8 lg:mt-14 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-12">
         <div className="min-w-0 space-y-9"><section id="worked-example" className="scroll-mt-24 rounded-2xl border border-border bg-surface p-5 sm:p-7"><p className="font-mono text-[10px] font-bold uppercase tracking-widest text-yt-red">Worked example</p><h2 className="mt-3 text-xl font-bold text-heading">How the {tool.shortTitle.toLowerCase()} calculation works</h2><p className="mt-4 text-sm leading-8 text-fog">{tool.example}</p></section>
           {tool.slug === "youtube-views-to-money-calculator" && <section><h2 className="text-xl font-bold text-heading">1K, 10K, 100K and 1 million views: example scenarios</h2><p className="mt-3 text-sm leading-7 text-fog">Illustrations at three assumed RPMs—not verified country averages or guaranteed payouts. USD, before expenses and taxes.</p><div className="mt-4 overflow-x-auto rounded-xl border border-border" role="region" aria-label="Revenue scenario table" tabIndex={0}><table className="w-full text-left text-sm"><caption className="sr-only">Hypothetical YouTube revenue by views and assumed creator RPM</caption><thead className="bg-surface text-heading"><tr>{["Views", "$1 RPM", "$3 RPM", "$5 RPM"].map(h => <th key={h} scope="col" className="whitespace-nowrap p-3">{h}</th>)}</tr></thead><tbody>{[1000,10000,100000,1000000].map(v => <tr key={v} className="border-t border-border"><th scope="row" className="p-3 font-medium text-heading">{v.toLocaleString("en-US")}</th>{[1,3,5].map(r => <td key={r} className="p-3">${(v / 1000 * r).toLocaleString("en-US")}</td>)}</tr>)}</tbody></table></div></section>}
+          {tool.slug === "youtube-views-to-money-calculator" && <ViewsToMoneyAnswers />}
           {tool.sections.map(s => <section key={s.title}><h2 className="text-xl font-bold leading-snug text-heading">{s.title}</h2><p className="mt-3 max-w-[78ch] text-sm leading-8 text-fog">{s.text}</p></section>)}
           <section id="tool-faq" className="scroll-mt-24"><h2 className="mb-5 text-2xl font-bold text-heading">Frequently asked questions</h2><Faq items={tool.faqs} idPrefix="tool-faq" /></section>
         </div>

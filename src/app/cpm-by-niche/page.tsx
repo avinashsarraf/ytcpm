@@ -6,7 +6,7 @@ import { ArrowRight, Layers } from "lucide-react";
 import { Reveal } from "@/components/motion";
 import { NicheRangeChart } from "@/components/charts";
 import { NICHE_ICONS } from "@/lib/niche-icons";
-import { NICHES_BY_CPM, CREATOR_SHARE, DATA_YEAR, DATA_UPDATED_AT, money, perMillionViews } from "@/lib/data";
+import { usdRange, NICHES_BY_CPM, CREATOR_SHARE, DATA_YEAR, DATA_UPDATED_AT, money, perMillionViews } from "@/lib/data";
 
 import { STATIC_PAGE_SEO } from "@/lib/seo-keywords";
 const seo = STATIC_PAGE_SEO["/cpm-by-niche"];
@@ -68,7 +68,7 @@ export default function NicheIndex() {
                     <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${n.tier === "S" ? "bg-amber-50 text-gold" : n.tier === "A" ? "bg-mint-bg text-mint" : "bg-surface text-fog"}`}>{n.tier}-tier</span>
                   </div>
                   <h2 className="mt-3 text-[15px] font-bold text-heading">{n.name}</h2>
-                  <p className="num-mono mt-1 text-sm"><span className="text-heading">CPM ${n.cpmLow}–${n.cpmHigh}</span> <span className="text-fog">·</span> <span className="text-mint">RPM ${rpmLow.toFixed(0)}–${rpmHigh.toFixed(0)}</span></p>
+                  <p className="num-mono mt-1 text-sm"><span className="text-heading">CPM {usdRange(n.cpmLow, n.cpmHigh)}</span> <span className="text-fog">·</span> <span className="text-mint">RPM ${rpmLow.toFixed(0)}–${rpmHigh.toFixed(0)}</span></p>
                   <p className="mt-2 line-clamp-2 text-xs text-fog">{n.desc}</p>
                   <p className="num-mono mt-3 border-t border-border pt-2.5 text-[11px] text-fog">per 1M ≈ {money(per1m.low)} – {money(per1m.high)}</p>
                 </Link>

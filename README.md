@@ -382,7 +382,7 @@ docker run -p 3000:3000 -e DATABASE_URL=postgresql://... ytcpm
 ## Testing
 
 ```bash
-npm test             # 422 unit tests
+npm test             # 524 unit tests
 npm run test:cms     # end-to-end CMS test (real database, real browser, 87 checks)
 ```
 
@@ -392,8 +392,12 @@ Coverage focuses on what can silently break money math:
 - `estimateEarnings` for all 23 × 18 combinations (ordering, monotonicity, regression pins)
 - seasonality and ad-impression clamping
 - Shorts band and niche/country sensitivity
-- formatters (`money`, `localMoney`, `viewsLabel`, `fxNote`) across locales
+- formatters (`money`, `localMoney`, `usdRange`, `viewsLabel`, `fxNote`) across locales
 - rate-limiter windows, key isolation and proxy IP parsing
+- redirect origin rules (`src/lib/request-origin.ts`): forwarded host and scheme, port
+  preservation, and the promise that previews and localhost are never redirected
+- SERP title budgets, and that every country and niche title stays inside them
+- the structure of the hand-written country notes, and that they never link off-site
 
 CI (`.github/workflows/ci.yml`) runs lint → typecheck → tests → migrations → build, plus `npm audit` and a Docker image build.
 

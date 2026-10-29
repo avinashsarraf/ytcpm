@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Pause, Play } from "lucide-react";
-import { COUNTRIES_BY_CPM } from "@/lib/data";
+import { usdRange, COUNTRIES_BY_CPM } from "@/lib/data";
 
 const markets = COUNTRIES_BY_CPM.slice(0, 14);
 
@@ -18,7 +18,7 @@ export default function CpmRateTicker() {
     <div className="marquee-mask overflow-hidden pb-3.5">
       <div className="cpm-ticker-track flex w-max" data-paused={paused}>
         {[false, true].map(duplicate => <ul key={String(duplicate)} aria-hidden={duplicate || undefined} inert={duplicate || undefined} className={`cpm-ticker-group flex shrink-0 items-center gap-8 pr-8 ${duplicate ? "pointer-events-none" : ""}`}>
-          {markets.map(c => <li key={c.slug} className="shrink-0"><Link href={`/cpm-by-country/${c.slug}`} tabIndex={duplicate ? -1 : undefined} className="flex min-h-11 items-center gap-2 whitespace-nowrap rounded-md px-1 font-mono text-xs tracking-wide text-fog hover:text-heading"><span className="grid h-5 w-7 place-items-center rounded bg-black/5 text-[9px] font-bold text-heading">{c.code}</span>{c.name}<span className="font-semibold text-mint">${c.cpmLow}–${c.cpmHigh}</span><span aria-hidden="true" className="text-black/20">/</span></Link></li>)}
+          {markets.map(c => <li key={c.slug} className="shrink-0"><Link href={`/cpm-by-country/${c.slug}`} tabIndex={duplicate ? -1 : undefined} className="flex min-h-11 items-center gap-2 whitespace-nowrap rounded-md px-1 font-mono text-xs tracking-wide text-fog hover:text-heading"><span className="grid h-5 w-7 place-items-center rounded bg-black/5 text-[9px] font-bold text-heading">{c.code}</span>{c.name}<span className="font-semibold text-mint">{usdRange(c.cpmLow, c.cpmHigh)}</span><span aria-hidden="true" className="text-black/20">/</span></Link></li>)}
         </ul>)}
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { serializeJsonLd, webPageSchema, breadcrumbs, pageMetadata } from "@/lib/seo";
-import { nicheSeo } from "@/lib/seo-keywords";
+import { nicheSeo, nicheSerpTitle } from "@/lib/seo-keywords";
 import Calculator from "@/components/calculator";
 import type { Metadata } from "next";
 import { BenchmarkNotice } from "@/components/source-notice";
@@ -9,7 +9,7 @@ import { ArrowLeft, ArrowRight, Lightbulb } from "lucide-react";
 import Faq from "@/components/faq";
 import { Reveal } from "@/components/motion";
 import { NICHE_ICONS } from "@/lib/niche-icons";
-import { NICHES, getNiche, countryMultiplier, CREATOR_SHARE, DATA_YEAR, DATA_UPDATED_AT, money, viewsLabel, VIEW_PRESETS, COUNTRIES_BY_CPM, NICHES_BY_CPM } from "@/lib/data";
+import { usdRange, NICHES, getNiche, countryMultiplier, CREATOR_SHARE, DATA_YEAR, DATA_UPDATED_AT, money, viewsLabel, VIEW_PRESETS, COUNTRIES_BY_CPM, NICHES_BY_CPM } from "@/lib/data";
 
 export function generateStaticParams() { return NICHES.map((n) => ({ slug: n.slug })); }
 
@@ -20,8 +20,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const seo = nicheSeo(n);
   const path = `/cpm-by-niche/${n.slug}`;
   return pageMetadata(
-    nicheTitle(n),
-    `A directional ${n.name} CPM model of $${n.cpmLow}–$${n.cpmHigh} for US audiences, with creator RPM, per-1M-view earnings, country adjustments and limitations.`,
+    nicheSerpTitle(n, DATA_YEAR),
+    `A directional ${n.name} CPM model of ${usdRange(n.cpmLow, n.cpmHigh)} for US audiences, with creator RPM, per-1M-view earnings, country adjustments and limitations.`,
     path,
     {
       focus: seo.focus, keywords: seo.keywords, type: "article", category: "finance",
@@ -31,11 +31,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   );
 }
 
-/** Keep the SERP title inside the 60-character budget for long niche names. */
-function nicheTitle(n: { name: string }): string {
-  const full = `${n.name} YouTube CPM — ${DATA_YEAR} Model`;
-  return full.length <= 45 ? full : `${n.name} YouTube CPM — ${DATA_YEAR}`;
-}
 
 const TD: Record<string, string> = { S: "S-tier — highest model CPM", A: "A-tier — higher model CPM", B: "B-tier — mid-range model CPM", C: "C-tier — lower model CPM" };
 
@@ -51,7 +46,7 @@ export default async function NichePage({ params }: { params: Promise<{ slug: st
   const topCountries = COUNTRIES_BY_CPM.slice(0, 5).map((c) => ({ ...c, mult: countryMultiplier(c) }));
   const countryRows = [...topCountries, { ...india, mult: countryMultiplier(india) }];
   const faqs = [
-    { q: `What is the average CPM for ${niche.name} channels?`, a: `Our directional US-audience model uses CPM $${niche.cpmLow}–$${niche.cpmHigh}. Modeled ad RPM $${rpmLow.toFixed(2)}–$${rpmHigh.toFixed(2)} assumes full ad fill, one impression per view and a 55% creator share. These are not verified averages.` },
+    { q: `What is the average CPM for ${niche.name} channels?`, a: `Our directional US-audience model uses CPM ${usdRange(niche.cpmLow, niche.cpmHigh)}. Modeled ad RPM ${usdRange(rpmLow, rpmHigh)} assumes full ad fill, one impression per view and a 55% creator share. These are not verified averages.` },
     { q: `How can I increase my ${niche.name} CPM?`, a: "Inspect your own Studio reports for changes in audience, ad suitability and format. Compare the same metric and period. A different topic, video length or upload quarter does not guarantee a higher CPM." },
   ];
   const breadcrumbLd = {
@@ -76,7 +71,7 @@ export default async function NichePage({ params }: { params: Promise<{ slug: st
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(webPageSchema({ path: `/cpm-by-niche/${niche.slug}`, name: `${niche.name} YouTube CPM — ${DATA_YEAR} Model`, description: `A directional ${niche.name} CPM model of $${niche.cpmLow}–$${niche.cpmHigh} for US audiences, with creator RPM, per-1M-view earnings and country adjustments.`, image: `/cpm-by-niche/${niche.slug}/opengraph-image`, dateModified: DATA_UPDATED_AT, section: "Niche benchmarks", about: [`YouTube CPM for ${niche.name.toLowerCase()}`, `YouTube RPM ${niche.name.toLowerCase()}`, `${niche.name} channel earnings`] })) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(webPageSchema({ path: `/cpm-by-niche/${niche.slug}`, name: `${niche.name} YouTube CPM: ${usdRange(niche.cpmLow, niche.cpmHigh)}`, description: `A directional ${niche.name} YouTube CPM of ${usdRange(niche.cpmLow, niche.cpmHigh)} for US audiences in ${DATA_YEAR}, with creator RPM, per-1M-view earnings and country adjustments.`, image: `/cpm-by-niche/${niche.slug}/opengraph-image`, dateModified: DATA_UPDATED_AT, section: "Niche benchmarks", about: [`YouTube CPM for ${niche.name.toLowerCase()}`, `YouTube RPM ${niche.name.toLowerCase()}`, `${niche.name} channel earnings`] })) }} />
       <article className="relative overflow-hidden pt-10 sm:pt-14 lg:pt-16">
         <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 blob-pink" aria-hidden />
         <div className="relative shell">
@@ -91,7 +86,7 @@ export default async function NichePage({ params }: { params: Promise<{ slug: st
             <Reveal delay={0.1}>
               <div className="panel p-5">
                 <div className="grid grid-cols-2 gap-4">
-                  <div><p className="text-[11px] font-bold uppercase tracking-wider text-fog">US CPM</p><p className="num-mono mt-1 text-2xl font-bold text-heading">${niche.cpmLow}–${niche.cpmHigh}</p></div>
+                  <div><p className="text-[11px] font-bold uppercase tracking-wider text-fog">US CPM</p><p className="num-mono mt-1 text-2xl font-bold text-heading">{usdRange(niche.cpmLow, niche.cpmHigh)}</p></div>
                   <div><p className="text-[11px] font-bold uppercase tracking-wider text-fog">Modeled ad RPM</p><p className="num-mono mt-1 text-2xl font-bold text-mint">${rpmLow.toFixed(2)}–${rpmHigh.toFixed(2)}</p></div>
                 </div>
                 <div className="mt-4 flex items-center justify-between rounded-lg bg-surface px-3 py-2 text-xs"><span className="text-fog">per 1M views</span><span className="num-mono font-bold text-heading">{money(rpmLow * 1000)} – {money(rpmHigh * 1000)}</span></div>

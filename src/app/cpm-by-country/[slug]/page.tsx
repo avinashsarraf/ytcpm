@@ -1,5 +1,5 @@
 import { serializeJsonLd, webPageSchema, breadcrumbs, pageMetadata } from "@/lib/seo";
-import { countrySeo } from "@/lib/seo-keywords";
+import { countrySeo, countrySerpDescription, countrySerpTitle } from "@/lib/seo-keywords";
 import Calculator from "@/components/calculator";
 import type { Metadata } from "next";
 import { BenchmarkNotice } from "@/components/source-notice";
@@ -7,8 +7,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, ArrowUpRight, Lightbulb } from "lucide-react";
 import Faq from "@/components/faq";
+import { countryNote } from "@/lib/country-notes";
 import { Reveal } from "@/components/motion";
-import { COUNTRIES, getCountry, countryMultiplier, CREATOR_SHARE, DATA_YEAR, DATA_UPDATED_AT, FX_UPDATED_AT, money, localMoney, fxNote, viewsLabel, VIEW_PRESETS, NICHES_BY_CPM, COUNTRIES_BY_CPM, TIER_LABEL } from "@/lib/data";
+import { usdRange, COUNTRIES, getCountry, countryMultiplier, CREATOR_SHARE, DATA_YEAR, DATA_UPDATED_AT, FX_UPDATED_AT, money, localMoney, fxNote, viewsLabel, VIEW_PRESETS, NICHES_BY_CPM, COUNTRIES_BY_CPM, TIER_LABEL } from "@/lib/data";
 
 export function generateStaticParams() { return COUNTRIES.map((c) => ({ slug: c.slug })); }
 
@@ -18,13 +19,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!c) return {};
   const seo = countrySeo(c);
   const path = `/cpm-by-country/${c.slug}`;
+  const localRange = `${localMoney(c.cpmLow, c, 0)}–${localMoney(c.cpmHigh, c, 0)}`;
+  // The number leads the title, because that is what the query asks for.
   return pageMetadata(
-    `YouTube CPM in ${c.name} — ${DATA_YEAR} Model`,
-    `YouTube CPM in ${c.name} model range is $${c.cpmLow}–$${c.cpmHigh} (≈ ${localMoney(c.cpmLow, c, 0)}–${localMoney(c.cpmHigh, c, 0)}) in ${DATA_YEAR}. Compare creator RPM, per-1M-view earnings and local-currency scenarios.`,
+    countrySerpTitle(c, DATA_YEAR),
+    countrySerpDescription(c, localRange, DATA_YEAR),
     path,
     {
       focus: seo.focus, keywords: seo.keywords, type: "article", category: "finance",
-      image: { url: `${path}/opengraph-image`, width: 1200, height: 630, alt: `${c.name} YouTube CPM model scenarios` },
+      image: { url: `${path}/opengraph-image`, width: 1200, height: 630, alt: `${c.name} YouTube CPM: ${usdRange(c.cpmLow, c.cpmHigh)} per 1,000 views in ${DATA_YEAR}` },
       modifiedTime: DATA_UPDATED_AT,
     },
   );
@@ -40,11 +43,18 @@ export default async function CountryPage({ params }: { params: Promise<{ slug: 
   const rank = COUNTRIES_BY_CPM.findIndex((c) => c.slug === country.slug) + 1;
   const cur = (usd: number, d?: number) => localMoney(usd, country, d);
   const topNiches = NICHES_BY_CPM.slice(0, 6).map((n) => ({ ...n, lCpmLow: n.cpmLow * mult, lCpmHigh: n.cpmHigh * mult }));
-  const faqs = [
-    { q: `What is the average YouTube CPM in ${country.name}?`, a: `Our directional CPM model uses $${country.cpmLow}–$${country.cpmHigh} (≈ ${cur(country.cpmLow)}–${cur(country.cpmHigh)}). Ad-only RPM at full fill and 55% creator share: $${rpmLow.toFixed(2)}–$${rpmHigh.toFixed(2)}.` },
+  /*
+    A country with a written local-market note gets its own questions merged
+    into the same FAQ list that feeds the FAQPage schema, so the visible answer
+    and the structured data never drift apart.
+  */
+  const note = countryNote(country.slug);
+  const baseFaqs = [
+    { q: `What is the average YouTube CPM in ${country.name}?`, a: `Our directional CPM model uses ${usdRange(country.cpmLow, country.cpmHigh)} (≈ ${cur(country.cpmLow)}–${cur(country.cpmHigh)}). Ad-only RPM at full fill and 55% creator share: ${usdRange(rpmLow, rpmHigh)}.` },
     { q: `How much does YouTube pay for 1M views in ${country.name}?`, a: `Our full-fill model implies ${cur(rpmLow * 1000)}–${cur(rpmHigh * 1000)} for long-form advertising. This assumes one ad impression per view and a 55% creator share, not a guaranteed AdSense payout.` },
     { q: `How should ${country.name} audience benchmarks be used?`, a: "Compare your own Studio reports for matching periods and formats. Audience country is not creator residence. Public country ranges cannot establish your actual CPM; see our sources policy for the model's limitations." },
   ];
+  const faqs = note ? [...baseFaqs, ...note.faqs] : baseFaqs;
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -61,7 +71,7 @@ export default async function CountryPage({ params }: { params: Promise<{ slug: 
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(webPageSchema({ path: `/cpm-by-country/${country.slug}`, name: `YouTube CPM in ${country.name} — ${DATA_YEAR} Model`, description: `YouTube CPM in ${country.name} model range is $${country.cpmLow}–$${country.cpmHigh} in ${DATA_YEAR}, with creator RPM and local-currency scenarios.`, image: `/cpm-by-country/${country.slug}/opengraph-image`, dateModified: DATA_UPDATED_AT, section: "Country benchmarks", about: [`YouTube CPM in ${country.name}`, `YouTube RPM in ${country.name}`, `${country.name} ad rates`] })) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(webPageSchema({ path: `/cpm-by-country/${country.slug}`, name: `YouTube CPM in ${country.name}: ${usdRange(country.cpmLow, country.cpmHigh)}`, description: `YouTube CPM in ${country.name} is ${usdRange(country.cpmLow, country.cpmHigh)} per 1,000 ad views in ${DATA_YEAR}, with creator RPM and local-currency scenarios.`, image: `/cpm-by-country/${country.slug}/opengraph-image`, dateModified: DATA_UPDATED_AT, section: "Country benchmarks", about: [`YouTube CPM in ${country.name}`, `YouTube RPM in ${country.name}`, `${country.name} ad rates`] })) }} />
       <article className="relative overflow-hidden pt-10 sm:pt-14 lg:pt-16">
         <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 blob-pink" aria-hidden />
         <div className="relative shell">
@@ -77,7 +87,7 @@ export default async function CountryPage({ params }: { params: Promise<{ slug: 
             <Reveal delay={0.1}>
               <div className="panel p-5">
                 <div className="grid grid-cols-2 gap-4">
-                  <div><p className="text-[11px] font-bold uppercase tracking-wider text-fog">CPM</p><p className="num-mono mt-1 text-2xl font-bold text-heading">${country.cpmLow}–${country.cpmHigh}</p><p className="num-mono text-xs font-semibold text-yt-red">≈ {cur(country.cpmLow, 0)}–{cur(country.cpmHigh, 0)}</p></div>
+                  <div><p className="text-[11px] font-bold uppercase tracking-wider text-fog">CPM</p><p className="num-mono mt-1 text-2xl font-bold text-heading">{usdRange(country.cpmLow, country.cpmHigh)}</p><p className="num-mono text-xs font-semibold text-yt-red">≈ {cur(country.cpmLow, 0)}–{cur(country.cpmHigh, 0)}</p></div>
                   <div><p className="text-[11px] font-bold uppercase tracking-wider text-fog">Modeled ad RPM</p><p className="num-mono mt-1 text-2xl font-bold text-mint">${rpmLow.toFixed(2)}–${rpmHigh.toFixed(2)}</p><p className="num-mono text-xs text-fog">≈ {cur(rpmLow)}–{cur(rpmHigh)}</p></div>
                 </div>
                 <div className="mt-4 flex items-center justify-between rounded-lg bg-surface px-3 py-2 text-xs"><span className="text-fog">vs US</span><span className="num-mono font-bold text-heading">{mult >= 1 ? `${mult.toFixed(2)}×` : `${Math.round(mult * 100)}%`}</span></div>
@@ -104,6 +114,34 @@ export default async function CountryPage({ params }: { params: Promise<{ slug: 
           </section>
 
           <Reveal><div className="mt-8 flex items-start gap-3 rounded-xl border border-border p-4"><Lightbulb className="h-4 w-4 shrink-0 text-gold" /><p className="text-sm leading-relaxed">Compare the same metric, period, audience and video format. Changing language, length or upload date does not guarantee higher CPM or revenue.</p></div></Reveal>
+
+          {note && (
+            <section id="local-market" className="mt-14 scroll-mt-24">
+              <Reveal><h2 className="display-sub">{note.heading}</h2></Reveal>
+              <Reveal delay={0.04}>
+                <p className="mt-4 max-w-3xl text-sm leading-7 text-fog">{note.intro}</p>
+                <div className="mt-7 grid gap-6 lg:grid-cols-2">
+                  {note.sections.map((sec) => (
+                    <div key={sec.title} className="panel p-5 sm:p-6">
+                      <h3 className="text-base font-bold text-heading">{sec.title}</h3>
+                      {sec.body.map((para) => (
+                        <p key={para.slice(0, 40)} className="mt-2.5 text-sm leading-7 text-fog">{para}</p>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+                <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2">
+                  {note.links.map((l) => (
+                    <li key={l.href}>
+                      <Link href={l.href} className="group inline-flex items-center gap-1.5 text-sm font-semibold text-yt-red hover:underline">
+                        {l.label}<ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </Reveal>
+            </section>
+          )}
 
           <section className="mt-14"><Reveal><h2 className="display-sub">FAQs — {country.name}</h2></Reveal><Reveal delay={0.06} className="mt-5"><Faq items={faqs} /></Reveal></section>
 

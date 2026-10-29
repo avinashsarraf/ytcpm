@@ -15,6 +15,18 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  /*
+    HSTS. Search Console listed http://ytcpm.online/ as a separate homepage
+    from https://ytcpm.online/, with two clicks landing on the insecure URL and
+    the larger share of impressions. The canonical tag was correct; the HTTP
+    host was still serving the page. This header (with the redirect in
+    src/proxy.ts) tells a browser to rewrite the host before it ever sends the
+    request, so the two copies collapse into one URL.
+
+    No `preload` and a one-year max-age: preload is effectively irreversible and
+    belongs to a deliberate decision, not a config default.
+  */
+  ...(development ? [] : [{ key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" }]),
   {
     key: "Content-Security-Policy",
     value: [

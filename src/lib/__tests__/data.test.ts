@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   COUNTRIES, NICHES, SEASONS, US, estimateEarnings, countryMultiplier,
   CREATOR_SHARE, US_BLENDED_CPM, getCountry, getNiche, getSeason,
-  money, localMoney, currencySymbol, fxNote, viewsLabel, perMillionViews,
+  money, localMoney, currencySymbol, fxNote, viewsLabel, perMillionViews, usdRange,
   DATA_UPDATED_AT, VIEW_PRESETS,
 } from "@/lib/data";
 
@@ -189,5 +189,27 @@ describe("formatters", () => {
 
   it("keeps view presets ascending", () => {
     expect([...VIEW_PRESETS].sort((a, b) => a - b)).toEqual(VIEW_PRESETS);
+  });
+});
+
+describe("usdRange", () => {
+  it("keeps two decimals on fractional amounts so tables match the titles", () => {
+    expect(usdRange(0.2, 1.2)).toBe("$0.20–$1.20");
+    expect(usdRange(0.5, 2.6)).toBe("$0.50–$2.60");
+  });
+
+  it("prints whole dollars without cents", () => {
+    expect(usdRange(8, 20)).toBe("$8–$20");
+    expect(usdRange(15, 50)).toBe("$15–$50");
+  });
+
+  it("handles a mixed range", () => {
+    expect(usdRange(0.5, 3)).toBe("$0.50–$3");
+  });
+
+  it("never leaves a bare one-decimal amount anywhere in the string", () => {
+    for (const c of COUNTRIES) {
+      expect(usdRange(c.cpmLow, c.cpmHigh)).not.toMatch(/\$\d+\.\d(?!\d)/);
+    }
   });
 });

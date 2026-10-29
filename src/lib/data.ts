@@ -179,6 +179,18 @@ export function estimateEarnings({
 }
 
 // ─── Formatters ──────────────────────────────────────────────────────────────
+/**
+ * A USD range as it is written on the page: "$0.20–$1.20".
+ *
+ * Whole dollars drop the cents, but fractional amounts keep two decimals, so a
+ * table never shows "$0.2" next to a title that says "$0.20". One function for
+ * every range on the site keeps titles, headings, FAQ text and JSON-LD in step.
+ */
+export function usdRange(low: number, high: number): string {
+  const fmt = (value: number) => (Number.isInteger(value) ? `$${value}` : `$${value.toFixed(2)}`);
+  return `${fmt(low)}–${fmt(high)}`;
+}
+
 export function money(n: number, digits?: number): string {
   const d = digits ?? (n < 10 ? 2 : 0);
   return n.toLocaleString("en-US", {
