@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { AHREFS_ANALYTICS } from "./src/lib/analytics";
+import { THIRD_PARTY_ORIGINS } from "./src/lib/analytics";
 
 /**
  * Security headers. `unsafe-inline` for styles is required by Next's injected
@@ -33,16 +33,16 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       // Next.js hydration bootstrap + framer-motion need inline scripts.
-      // analytics.ahrefs.com is the one third-party script (src/lib/analytics.ts).
-      `script-src 'self' 'unsafe-inline' ${AHREFS_ANALYTICS.origin}${development ? " 'unsafe-eval'" : ""}`,
+      // Third-party origins come from src/lib/analytics.ts, one list for both
+      // directives, so a new integration cannot be half-allowed.
+      `script-src 'self' 'unsafe-inline' ${THIRD_PARTY_ORIGINS.scripts.join(" ")}${development ? " 'unsafe-eval'" : ""}`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob:",
       "font-src 'self' data:",
-      // The analytics script posts its measurements back to the same origin it
-      // was loaded from; without this it loads and reports nothing.
+      // Without this each script loads and then reports nothing.
       development
-        ? `connect-src 'self' ws: wss: ${AHREFS_ANALYTICS.origin}`
-        : `connect-src 'self' ${AHREFS_ANALYTICS.origin}`,
+        ? `connect-src 'self' ws: wss: ${THIRD_PARTY_ORIGINS.connect.join(" ")}`
+        : `connect-src 'self' ${THIRD_PARTY_ORIGINS.connect.join(" ")}`,
       ...(!preview ? ["frame-ancestors 'none'"] : []),
       "base-uri 'self'",
       "form-action 'self'",
@@ -64,6 +64,29 @@ const nextConfig: NextConfig = {
         // Health endpoint is polled by Coolify — never cache it.
         source: "/api/health",
         headers: [{ key: "Cache-Control", value: "no-store, max-age=0" }],
+      },
+      /*
+        Static artwork in /public is served with `Cache-Control: public,
+        max-age=0`, so every repeat visit re-downloads the flags and the hero.
+        Behind Cloudflare that zero is replaced by the zone's fallback TTL,
+        which Lighthouse measured at 4 hours — shorter than these files' real
+        lifetime, and the reason it reported them as cacheable savings.
+
+        These files are content-addressed by path, not by hash, so a changed
+        flag means a new filename. `immutable` is honest here: the browser may
+        keep it for a year without ever asking again.
+      */
+      {
+        source: "/flags/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      {
+        source: "/images/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      {
+        source: "/hero-illustration.webp",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
     ];
   },

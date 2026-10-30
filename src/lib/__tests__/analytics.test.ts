@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { AHREFS_ANALYTICS, analyticsEnabled } from "@/lib/analytics";
+import { AHREFS_ANALYTICS, CLOUDFLARE_INSIGHTS, THIRD_PARTY_ORIGINS, analyticsEnabled } from "@/lib/analytics";
 import nextConfig from "../../../next.config";
 
 /**
@@ -49,6 +49,26 @@ describe("Ahrefs analytics tag", () => {
   it("is allowed to report by connect-src", async () => {
     // Without this the script loads, runs, and every measurement is dropped.
     expect(directive(await csp(), "connect-src")).toContain(AHREFS_ANALYTICS.origin);
+  });
+
+  it("allows the Cloudflare beacon the edge injects", async () => {
+    // Cloudflare appends its beacon to the HTML leaving the edge; nothing in
+    // this repository can remove it, so blocking it only logs an error on
+    // every visit. This is the finding that scored Best Practices 92.
+    const policy = await csp();
+    expect(directive(policy, "script-src")).toContain(CLOUDFLARE_INSIGHTS.scriptOrigin);
+    // The script and the endpoint it reports to are different hosts.
+    expect(directive(policy, "connect-src")).toContain(CLOUDFLARE_INSIGHTS.beaconOrigin);
+  });
+
+  it("serves every declared third-party origin, and nothing else", async () => {
+    const policy = await csp();
+    const script = directive(policy, "script-src").filter((s) => s.startsWith("http"));
+    const connect = directive(policy, "connect-src").filter((s) => s.startsWith("http"));
+    expect([...script].sort()).toEqual([...THIRD_PARTY_ORIGINS.scripts].sort());
+    // connect-src also carries the app's own API calls via 'self', plus ws: in
+    // development; only the declared third parties may appear by URL.
+    for (const origin of connect) expect(THIRD_PARTY_ORIGINS.connect).toContain(origin);
   });
 
   it("does not open the policy to every origin", async () => {

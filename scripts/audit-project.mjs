@@ -24,6 +24,19 @@ try {
     for (const img of await page.locator('img').evaluateAll(nodes => nodes.map(n => ({ src: n.getAttribute('src'), width: n.getAttribute('width'), height: n.getAttribute('height') })))) {
       assert(img.width && img.height, `image dimensions ${path}`); if (img.src?.startsWith('/')) resources.add(img.src);
     }
+    /*
+      LCP discovery. Lighthouse asks for three things on the largest image:
+      no loading="lazy", fetchpriority=high, and a preload in the document. Next
+      16 made `priority` a deprecated alias that silently stopped emitting the
+      last two, so this asserts the served markup rather than the props.
+    */
+    if (path === '/') {
+      const hero = page.locator('img[src*="hero-illustration"]').first();
+      assert.equal(await hero.getAttribute('loading'), null, 'hero image must not be lazy-loaded');
+      assert.equal((await hero.getAttribute('fetchpriority'))?.toLowerCase(), 'high', 'hero image fetchpriority=high');
+      assert((await page.locator('link[rel="preload"][as="image"]').count()) > 0, 'hero image preload link');
+      report.lcpImage = 'preloaded, fetchpriority=high, not lazy';
+    }
     const og = await page.locator('meta[property="og:image"]').first().getAttribute('content'); resources.add(og.replace(origin, ''));
     const title = await page.title(); const description = await page.locator('meta[name="description"]').getAttribute('content');
     report.pages.push({ path, titleLength: title.length, descriptionLength: description.length, words: (await page.locator('main').innerText()).trim().split(/\s+/).length });
@@ -74,6 +87,6 @@ try {
   }
   assert.deepEqual(errors, []); report.clientNavigation = true;
   await fs.writeFile('/tmp/ytcpm-project-audit.json', JSON.stringify(report, null, 2));
-  console.log(`PASS project audit: ${paths.length} pages, ${resources.size} image resources, ${report.fragmentLinks} fragment links, unique IDs, alt/dimensions, robots/404s and client-side navigation`);
+  console.log(`PASS project audit: ${paths.length} pages, ${resources.size} image resources, ${report.fragmentLinks} fragment links, unique IDs, alt/dimensions, ${report.lcpImage}, robots/404s and client-side navigation`);
   console.log('Long titles (editorial review, not a ranking rule):', report.pages.filter(p => p.titleLength > 75).map(p => `${p.path} (${p.titleLength})`).join(', ') || 'none');
 } finally { await browser.close(); }

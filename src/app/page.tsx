@@ -149,7 +149,13 @@ export default function Home() {
                   alt="3D illustration of a creator beside a laptop showing estimated YouTube earnings and CPM"
                   width={1200}
                   height={900}
-                  priority
+                  /* Next 16 renamed `priority` to `preload`; the old prop still
+                     type-checks but no longer emits the preload link or
+                     fetchpriority, which is what Lighthouse reported. */
+                  preload
+                  /* The preload tag alone does not raise the image's priority;
+                     Lighthouse asks for fetchpriority=high as well. */
+                  fetchPriority="high"
                   sizes="(max-width: 479px) 280px, (max-width: 639px) 340px, (max-width: 767px) 380px, (max-width: 1600px) 44vw, 620px"
                   className="hero-art h-auto w-full object-contain"
                 />
