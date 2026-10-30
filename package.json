@@ -11,7 +11,23 @@
     "test:watch": "vitest",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
-    "db:studio": "drizzle-kit studio"
+    "db:migrate": "node scripts/migrate.mjs",
+    "db:seed-admin": "node scripts/seed-admin.mjs",
+    "db:studio": "drizzle-kit studio",
+    "test:ui": "node scripts/smoke-ui.mjs",
+    "test:seo": "node scripts/smoke-seo.mjs",
+    "test:branding": "node scripts/smoke-branding.mjs",
+    "test:country-selector": "node scripts/smoke-country-selector.mjs",
+    "test:animation": "node scripts/smoke-animation.mjs",
+    "test:creator-tools": "node scripts/smoke-creator-tools.mjs",
+    "images:tools": "node scripts/generate-tool-images.mjs",
+    "test:accessibility": "node scripts/audit-accessibility.mjs",
+    "test:project": "node scripts/audit-project.mjs",
+    "test:migrations": "node --test scripts/db-connection.test.mjs",
+    "test:calculator-menus": "node scripts/smoke-calculator-menus.mjs",
+    "test:channel-auditor": "node scripts/smoke-channel-auditor.mjs",
+    "test:cms": "node scripts/test-cms.mjs",
+    "test:seo-audit": "node scripts/audit-seo-full.mjs"
   },
   "dependencies": {
     "dotenv": "17.3.1",
@@ -24,6 +40,9 @@
     "react-dom": "19.2.6"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@electric-sql/pglite": "^0.5.11",
+    "@electric-sql/pglite-socket": "^0.2.14",
     "@tailwindcss/postcss": "4.1.17",
     "@types/node": "22.19.15",
     "@types/pg": "8.18.0",
@@ -32,7 +51,8 @@
     "drizzle-kit": "0.31.10",
     "eslint": "9.39.4",
     "eslint-config-next": "^16.4.2",
-    "postcss": "8.5.8",
+    "playwright": "1.64.1",
+    "postcss": "8.5.31",
     "tailwindcss": "4.1.17",
     "typescript": "5.9.3",
     "vitest": "^5.0.5"

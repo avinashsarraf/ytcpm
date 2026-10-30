@@ -14,6 +14,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
+import { connectWithRetry } from "./db-connection.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const migrationsDir = process.env.MIGRATIONS_DIR ?? join(here, "..", "drizzle");
@@ -39,7 +40,8 @@ function mask(url) {
 
 console.log(`[migrate] target: ${mask(databaseUrl)}`);
 
-const client = new pg.Client({
+const createClient = () => new pg.Client({
+  connectionTimeoutMillis: 2000,
   connectionString: databaseUrl,
   ssl:
     process.env.DATABASE_SSL === "true"
@@ -51,21 +53,12 @@ const client = new pg.Client({
 const MAX_ATTEMPTS = Number(process.env.MIGRATION_MAX_ATTEMPTS ?? 5);
 const RETRY_MS = Number(process.env.MIGRATION_RETRY_MS ?? 2000);
 
-async function connectWithRetry() {
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    try {
-      await client.connect();
-      return;
-    } catch (error) {
-      console.warn(`[migrate] connect attempt ${attempt}/${MAX_ATTEMPTS} failed: ${error.code ?? ""} ${error.message}`);
-      if (attempt === MAX_ATTEMPTS) throw error;
-      await new Promise((r) => setTimeout(r, RETRY_MS));
-    }
-  }
-}
+let client;
 
 try {
-  await connectWithRetry();
+  client = await connectWithRetry(createClient, { attempts: MAX_ATTEMPTS, retryMs: RETRY_MS });
+  // Serialize concurrent container starts; the session lock releases on disconnect.
+  await client.query("select pg_advisory_lock($1)", [20261021]);
 
   await client.query(`
     CREATE TABLE IF NOT EXISTS "_migrations" (
@@ -106,8 +99,8 @@ try {
 
   console.log("[migrate] database is up to date");
 } catch (error) {
-  console.error("[migrate]", error.code ?? "", error.message);
+  console.error("[migrate]", error.code ?? "", mask(String(error.message).split(databaseUrl).join("[DATABASE_URL]")));
   process.exitCode = 1;
 } finally {
-  await client.end().catch(() => {});
+  await client?.end().catch(() => {});
 }

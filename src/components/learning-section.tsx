@@ -1,0 +1,16 @@
+import Link from "next/link";
+import { GUIDES } from "@/lib/editorial";
+export default function LearningSection() {
+  return <section className="bg-white py-9 sm:py-12" aria-labelledby="learn-heading"><div className="shell">
+    <h2 id="learn-heading" className="display-sub">Check your YouTube CPM, understand RPM, estimate earnings</h2>
+    <p className="mt-3 max-w-3xl leading-relaxed">Looking for a YouTube money calculator or a way to check your CPM? Start with the number you actually have. Public views cannot reveal another channel&apos;s private advertiser revenue.</p>
+    <div className="mt-5 grid gap-4 md:grid-cols-3">{[
+      { title: "Calculate CPM", text: "Have gross ad revenue and ad impressions? Calculate advertiser cost per 1,000 ads—not creator earnings per 1,000 video views.", href: "/youtube-cpm-calculator" },
+      { title: "Calculate RPM", text: "Have creator revenue and the matching view count? Calculate revenue per 1,000 views without applying the platform share a second time.", href: "/youtube-rpm-calculator" },
+      { title: "Check and monitor actual CPM", text: "Find your own CPM in YouTube Studio and compare consistent periods. Our Usage Monitor tracks site API activity, not your channel.", href: "/guides/how-to-check-youtube-cpm" },
+    ].map(item => <article key={item.href} className="card p-5"><h3 className="text-lg font-bold text-heading"><Link href={item.href} className="text-yt-red underline underline-offset-4">{item.title}</Link></h3><p className="mt-3 text-sm leading-relaxed">{item.text}</p></article>)}</div>
+    <section className="mt-7 rounded-xl border border-border bg-surface p-5"><h3 className="text-lg font-bold text-heading">How much does YouTube pay for 1,000 views?</h3><p className="mt-2 max-w-4xl leading-relaxed">There is no fixed payout. At a hypothetical $3 RPM, 1,000 comparable views imply $3, 100,000 imply $300 and one million imply $3,000. These are arithmetic examples, not average rates. Use your own measured RPM and keep Shorts and long-form calculations separate.</p><p className="mt-3 text-sm leading-relaxed">CPM = gross ad revenue ÷ ad impressions × 1,000. RPM = creator revenue ÷ the corresponding views × 1,000. Our homepage is a simplified long-form ad forecast with explicit fill and revenue-share assumptions; it is not a report of your actual Studio RPM.</p><a href="https://support.google.com/youtube/answer/9314357?hl=en" className="mt-3 inline-block text-sm font-semibold text-yt-red underline">Source: YouTube Help — ad revenue analytics</a></section>
+    <nav aria-label="YouTube monetization guides" className="mt-6"><h3 className="font-bold text-heading">Learn before you compare rates</h3><ul className="mt-3 grid gap-3 md:grid-cols-3">{GUIDES.map(g => <li key={g.slug}><Link href={`/guides/${g.slug}`} className="block rounded-lg border border-border p-4 text-sm font-semibold text-yt-red underline underline-offset-4">{g.title}</Link></li>)}</ul></nav>
+    <p className="mt-5 max-w-4xl text-sm leading-relaxed">Independent tool, not affiliated with YouTube or Google. Country/niche benchmarks are directional model assumptions, not official averages. <Link href="/sources" className="font-semibold text-yt-red underline">Read our sources, editorial policy and limitations.</Link></p>
+  </div></section>;
+}

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { rateLimit, resetRateLimits, clientKey } from "@/lib/rate-limit";
 
 beforeEach(() => resetRateLimits());
@@ -24,11 +24,22 @@ describe("rateLimit", () => {
     expect(rateLimit("b", 3, 60_000).ok).toBe(true);
   });
 
-  it("resets after the window expires", async () => {
-    for (let i = 0; i < 2; i++) rateLimit("window", 2, 10);
-    expect(rateLimit("window", 2, 10).ok).toBe(false);
-    await new Promise((r) => setTimeout(r, 25));
-    expect(rateLimit("window", 2, 10).ok).toBe(true);
+  it("resets after the window expires", () => {
+    // A real sleep makes this test depend on the runner's scheduler: on a
+    // loaded CI machine the 10 ms window can close before the loop finishes.
+    // Moving the clock instead tests the rule and nothing else.
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
+      for (let i = 0; i < 2; i++) rateLimit("window", 2, 10);
+      expect(rateLimit("window", 2, 10).ok).toBe(false);
+      vi.setSystemTime(new Date("2026-01-01T00:00:00.005Z"));
+      expect(rateLimit("window", 2, 10).ok).toBe(false);
+      vi.setSystemTime(new Date("2026-01-01T00:00:00.025Z"));
+      expect(rateLimit("window", 2, 10).ok).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

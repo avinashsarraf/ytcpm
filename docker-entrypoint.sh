@@ -10,8 +10,8 @@ mask_url() {
 
 if [ -z "${DATABASE_URL:-}" ]; then
   echo "[entrypoint] DATABASE_URL is NOT set."
-  echo "[entrypoint]   → the site and calculator work, but /monitor, POST /api/calculate logging"
-  echo "[entrypoint]     and GET /api/health will report 503 (database not_configured)."
+  echo "[entrypoint]   → the site and calculator work, but /monitor shows a fallback, POST /api/calculate skips logging,"
+  echo "[entrypoint]     and GET /api/health reports 503 (database not_configured)."
   echo "[entrypoint]   → add DATABASE_URL in Coolify → your app → Environment Variables."
 else
   echo "[entrypoint] database target: $(mask_url "$DATABASE_URL")"

@@ -9,7 +9,7 @@ import { StatBar } from "@/components/charts";
 import { viewsLabel, money } from "@/lib/data";
 import { logOnce } from "@/lib/log";
 
-export const metadata: Metadata = { title: "Live Usage Monitor", description: "Usage analytics for the ytcpm.online YouTube CPM calculator.", robots: { index: false, follow: true }, alternates: { canonical: "/monitor" } };
+export const metadata: Metadata = { title: "Calculator API Usage Monitor", description: "Usage analytics for the ytcpm.online YouTube CPM calculator.", robots: { index: false, follow: true }, alternates: { canonical: "/monitor" } };
 
 /**
  * Rendered on demand, never prerendered: a build-time query against the
@@ -61,16 +61,16 @@ export default async function MonitorPage() {
   const maxCountry = s.ok && s.byCountry.length ? Number(s.byCountry[0].c) : 1;
 
   return (
-    <section className="relative overflow-hidden pt-24 sm:pt-28 lg:pt-32">
+    <section className="relative overflow-hidden pt-10 sm:pt-14 lg:pt-16">
       <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 blob-pink" aria-hidden />
       <div className="relative shell">
         <Reveal>
           <div className="flex items-center gap-3">
             <span className="grid h-9 w-9 place-items-center rounded-full bg-yt-red-bg"><Activity className="h-4 w-4 text-yt-red" /></span>
-            <span className="flex items-center gap-1.5 tag-red text-[10px]"><span className="h-1.5 w-1.5 rounded-full bg-mint animate-pulse-dot" /> Live · PostgreSQL</span>
+            <span className="flex items-center gap-1.5 tag-red text-[10px]"><span className="h-1.5 w-1.5 rounded-full bg-mint animate-pulse-dot" /> API usage · PostgreSQL</span>
           </div>
           <h1 className="mt-5 font-display text-4xl font-bold tracking-tight text-heading sm:text-5xl">Calculator Usage <span className="text-yt-gradient">Monitor</span></h1>
-          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-fog">Anonymous, aggregated usage analytics from PostgreSQL. Cached for 60 seconds to keep queries cheap.</p>
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-fog">Anonymous calculation API activity, not YouTube channel CPM monitoring. Browser-only estimates are not logged here. Cached for 60 seconds.</p>
         </Reveal>
 
         {!s.ok ? (
@@ -90,7 +90,7 @@ export default async function MonitorPage() {
 
             <Reveal delay={0.1}><div className="panel mt-5 p-6">
               <h2 className="font-display text-lg font-bold text-heading">Calculations per day</h2>
-              {s.byDay.length === 0 && <p className="mt-5 text-sm text-fog">No calculations logged yet — run the calculator to populate this chart.</p>}
+              {s.byDay.length === 0 && <p className="mt-5 text-sm text-fog">No API calculations logged yet. Browser-only calculators do not populate this chart.</p>}
               <div className="mt-5 flex h-36 items-end gap-1.5 sm:gap-2.5">
                 {s.byDay.map((d, i) => (<div key={d.dv} className="group flex h-full flex-1 flex-col items-center justify-end gap-1.5"><span className="num-mono text-[10px] text-fog opacity-0 group-hover:opacity-100">{Number(d.c)}</span><div style={{ height: `${Math.max((Number(d.c) / maxDay) * 85, 4)}%` }} className={`w-full rounded-t-md transition-colors ${i === s.byDay.length - 1 ? "bg-gradient-to-t from-yt-red-deep to-yt-red" : "bg-gradient-to-t from-yt-red-bg to-yt-red/40 group-hover:to-yt-red/70"}`} /><span className="num-mono hidden text-[9px] text-fog sm:block">{d.day.split(" ")[1] ?? d.day}</span></div>))}
               </div>

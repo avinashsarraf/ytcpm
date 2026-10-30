@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict';
+import {chromium} from 'playwright';
+const browser=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE_PATH,args:['--no-sandbox'],headless:true});
+try {
+ const page=await browser.newPage();await page.goto(process.env.BASE_URL ?? 'http://localhost:3000');
+ const amount=page.locator('#results [data-animated-money]').first();
+ const views=page.getByRole('textbox',{name:'Total views',exact:true});
+ const numeric=async()=>Number((await amount.textContent()).replace(/[^\d.]/g,''));
+ const settled=()=>page.waitForFunction(()=>[...document.querySelectorAll('#results [data-animated-money]')].every(e=>e.dataset.animating==='false'));
+ assert.equal(await numeric(),825);
+ await views.fill('200000');
+ assert.equal(await amount.getAttribute('data-animating'),'true');
+ const rising=await numeric();assert(rising>=825 && rising<1650);
+ await settled();assert.equal(await numeric(),1650);
+ await views.fill('10000');
+ assert.equal(await amount.getAttribute('data-animating'),'true');
+ const falling=await numeric();assert(falling>82.5 && falling<=1650);
+ await settled();assert.equal(await numeric(),82.5);
+ await views.fill('1000000');await views.fill('5000');await views.fill('100000');await settled();assert.equal(await numeric(),825);
+ await page.getByRole('button',{name:'Channel niche',exact:true}).click();
+ const niche=page.getByRole('listbox',{name:'Niches',exact:true});
+ assert.equal(await niche.getByRole('option').count(),18);
+ assert.deepEqual(await niche.getByRole('option').evaluateAll(options=>[options.filter(o=>o.getAttribute('aria-describedby').endsWith('higher')).length,options.filter(o=>o.getAttribute('aria-describedby').endsWith('lower')).length]),[8,10]);
+ assert(await niche.getByRole('option').evaluateAll(options=>options.every(o=>!/[\d$₹€£]/.test(o.textContent))));
+ await page.getByRole('combobox',{name:'Search niches'}).press('Escape');
+ await page.getByRole('button',{name:'Audience country',exact:true}).click();
+ for(const text of ['Worldwide','Tier 1 — Premium rates','Tier 2 — Strong','Tier 3 — Emerging','Tier 4 — Volume']) assert(await page.getByRole('listbox',{name:'Countries'}).getByText(text,{exact:true}).isVisible());
+ const search=page.getByRole('combobox',{name:'Search countries'});await search.fill('INR');await search.press('Enter');
+ assert((await amount.textContent()).includes('₹'));
+ assert.equal(await amount.getAttribute('data-animating'),'false','currency changes snap, not interpolate across units');
+ await page.emulateMedia({reducedMotion:'reduce'});await views.fill('1000');
+ assert.equal(await amount.getAttribute('data-animating'),'false');
+ assert((await amount.textContent()).includes('61'));
+ console.log('PASS count-up/down, interrupted animations, exact endpoints, reduced motion, currency safety and tier groups without niche prices');
+}finally{await browser.close();}

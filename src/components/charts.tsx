@@ -22,7 +22,7 @@ export function NicheRangeChart({ niches, max = 50 }: { niches: Niche[]; max?: n
   return (
     <div className="overflow-hidden rounded-xl border border-border">
       <div className="hidden grid-cols-[1.8fr_2fr_0.8fr_0.8fr] gap-2 border-b border-border bg-surface px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-heading sm:grid">
-        <span>Niche</span><span /><span className="text-right">Avg. CPM</span><span className="text-right">Est. RPM</span>
+        <span>Niche</span><span /><span className="text-right">Model CPM</span><span className="text-right">Est. RPM</span>
       </div>
       <div className="divide-y divide-border">
         {niches.map((n, i) => {
@@ -71,7 +71,7 @@ export function CountryBarChart({ countries }: { countries: Country[] }) {
   return (
     <div>
       <div className="mb-5 flex items-baseline justify-between gap-3">
-        <p className="meta">Average CPM by country</p>
+        <p className="meta">Model CPM midpoints by country</p>
         <p className="num-mono text-[11px] text-fog">USD · per 1,000 ad impressions</p>
       </div>
       <div className="relative flex h-52 items-end gap-2 border-b border-l border-border pl-7 sm:gap-3">
@@ -90,7 +90,7 @@ export function CountryBarChart({ countries }: { countries: Country[] }) {
                 transition={reduced ? { duration: 0 } : { duration: 0.7, delay: i * 0.04, ease: [0.22, 1, 0.36, 1] }}
                 className="block w-full max-w-9 rounded-t-md bg-gradient-to-t from-yt-red/60 to-yt-red transition-all duration-300 group-hover:from-yt-red group-hover:to-red-400 group-hover:shadow-[0_0_16px_rgba(0,0,0,0.12)]"
               />
-              <span className="mt-2"><Image src={flagUrl(c.code, "w40")} alt={`${c.name} flag`} width={24} height={16} className="flag-img !w-6 !h-4" unoptimized /></span>
+              <span className="mt-2"><Image src={flagUrl(c.code)} alt={`${c.name} flag`} width={24} height={16} className="flag-img !w-6 !h-4" unoptimized /></span>
             </Link>
           );
         })}
@@ -111,7 +111,7 @@ export function CountryFlagCards({ countries }: { countries: Country[] }) {
           <Link key={c.slug} href={`/cpm-by-country/${c.slug}`}
             className="panel panel-lift group flex flex-col items-center gap-2 p-5 text-center"
           >
-            <Image src={flagUrl(c.code, "w160")} alt={`${c.name} flag`} width={48} height={32} className="flag-img !w-12 !h-8 !rounded" unoptimized />
+            <Image src={flagUrl(c.code)} alt={`${c.name} flag`} width={48} height={32} className="flag-img !w-12 !h-8 !rounded" unoptimized />
             <span className="text-sm font-semibold text-heading">{c.name}</span>
             <span className="num-mono text-xl font-bold text-yt-red">${avg.toFixed(2)}</span>
             <span className={`text-[11px] font-semibold ${tier.color}`}>#{i + 1} · Tier {c.tier}</span>
